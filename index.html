@@ -1,0 +1,281 @@
+Aquí tienes el código completo, definitivo y unificado. He integrado tus credenciales de Firebase, la URL de tu base de datos, el sistema de fotos, el foro con semáforo, el login real y los créditos finales para N.A. y Gemini.
+
+Copia todo este código y guárdalo en un archivo llamado index.html.
+
+HTML
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cetistapp v3.0 | Schoolog</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: white; overflow-x: hidden; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.08); }
+        
+        /* Animación Semáforo Rojo Urgente */
+        .border-rose-500 { animation: flash-rojo 2s infinite; }
+        @keyframes flash-rojo { 
+            0%, 100% { border-color: #f43f5e; box-shadow: 0 0 0px rgba(244, 63, 94, 0); } 
+            50% { border-color: #ffffff; box-shadow: 0 0 20px rgba(244, 63, 94, 0.4); } 
+        }
+
+        .animate-zoom { animation: zoom 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        @keyframes zoom { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .hide-scroll::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="pb-24 hide-scroll">
+
+    <div id="sidebar" class="fixed top-0 left-0 h-full w-72 glass z-[300] -translate-x-full transition-transform duration-500 shadow-2xl">
+        <div class="p-8 border-b border-white/10 mb-4 bg-white/5">
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-full border-2 border-sky-400 overflow-hidden bg-slate-800 shadow-lg">
+                    <img id="nav-foto-img" src="" class="w-full h-full object-cover hidden">
+                    <div id="nav-foto-placeholder" class="w-full h-full flex items-center justify-center text-xl font-black text-sky-400">?</div>
+                </div>
+                <div class="text-left">
+                    <p class="text-[10px] font-black text-sky-400 uppercase tracking-widest">Estudiante</p>
+                    <p id="nav-nombre-user" class="text-sm font-bold text-white truncate w-32 tracking-tight">Cargando...</p>
+                </div>
+            </div>
+        </div>
+        <nav class="px-6 space-y-3">
+            <button onclick="irA('ini')" class="w-full text-left p-4 rounded-2xl hover:bg-white/5 font-bold text-sm transition-colors">🏠 Inicio</button>
+            <button onclick="irA('for')" class="w-full text-left p-4 rounded-2xl hover:bg-white/5 font-bold text-sm transition-colors">💬 Foro de Avisos</button>
+            <button onclick="irA('mat')" class="w-full text-left p-4 rounded-2xl hover:bg-white/5 font-bold text-sm transition-colors">📚 Mis Materias</button>
+            <button onclick="irA('cue')" class="w-full text-left p-4 rounded-2xl hover:bg-white/5 font-bold text-sm transition-colors">⚙️ Mi Cuenta</button>
+            <hr class="border-white/5 my-6">
+            <button onclick="cerrarSesion()" class="w-full text-left p-4 rounded-2xl hover:bg-rose-500/10 text-rose-500 font-black text-xs uppercase flex items-center gap-3">
+                <span>🚪</span> Cerrar Sesión
+            </button>
+        </nav>
+    </div>
+
+    <main class="p-6 max-w-lg mx-auto min-h-screen">
+
+        <section id="sec-login" class="space-y-8 pt-12">
+            <div class="text-center">
+                <h1 class="text-5xl font-black text-white tracking-tighter mb-2">Cetistapp</h1>
+                <p class="text-sky-400 text-[10px] font-black uppercase tracking-[0.3em]">Comunidad Schoolog</p>
+            </div>
+            <div class="glass p-8 rounded-[3rem] space-y-4 shadow-2xl">
+                <input type="email" id="log-email" placeholder="Correo electrónico" class="w-full p-4 rounded-2xl bg-white/5 border border-white/10 outline-none focus:ring-2 ring-sky-500 transition-all">
+                <input type="password" id="log-pass" placeholder="Contraseña" class="w-full p-4 rounded-2xl bg-white/5 border border-white/10 outline-none focus:ring-2 ring-sky-500 transition-all">
+                <button onclick="login()" class="w-full bg-sky-500 text-slate-950 p-5 rounded-2xl font-black uppercase text-xs shadow-lg active:scale-95 transition-transform">Entrar</button>
+                <button onclick="registro()" class="w-full text-slate-500 p-2 text-[10px] font-bold uppercase tracking-widest hover:text-white transition-colors">Crear cuenta nueva</button>
+            </div>
+        </section>
+
+        <section id="sec-ini" class="hidden space-y-8 animate-zoom">
+            <div class="flex items-center gap-5">
+                <div id="welcome-foto-container" class="w-20 h-20 rounded-full border-4 border-white/5 overflow-hidden shadow-2xl bg-slate-800"></div>
+                <div>
+                    <h1 class="text-3xl font-black tracking-tighter">
+                        <span id="saludo-hora" class="block text-xs uppercase text-slate-500 font-bold mb-1">Hola,</span>
+                        <span id="nombre-bienvenida">Estudiante</span>
+                    </h1>
+                </div>
+            </div>
+            <div class="glass p-8 rounded-[3rem] bg-gradient-to-br from-sky-500/10 to-transparent border-none">
+                <p id="frase-inspiradora" class="text-sm font-medium italic text-slate-200 leading-relaxed italic">"Cargando motivación..."</p>
+            </div>
+        </section>
+
+        <section id="sec-for" class="hidden space-y-6 animate-zoom pb-20">
+            <div class="glass p-6 rounded-[2.5rem] border-b-4 border-slate-700">
+                <h3 class="text-[10px] font-black uppercase mb-4 text-center text-slate-500 tracking-widest">Publicar Aviso</h3>
+                <div class="grid grid-cols-3 gap-2 mb-4">
+                    <button onclick="setPrioridad('alta')" id="prio-alta" class="p-3 rounded-xl border-2 border-rose-500 text-rose-500 text-[9px] font-black uppercase transition-all">Urgente</button>
+                    <button onclick="setPrioridad('media')" id="prio-media" class="p-3 rounded-xl border-2 border-amber-500 text-amber-500 text-[9px] font-black uppercase transition-all">Información</button>
+                    <button onclick="setPrioridad('baja')" id="prio-baja" class="p-3 rounded-xl border-2 border-emerald-500 text-emerald-500 text-[9px] font-black uppercase transition-all">General</button>
+                </div>
+                <textarea id="f-post-text" placeholder="¿Qué noticias hay hoy?" class="w-full p-4 rounded-2xl bg-white/5 text-xs mb-3 h-24 outline-none"></textarea>
+                <button onclick="publicarEnForo()" id="btn-publicar" class="w-full bg-slate-100 text-slate-950 p-5 rounded-2xl font-black text-xs uppercase shadow-xl">Publicar en el Foro</button>
+            </div>
+            <div id="foro-feed" class="space-y-6"></div>
+        </section>
+
+        <section id="sec-cue" class="hidden space-y-6 animate-zoom">
+            <div class="glass p-10 rounded-[3.5rem] text-center border-b-4 border-sky-500">
+                <div id="perfil-foto-preview" class="w-32 h-32 rounded-full border-4 border-sky-400 mx-auto mb-6 shadow-2xl overflow-hidden bg-slate-800"></div>
+                <h2 id="perfil-nombre" class="text-xl font-black mb-6 tracking-tight">Mi Perfil</h2>
+                <div class="space-y-3">
+                    <p class="text-[10px] font-black uppercase text-slate-500 tracking-widest">URL de tu Foto (Link):</p>
+                    <input type="text" id="url-foto" placeholder="https://ejemplo.com/foto.jpg" class="w-full p-4 rounded-2xl bg-white/5 border border-white/10 text-xs text-center mb-6">
+                </div>
+                <button onclick="actualizarFoto()" class="w-full bg-sky-500 text-slate-950 py-4 rounded-2xl font-black text-xs uppercase shadow-lg shadow-sky-500/20">Actualizar Foto</button>
+                
+                <div class="mt-12 pt-8 border-t border-white/5">
+                    <div class="flex items-center justify-center gap-2 mb-2">
+                        <span class="w-2 h-2 rounded-full bg-sky-500 animate-pulse"></span>
+                        <p class="text-[9px] font-black uppercase tracking-widest text-slate-500">Versión 3.0 Schoolog</p>
+                    </div>
+                    <p class="text-xs font-bold text-slate-300">App creada y elaborada por</p>
+                    <p class="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-emerald-400 uppercase tracking-tighter">N.A. y Gemini</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <div id="nav-bottom" class="fixed bottom-0 left-0 w-full h-24 glass border-t border-white/5 flex items-center justify-around px-8 z-[200] hidden">
+        <button onclick="irA('ini')" class="text-2xl transition-transform active:scale-90">🏠</button>
+        <button onclick="irA('for')" class="text-2xl transition-transform active:scale-90">💬</button>
+        <button onclick="toggleSidebar()" class="w-16 h-16 bg-sky-500 rounded-full flex items-center justify-center text-slate-950 text-3xl shadow-2xl -translate-y-6 border-8 border-[#020617]">☰</button>
+        <button onclick="irA('mat')" class="text-2xl transition-transform active:scale-90">📚</button>
+        <button onclick="irA('cue')" class="text-2xl transition-transform active:scale-90">👤</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getDatabase, ref, set, push, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // CONFIGURACIÓN DE FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyBliPWrdCDZzlFDIdsI17fyINeW-TsMgr0",
+            authDomain: "schoolog-ee12b.firebaseapp.com",
+            databaseURL: "https://schoolog-ee12b-default-rtdb.firebaseio.com",
+            projectId: "schoolog-ee12b",
+            storageBucket: "schoolog-ee12b.firebasestorage.app",
+            messagingSenderId: "11132093202",
+            appId: "1:11132093202:web:fe1f1d743eb0fb398529cb"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        window.userActual = null;
+        window.userEmail = "";
+        window.prioridadSeleccionada = 'media';
+
+        // GESTIÓN DE SESIÓN
+        window.registro = () => {
+            const email = document.getElementById('log-email').value;
+            const pass = document.getElementById('log-pass').value;
+            if(!email || !pass) return alert("Llena los campos.");
+            createUserWithEmailAndPassword(auth, email, pass)
+                .then(() => alert("¡Cuenta Creada!"))
+                .catch(e => alert("Error: " + e.message));
+        };
+
+        window.login = () => {
+            const email = document.getElementById('log-email').value;
+            const pass = document.getElementById('log-pass').value;
+            signInWithEmailAndPassword(auth, email, pass).catch(e => alert("Error: " + e.message));
+        };
+
+        window.cerrarSesion = () => {
+            if(confirm("¿Cerrar sesión?")) signOut(auth).then(() => location.reload());
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                window.userActual = user.uid;
+                window.userEmail = user.email;
+                document.getElementById('nav-bottom').classList.remove('hidden');
+                document.getElementById('sec-login').classList.add('hidden');
+                conectarDatosRealtime();
+                irA('ini');
+            } else {
+                document.getElementById('sec-login').classList.remove('hidden');
+                document.getElementById('nav-bottom').classList.add('hidden');
+            }
+        });
+
+        // NAVEGACIÓN
+        window.irA = (seccion) => {
+            document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+            document.getElementById('sec-' + seccion).classList.remove('hidden');
+            document.getElementById('sidebar').classList.add('-translate-x-full');
+            window.scrollTo(0,0);
+        };
+
+        window.toggleSidebar = () => {
+            document.getElementById('sidebar').classList.toggle('-translate-x-full');
+        };
+
+        // DATOS REALTIME
+        function conectarDatosRealtime() {
+            // Escuchar Perfil Personal
+            onValue(ref(db, `usuarios/${userActual}`), (snap) => {
+                const data = snap.val() || {};
+                const foto = data.foto || `https://ui-avatars.com/api/?name=${userEmail}&background=0ea5e9&color=fff`;
+                
+                // Actualizar Sidebar
+                document.getElementById('nav-foto-img').src = foto;
+                document.getElementById('nav-foto-img').classList.remove('hidden');
+                document.getElementById('nav-foto-placeholder').classList.add('hidden');
+                document.getElementById('nav-nombre-user').innerText = userEmail.split('@')[0].toUpperCase();
+                
+                // Actualizar Inicio y Perfil
+                document.getElementById('perfil-foto-preview').innerHTML = `<img src="${foto}" class="w-full h-full object-cover">`;
+                document.getElementById('welcome-foto-container').innerHTML = `<img src="${foto}" class="w-full h-full object-cover">`;
+                document.getElementById('nombre-bienvenida').innerText = userEmail.split('@')[0].toUpperCase();
+                document.getElementById('perfil-nombre').innerText = userEmail.split('@')[0].toUpperCase();
+            });
+
+            // Escuchar Foro
+            onValue(ref(db, 'foro/posts'), (snap) => {
+                const feed = document.getElementById('foro-feed');
+                feed.innerHTML = "";
+                const posts = snap.val();
+                if(posts) {
+                    Object.entries(posts).reverse().forEach(([id, p]) => {
+                        const style = p.prioridad === 'alta' ? 'border-rose-500 bg-rose-500/10' : p.prioridad === 'media' ? 'border-amber-500 bg-amber-500/10' : 'border-emerald-500 bg-emerald-500/10';
+                        feed.innerHTML += `
+                            <div class="glass p-6 rounded-[2.5rem] border-l-8 ${style} mb-4 animate-zoom">
+                                <p class="text-[9px] font-black text-sky-400 uppercase mb-2 tracking-widest">${p.autor}</p>
+                                <p class="text-xs text-slate-200 leading-relaxed">${p.texto}</p>
+                            </div>`;
+                    });
+                }
+            });
+        }
+
+        // ACCIONES DE PERFIL Y FORO
+        window.actualizarFoto = async () => {
+            const url = document.getElementById('url-foto').value;
+            if(url) {
+                await update(ref(db, `usuarios/${userActual}`), { foto: url });
+                alert("Foto actualizada correctamente.");
+            }
+        };
+
+        window.setPrioridad = (n) => {
+            prioridadSeleccionada = n;
+            const colors = {alta:'rose', media:'amber', baja:'emerald'};
+            document.getElementById('btn-publicar').className = `w-full bg-${colors[n]}-500 text-slate-950 p-5 rounded-2xl font-black text-xs uppercase shadow-xl transition-colors`;
+        };
+
+        window.publicarEnForo = async () => {
+            const texto = document.getElementById('f-post-text').value;
+            if(!texto) return;
+            await push(ref(db, 'foro/posts'), {
+                autor: userEmail.split('@')[0].toUpperCase(),
+                texto: texto,
+                prioridad: prioridadSeleccionada,
+                fecha: Date.now()
+            });
+            document.getElementById('f-post-text').value = "";
+            alert("Aviso publicado.");
+        };
+
+        // FRASES ALEATORIAS
+        const frases = [
+            "El éxito es la suma de pequeños esfuerzos diarios.",
+            "Cree en ti y todo será posible.",
+            "Tu futuro se construye hoy.",
+            "Estudiar abre puertas que no sabías que existían.",
+            "La perseverancia supera al talento."
+        ];
+        document.getElementById('frase-inspiradora').innerText = `"${frases[Math.floor(Math.random()*frases.length)]}"`;
+
+    </script>
+</body>
+</html>
