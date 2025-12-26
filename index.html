@@ -1,9 +1,23 @@
+¡Entendido! Vamos a dejarlo más limpio y con el crédito personalizado para tu grupo.
+
+He realizado estos tres cambios:
+
+Título del navegador: Ahora solo dice Cetistapp.
+
+Subtítulo del Login: Cambiado de "By Schoolog" a BY C3T1STAS.
+
+Créditos del Perfil: También actualizados a BY C3T1STAS junto a tus créditos.
+
+Aquí tienes el código actualizado para que lo pegues en GitHub:
+
+HTML
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cetistapp v3.0 | Schoolog</title>
+    <title>Cetistapp</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
@@ -17,7 +31,7 @@
 
     <div id="sidebar" class="fixed top-0 left-0 h-full w-64 glass z-[300] -translate-x-full transition-transform duration-300">
         <div class="p-6 border-b border-white/10 text-center">
-            <h2 class="text-sky-400 font-black text-xl">Schoolog</h2>
+            <h2 class="text-sky-400 font-black text-xl">Cetistapp</h2>
             <p id="nav-email" class="text-[10px] text-slate-400 truncate mt-1"></p>
         </div>
         <nav class="p-4 space-y-2">
@@ -32,7 +46,7 @@
         <section id="sec-login" class="pt-20 space-y-6">
             <div class="text-center">
                 <h1 class="text-5xl font-black tracking-tighter">Cetistapp</h1>
-                <p class="text-sky-500 font-bold text-xs tracking-widest uppercase">By Schoolog</p>
+                <p class="text-sky-500 font-bold text-xs tracking-widest uppercase">BY C3T1STAS</p>
             </div>
             <div class="glass p-6 rounded-[2rem] space-y-4">
                 <input type="email" id="log-email" placeholder="Correo" class="w-full p-4 rounded-xl bg-white/5 border border-white/10 outline-none">
@@ -67,7 +81,10 @@
                 <h2 id="p-nombre" class="font-bold mb-4">Usuario</h2>
                 <input type="text" id="p-url" placeholder="Pega link de foto aquí" class="w-full p-3 rounded-lg bg-white/5 border border-white/10 text-xs mb-4">
                 <button onclick="subirFoto()" class="w-full bg-sky-500 text-slate-950 p-3 rounded-xl font-bold text-xs uppercase">Guardar Perfil</button>
-                <p class="text-[9px] text-slate-600 mt-10 font-black uppercase tracking-widest">Desarrollado por N.A. & Gemini</p>
+                <div class="mt-10">
+                    <p class="text-[9px] text-slate-600 font-black uppercase tracking-widest">BY C3T1STAS</p>
+                    <p class="text-[9px] text-slate-500 font-bold">N.A. & Gemini</p>
+                </div>
             </div>
         </section>
     </main>
@@ -155,9 +172,8 @@
 
         window.subirFoto = () => {
             const url = document.getElementById('p-url').value;
-            if(url) update(ref(db, 'usuarios/' + auth.currentUser.uid), { foto: url }).then(() => alert("¡Listo!"));
+            if(url) update(ref(db, 'usuarios/' + auth.currentUser.uid), { foto: url }).then(() => alert("¡Perfil actualizado!"));
         };
     </script>
 </body>
 </html>
-
