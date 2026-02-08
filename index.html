@@ -421,29 +421,11 @@ input, select, textarea {
     background: rgba(0,0,0,0.18); /* pequeño fondo para asegurar contraste sobre emoji */
     padding-left: 6px; padding-right: 6px; border-radius: 6px;
 }
-/* ✅ Asegurar visibilidad en modo claro para horario */
-body.light-mode .clase-block {
-    color: #020617 !important;
-}
-
-body.light-mode .clase-block span,
-body.light-mode .clase-block div {
-    color: #020617 !important;
-}
-
-body.light-mode .clase-block > div > div > div > span {
-    text-shadow: 0 1px 2px rgba(255,255,255,0.8) !important;
-}
-
-body.light-mode .clase-block > div > div:last-child {
-    color: #020617 !important;
-    text-shadow: 0 1px 2px rgba(255,255,255,0.6) !important;
-}
 /* Badge para clases dobles (absoluto para no tapar el texto) */
 .clase-block .doble-badge {
     position: absolute;
-    top: 6px;
-    right: 8px;
+    top: -40px;
+    right: -90px;
     background: rgba(255,255,255,0.12);
     color: white;
     font-size: 9px;
