@@ -4,198 +4,4107 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cetistapp</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Flatpickr para selectores de fecha integrados y estilizados -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #020617; color: white; scroll-behavior: smooth; }
-        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
-        .tab-active { border-bottom: 3px solid #0ea5e9; color: #0ea5e9; }
-        .animate-up { animation: up 0.4s ease-out; }
-        @keyframes up { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-    </style>
-</head>
-<body class="pb-24">
+/* ===== SIDEBAR MODES ===== */
 
-    <section id="sec-login" class="min-h-screen flex flex-col items-center justify-center p-6">
-        <div class="text-center mb-10">
-            <h1 class="text-6xl font-black tracking-tighter mb-2">Cetistapp</h1>
-            <p class="text-sky-500 font-black tracking-[0.3em] text-xs">BY C3T1STAS</p>
-        </div>
-        <div class="glass p-8 rounded-[2.5rem] w-full max-w-sm space-y-4">
-            <input type="email" id="log-email" placeholder="Correo institucional" class="w-full p-4 rounded-2xl bg-white/5 border border-white/10 outline-none focus:ring-2 ring-sky-500">
-            <input type="password" id="log-pass" placeholder="Contraseña" class="w-full p-4 rounded-2xl bg-white/5 border border-white/10 outline-none focus:ring-2 ring-sky-500">
-            <button onclick="login()" class="w-full bg-sky-500 text-slate-950 p-5 rounded-2xl font-black uppercase text-xs shadow-lg shadow-sky-500/20 active:scale-95 transition-all">Entrar</button>
-            <button onclick="registro()" class="w-full text-slate-500 text-[10px] font-bold uppercase tracking-widest">Registrarse</button>
-        </div>
-    </section>
+/* MODO HOVER: Se expande al pasar el mouse */
+#app-container.sidebar-hover .sidebar { 
+    width: 0px !important; 
+    transition: width 0.3s ease; 
+    overflow: hidden;
+}
 
-    <main id="app" class="hidden max-w-md mx-auto p-6 space-y-8 animate-up">
+#app-container.sidebar-hover .sidebar:hover { 
+    width: 280px !important; 
+    overflow: visible;
+}
+
+#app-container.sidebar-hover .nav-btn { 
+    justify-content: center;
+    padding: 14px 8px;
+    gap: 0;
+}
+
+#app-container.sidebar-hover .sidebar:hover .nav-btn {
+    justify-content: flex-start;
+    padding: 14px 20px;
+    gap: 12px;
+}
+
+#app-container.sidebar-hover .nav-btn span:first-child {
+    font-size: 24px;
+    margin: 0;
+}
+
+#app-container.sidebar-hover .nav-label,
+#app-container.sidebar-hover .sidebar > div:first-child > h1,
+#app-container.sidebar-hover .sidebar > div:first-child > p,
+#app-container.sidebar-hover .sidebar > div:first-child > button {
+    opacity: 0;
+    max-width: 0;
+    overflow: hidden;
+    transition: opacity 0.2s, max-width 0.2s;
+}
+
+#app-container.sidebar-hover .sidebar:hover .nav-label,
+#app-container.sidebar-hover .sidebar:hover > div:first-child > h1,
+#app-container.sidebar-hover .sidebar:hover > div:first-child > p,
+#app-container.sidebar-hover .sidebar:hover > div:first-child > button {
+    opacity: 1;
+    max-width: 100%;
+}
+
+/* Mostrar configuración en hover */
+#app-container.sidebar-hover .sidebar > div:last-child {
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: opacity 0.2s, max-height 0.2s;
+}
+
+#app-container.sidebar-hover .sidebar:hover > div:last-child {
+    opacity: 1;
+    max-height: 100px;
+}
+
+/* MODO SOLO ÍCONOS: Siempre compacto */
+#app-container.sidebar-icons .sidebar { 
+    width: 140px !important; 
+    overflow: visible;
+}
+
+#app-container.sidebar-icons .nav-btn { 
+    justify-content: center;
+    padding: 14px 8px;
+    gap: 0;
+    margin-bottom: 6px;
+}
+
+#app-container.sidebar-icons .nav-btn span:first-child {
+    font-size: 24px;
+    margin: 0;
+}
+
+#app-container.sidebar-icons .nav-label,
+#app-container.sidebar-icons .sidebar > div:first-child > h1,
+#app-container.sidebar-icons .sidebar > div:first-child > p,
+#app-container.sidebar-icons .sidebar > div:first-child > button {
+    display: none !important;
+}
+
+/* Mostrar configuración siempre en modo iconos */
+#app-container.sidebar-icons .sidebar > div:last-child {
+    display: block !important;
+    padding-top: 12px;
+}
+
+#app-container.sidebar-icons #btn-cfg {
+    display: flex !important;
+}
+
+#app-container.sidebar-icons #btn-cfg span:last-child {
+    display: none !important;
+}
+        /* =========================================
+           ESTILOS GENERALES
+           ========================================= */
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #01071f; 
+            color: white; 
+            display: flex; 
+            height: 100vh; 
+            overflow: hidden; 
+            position: relative; 
+        }
         
-        <header class="flex justify-between items-center pt-4">
-            <div>
-                <p id="txt-saludo" class="text-sky-500 font-black text-[10px] uppercase tracking-widest"></p>
-                <h2 id="user-name" class="text-3xl font-black tracking-tighter">Usuario</h2>
-            </div>
-            <button onclick="cerrarSesion()" class="w-12 h-12 glass rounded-full flex items-center justify-center">🚪</button>
-        </header>
+        .glass { 
+            background: rgba(255, 255, 255, 0.03); 
+            backdrop-filter: blur(10px); 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+        }
 
-        <section id="sec-ini" class="space-y-6">
-            <div class="glass p-6 rounded-[2rem] bg-gradient-to-br from-sky-500/10 to-transparent">
-                <h3 class="font-bold mb-4 flex items-center gap-2">📌 Pendientes</h3>
-                <div class="flex gap-2 mb-4">
-                    <input type="text" id="task-input" placeholder="Nueva tarea..." class="flex-1 bg-white/5 p-3 rounded-xl border border-white/10 text-sm outline-none">
-                    <button onclick="addTarea()" class="bg-white text-black px-4 rounded-xl font-bold">+</button>
+        #seasonal-canvas { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            pointer-events: none; 
+            z-index: 1; 
+        }
+
+        /* SIDEBAR */
+        .sidebar { 
+            width: 280px; 
+            height: 100vh; 
+            flex-shrink: 0; 
+            border-right: 1px solid rgba(255, 255, 255, 0.1); 
+            display: flex; 
+            flex-direction: column; 
+            z-index: 20; 
+            position: relative; 
+            background: rgba(2, 6, 23, 0.85); 
+            backdrop-filter: blur(20px); 
+        }
+
+.nav-btn { 
+    width: 100%; 
+    text-align: left; 
+    padding: 14px 20px; 
+    border-radius: 12px; 
+    transition: 0.3s; 
+    font-weight: 600; 
+    font-size: 14px; 
+    margin-bottom: 8px; 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
+    cursor: grab; 
+    background: rgba(255, 255, 255, 0.02); 
+    border-left: 4px solid transparent; 
+    min-height: 48px; /* ✅ NUEVO: altura mínima */
+}
+.nav-btn:hover { background: rgba(255, 255, 255, 0.05); border-left-color: var(--color-principal); color: var(--color-principal); }
+.nav-btn.active { background: var(--color-principal) !important; color: #020617 !important; border-left-color: white; }
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(139, 22, 22, 0.05);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-principal);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-principal)
+}
+
+body.light-mode ::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+body.light-mode ::-webkit-scrollbar-thumb {
+    background: rgba(56, 189, 248, 0.6);
+}
+/* Scrollbar horizontal en móvil */
+@media (max-width: 768px) {
+    .horario-grid::-webkit-scrollbar {
+        height: 6px;
+    }
+    
+    #nav-wrapper::-webkit-scrollbar {
+        height: 3px;
+    }
+    
+    .sidebar::-webkit-scrollbar {
+        height: 3px;
+    }
+}
+        /* CONTENIDO */
+        .content { 
+            flex-grow: 1; 
+            height: 100vh; 
+            overflow-y: auto; 
+            padding: 40px; 
+            scroll-behavior: smooth; 
+            z-index: 10; 
+            position: relative; 
+        }
+        .content::-webkit-scrollbar { width: 6px; }
+        .content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+
+        /* UI ELEMENTS */
+        .card { 
+            background: rgba(255, 255, 255, 0.02); 
+            border: 1px solid rgba(255, 255, 255, 0.05); 
+            border-radius: 24px; 
+            padding: 24px; 
+            position: relative; 
+            backdrop-filter: blur(5px); 
+            transition: transform 0.2s, background-color 0.2s;
+        }
+        
+        .clickable-card:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+        }
+
+        .animate-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+/* Selector de tipo de materia mejorado */
+.tipo-mat-option {
+    position: relative;
+    overflow: hidden;
+}
+
+input[type="radio"]:checked + .tipo-mat-option {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px currentColor !important;
+    border-width: 3px;
+}
+
+input[type="radio"]:checked + .tipo-mat-option::after {
+    content: '✓';
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: white;
+    color: #020617;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 900;
+}
+input, select, textarea { 
+    background: rgba(255, 255, 255, 0.05); 
+    color: white; 
+    border: 1px solid rgba(255, 255, 255, 0.1); 
+    padding: 14px 16px; 
+    border-radius: 12px; 
+    outline: none; 
+    font-size: 13px; 
+    width: 100%; 
+    text-align: center;
+    line-height: 1.4;
+    touch-action: manipulation; /* ✅ NUEVO */
+    -webkit-tap-highlight-color: transparent; /* ✅ NUEVO */
+}
+        textarea { text-align: left; resize: none; }
+        select option { background: #020617; }
+
+        .radio-option input:checked + div {
+            border-color: currentColor;
+            background-color: currentColor;
+            color: #020617; 
+            box-shadow: 0 0 15px currentColor;
+        }
+
+        /* PESTAÑAS PENDIENTES */
+        .tab-pen {
+            cursor: pointer; padding: 10px 20px; border-radius: 100px;
+            font-weight: 900; text-transform: uppercase; font-size: 10px; letter-spacing: 1px;
+            transition: all 0.3s; background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid transparent;
+        }
+        .tab-pen.active { background: var(--color-principal); color: #020617; box-shadow: 0 0 20px rgba(56, 189, 248, 0.4); }
+
+        .btn-sort {
+            font-size: 9px; font-weight: bold; text-transform: uppercase; padding: 6px 12px;
+            border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); color: #64748b; transition: 0.2s; background: transparent; cursor: pointer;
+        }
+        .btn-sort.active { background: white; color: black; border-color: white; box-shadow: 0 0 10px rgba(255, 255, 255, 0.2); }
+
+        /* --- HORARIO GRID (LA SECCIÓN DEL PROBLEMA) --- */
+.horario-grid { 
+    display: grid; 
+    grid-template-columns: 80px repeat(5, minmax(180px, 1fr)); /* ✅ Ancho mínimo de 180px por columna */
+    gap: 0; 
+    background: rgba(255,255,255,0.1); 
+    border: 1px solid rgba(255,255,255,0.1); 
+    border-radius: 16px; 
+    overflow-x: auto; /* ✅ Scroll horizontal si es necesario */
+    margin-top: 20px; 
+}
+        .horario-header { 
+            background: #0f172a; padding: 10px 2px; text-align: center; font-weight: 900; font-size: 9px; 
+            text-transform: uppercase; color: #94a3b8; position: sticky; top: 0; z-index: 50; 
+        }
+        .horario-time { 
+            background: #0f172a; padding: 0 2px; text-align: center; font-size: 8px; font-weight: bold; 
+            color: #64748b; display: flex; flex-direction: column; justify-content: center; 
+            border-top: 1px solid rgba(255,255,255,0.05); 
+        }
+        /* CORRECCIÓN VISUAL: flex-direction: column permite apilar materias */
+.horario-cell { 
+    background: #020617; 
+    min-height: 90px; /* ✅ Aumentado de 80px a 90px */
+    min-width: 180px; /* ✅ NUEVO: ancho mínimo fijo */
+    position: relative; 
+    border-top: 1px solid rgba(255,255,255,0.05); 
+    border-left: 1px solid rgba(255,255,255,0.05); 
+    transition: 0.2s; 
+    display: flex; 
+    flex-direction: column;
+    padding: 8px; /* Añadir espacio interno para separar tarjetas adyacentes */
+    gap: 6px;
+    overflow: hidden; /* Evitar solapamientos entre celdas adyacentes */
+    box-sizing: border-box;
+}
+        
+.clase-block { 
+    width: 100%;
+    height: 100%;
+    border-radius: 8px; 
+    padding: 8px;
+    font-size: 10px; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    cursor: pointer; 
+    transition: 0.2s; 
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4); 
+    position: relative; 
+    z-index: 30; 
+    min-height: 86px; /* ✅ Ajustado para caber en la celda */
+    flex-shrink: 0;
+    overflow: hidden;
+    margin: 6px 0; /* mayor separación vertical entre tarjetas para evitar solapamientos */
+    box-sizing: border-box;
+}
+
+/* ✅ NUEVO: Contenedor del emoji de fondo */
+.clase-block .emoji-bg {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.12; /* ✅ Más visible */
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* ✅ NUEVO: Contenido principal sobre el emoji */
+.clase-block .clase-content {
+    position: relative;
+    z-index: 40;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* ✅ Asegurar visibilidad del nombre */
+.clase-block .mat-name {
+    color: white !important;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    font-weight: 900;
+    font-size: 11px;
+    line-height: 1.2;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding-right: 56px; /* Reservar espacio para badge/emoji a la derecha */
+    display: inline-block;
+    background: rgba(0,0,0,0.18); /* pequeño fondo para asegurar contraste sobre emoji */
+    padding-left: 6px; padding-right: 6px; border-radius: 6px;
+}
+/* ✅ Asegurar visibilidad en modo claro para horario */
+body.light-mode .clase-block {
+    color: #020617 !important;
+}
+
+body.light-mode .clase-block span,
+body.light-mode .clase-block div {
+    color: #020617 !important;
+}
+
+body.light-mode .clase-block > div > div > div > span {
+    text-shadow: 0 1px 2px rgba(255,255,255,0.8) !important;
+}
+
+body.light-mode .clase-block > div > div:last-child {
+    color: #020617 !important;
+    text-shadow: 0 1px 2px rgba(255,255,255,0.6) !important;
+}
+/* Badge para clases dobles (absoluto para no tapar el texto) */
+.clase-block .doble-badge {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    background: rgba(255,255,255,0.12);
+    color: white;
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    z-index: 50;
+    backdrop-filter: blur(4px);
+    white-space: nowrap;
+}
+body.light-mode .clase-block .doble-badge { background: rgba(0,0,0,0.07); color: #020617; }
+
+/* ✅ Modo claro */
+body.light-mode .clase-block .mat-name {
+    color: #020617 !important;
+    text-shadow: none !important;
+    background: rgba(255,255,255,0.85) !important;
+}
+
+.clase-block span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+}
+
+        /* MODALES */
+        #auth-overlay { position: fixed; inset: 0; z-index: 999; background: #020617; display: flex; align-items: center; justify-content: center; overflow-y: auto; }
+        #custom-confirm { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        #modal-add, #modal-view { position: fixed; inset: 0; z-index: 900; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        
+        .btn-dia { transition: 0.2s; } 
+        .btn-dia.selected { background: white; color: black; border-color: white; }
+        .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+        /* Propiedad estándar para navegadores modernos */
+    line-clamp: 2;
+}
+.horario-cell:empty {
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.horario-cell:empty:hover {
+    background: rgba(56, 189, 248, 0.1) !important;
+}
+/* ===== RESPONSIVE PARA MÓVILES ===== */
+
+/* ===== RESPONSIVE PARA MÓVILES ===== */
+
+@media (max-width: 768px) {
+    body {
+        overflow: hidden;
+    }
+    
+    /* Layout en columna */
+    #app-container {
+        flex-direction: column !important;
+        height: 100vh;
+        overflow: hidden;
+    }
+    
+    /* Sidebar horizontal fija arriba */
+    .sidebar {
+        width: 100% !important;
+        height: 70px !important;
+        flex-direction: row !important;
+        padding: 8px 12px !important;
+        border-right: none !important;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.1) !important;
+        overflow-x: auto;
+        overflow-y: hidden;
+        flex-shrink: 0;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
+    
+    /* Ocultar logo y botón de tema */
+    .sidebar > div:first-child {
+        display: none !important;
+    }
+    
+    /* Navegación horizontal */
+    #nav-wrapper {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 12px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100%;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+   #nav-wrapper .nav-btn {
+    cursor: pointer !important;
+    /* Evita que se seleccione el texto del botón */
+    -webkit-user-select: none;
+    user-select: none;
+    /* Evita el comportamiento de arrastre nativo del navegador */
+    -webkit-user-drag: none;
+    /* Mejora la respuesta al toque en móviles */
+    touch-action: manipulation !important;
+}
+    .nav-btn {
+        min-width: 65px !important;
+        max-width: 65px !important;
+        padding: 8px 6px !important;
+        margin-bottom: 0 !important;
+        flex-direction: column !important;
+        gap: 4px !important;
+        font-size: 9px !important;
+        text-align: center !important;
+        justify-content: center !important;
+        align-items: center !important;
+        border-left: none !important;
+        border-bottom: 3px solid transparent !important;
+        flex-shrink: 0;
+        background: transparent !important;
+    }
+    
+    .nav-btn.active {
+        border-bottom-color: var(--color-principal) !important;
+        background: rgba(56, 189, 248, 0.1) !important;
+    }
+    
+    .nav-btn:active {
+        transform: scale(0.95);
+        background: rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    .nav-btn span:first-child {
+        font-size: 26px !important;
+        line-height: 1 !important;
+    }
+    
+    .nav-label {
+        font-size: 9px !important;
+        opacity: 1 !important;
+        max-width: 100% !important;
+        white-space: nowrap;
+        font-weight: 700 !important;
+    }
+    
+    /* Ocultar sección de configuración inferior, mostrar en navbar */
+    .sidebar > div:last-child {
+        display: none !important;
+    }
+    
+    #btn-cfg {
+        display: flex !important;
+    }
+    
+    /* Contenido con padding para botones del sistema */
+    .content {
+        width: 100% !important;
+        height: calc(100vh - 70px) !important;
+        padding: 16px !important;
+        padding-bottom: 80px !important; /* ✅ Espacio para botones del sistema */
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Header más compacto */
+    section header {
+        margin-bottom: 20px !important;
+    }
+    
+    section header h2 {
+        font-size: 28px !important;
+        line-height: 1.2 !important;
+    }
+    
+    section header p {
+        font-size: 10px !important;
+    }
+    
+    /* Botones más accesibles */
+    section header button,
+    .card button {
+        min-height: 48px !important;
+        padding: 12px 16px !important;
+        font-size: 11px !important;
+        touch-action: manipulation !important;
+    }
+    
+    /* Grids en columna */
+    .grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+    
+    /* ✅ HORARIO MEJORADO */
+    .horario-grid {
+        overflow-x: auto !important;
+        overflow-y: visible !important;
+        -webkit-overflow-scrolling: touch;
+        margin-top: 12px !important;
+        border-radius: 12px !important;
+    }
+    
+    .horario-cell {
+        min-width: 140px !important;
+        min-height: 80px !important;
+        padding: 6px !important;
+    }
+    
+    .horario-header,
+    .horario-time {
+        font-size: 10px !important;
+        padding: 8px 4px !important;
+    }
+    
+    .clase-block {
+        font-size: 9px !important;
+        padding: 6px !important;
+        min-height: 70px !important;
+    }
+    
+    /* ✅ MODALES OPTIMIZADOS */
+    #modal-add > div,
+    #modal-view > div,
+    #custom-confirm > div,
+    #modal-extraordinario > div {
+        max-width: calc(100vw - 32px) !important;
+        max-height: calc(100vh - 100px) !important;
+        margin: 16px !important;
+        padding: 20px !important;
+        overflow-y: auto !important;
+    }
+    
+    /* Inputs táctiles */
+    input, select, textarea {
+        padding: 14px 12px !important;
+        font-size: 16px !important; /* Evita zoom en iOS */
+        min-height: 48px !important;
+    }
+    
+    button {
+        min-height: 48px !important;
+        padding: 12px 16px !important;
+        font-size: 13px !important;
+        touch-action: manipulation !important;
+    }
+    
+    /* ✅ CARDS OPTIMIZADAS */
+    .card {
+        padding: 16px !important;
+        border-radius: 16px !important;
+        margin-bottom: 16px !important;
+    }
+    
+    /* Calificaciones en columna */
+    [id^="parciales-"] {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+    
+    /* Tabs de pendientes */
+    .tab-pen {
+        font-size: 9px !important;
+        padding: 8px 14px !important;
+        white-space: nowrap;
+    }
+    
+    .btn-sort {
+        font-size: 8px !important;
+        padding: 6px 10px !important;
+    }
+    
+    /* ✅ SECCIÓN DE MATERIAS */
+    #grid-materias .card {
+        height: auto !important;
+        min-height: 160px !important;
+    }
+    
+    /* ✅ INICIO - Stats */
+    #sec-ini .grid {
+        gap: 12px !important;
+    }
+    
+    #sec-ini .card {
+        padding: 20px 16px !important;
+    }
+    
+    #stat-promedio {
+        font-size: 48px !important;
+    }
+    
+    /* ✅ CONFIGURACIÓN */
+    #sec-cfg .grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    /* Ocultar botón de kardex en móvil */
+    #kardex-hint {
+        display: none !important;
+    }
+}
+
+/* ✅ Pantallas MUY pequeñas */
+@media (max-width: 480px) {
+    .nav-btn {
+        min-width: 58px !important;
+        max-width: 58px !important;
+    }
+    
+    .nav-btn span:first-child {
+        font-size: 22px !important;
+    }
+    
+    .nav-label {
+        font-size: 8px !important;
+    }
+    
+    section header h2 {
+        font-size: 24px !important;
+    }
+    
+    .content {
+        padding: 12px !important;
+        padding-bottom: 80px !important;
+    }
+}
+
+/* ✅ Deshabilitar modos de sidebar en móvil */
+@media (max-width: 768px) {
+    #app-container.sidebar-hover .sidebar,
+    #app-container.sidebar-icons .sidebar {
+        width: 100% !important;
+        height: 70px !important;
+    }
+    
+    #app-container.sidebar-hover .nav-btn,
+    #app-container.sidebar-icons .nav-btn {
+        min-width: 65px !important;
+        max-width: 65px !important;
+    }
+    
+    #app-container.sidebar-hover .nav-label,
+    #app-container.sidebar-icons .nav-label {
+        display: block !important;
+        opacity: 1 !important;
+        max-width: 100% !important;
+    }
+}
+/* ===== INPUT DE ARCHIVO PERSONALIZADO ===== */
+.custom-file-input {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.custom-file-input input[type="file"] {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.custom-file-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.custom-file-button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--color-principal);
+    color: var(--color-principal);
+}
+
+.custom-file-button.has-file {
+    background: rgba(56, 189, 248, 0.1);
+    border-color: var(--color-principal);
+    color: var(--color-principal);
+    border-style: solid;
+}
+
+.custom-file-button.has-file:hover {
+    background: rgba(56, 189, 248, 0.2);
+}
+    </style>
+    <style>
+    /* Layout cuando la sidebar se mueve arriba */
+    #app-container.sidebar-top { flex-direction: column !important; }
+    #app-container.sidebar-top aside.sidebar { width: 100% !important; order: 0; display: block; }
+    #app-container.sidebar-top main.content { order: 1; width: 100% !important; }
+    #app-container.sidebar-top .sidebar { display: flex; flex-direction: row; gap: 12px; align-items: center; }
+    #app-container.sidebar-top .nav-btn { display: inline-flex; margin-right: 8px; }
+    /* Ajustes para horario en pantalla completa */
+    .horario-fullscreen { width: 100vw; height: 100vh; position: fixed; inset: 0; background: var(--bg-primary); z-index: 9999; padding: 24px; overflow: auto; }
+    .horario-fullscreen #main-schedule-grid { max-width: none; }
+    /* Scrollbar superior sincronizada */
+    .horario-scrollbar { height: 12px; overflow-x: auto; overflow-y: hidden; }
+    .horario-scrollbar .track { height: 1px; }
+    </style>
+    <style id="theme-styles">
+        /* Mejorar contraste con fondos personalizados */
+.sidebar,
+.card,
+.glass,
+input,
+select,
+textarea {
+    backdrop-filter: blur(20px) !important;
+}
+
+body.light-mode .sidebar {
+    background: rgba(248, 250, 252, 0.95) !important;
+    backdrop-filter: blur(30px) !important;
+}
+
+body.light-mode .card {
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(20px) !important;
+}
+
+body.light-mode input,
+body.light-mode select,
+body.light-mode textarea {
+    background: rgba(255, 255, 255, 0.8) !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+/* Fondo personalizado con overlay oscuro */
+body.has-custom-bg::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 0;
+    pointer-events: none;
+}
+
+body.light-mode.has-custom-bg::before {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+body.has-custom-bg .sidebar,
+body.has-custom-bg .content {
+    position: relative;
+    z-index: 1;
+}
+    :root {
+        --bg-primary: #020617;
+        --bg-secondary: #0f172a;
+        --text-primary: white;
+        --text-secondary: #94a3b8;
+        --border-color: rgba(255, 255, 255, 0.1);
+        --glass-bg: rgba(255, 255, 255, 0.03);
+        --color-principal: var(--color-principal); /* ✅ NUEVO */
+
+    }
+    
+   body.light-mode {
+    --bg-primary: #f8fafc;
+    --bg-secondary: #e2e8f0;
+    --text-primary: #020617;
+    --text-secondary: #475569;
+    --border-color: rgba(0, 0, 0, 0.1);
+    --glass-bg: rgba(255, 255, 255, 0.8);
+}
+
+body.light-mode {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+body.light-mode .sidebar {
+    background: rgba(248, 250, 252, 0.95);
+    backdrop-filter: blur(30px);
+}
+
+body.light-mode .card {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(20px);
+    color: #020617;
+}
+
+body.light-mode input,
+body.light-mode select,
+body.light-mode textarea {
+    background: rgba(255, 255, 255, 0.8);
+    color: #020617;
+    border-color: rgba(0, 0, 0, 0.2);
+}
+
+body.light-mode .horario-cell {
+    background: #ffffff;
+}
+
+body.light-mode .horario-header,
+body.light-mode .horario-time {
+    background: var(--bg-secondary);
+    color: #020617;
+}
+
+body.light-mode .nav-btn {
+    color: #020617;
+}
+
+body.light-mode .nav-btn:hover {
+    color: var(--color-principal);
+}
+
+body.light-mode h1,
+body.light-mode h2,
+body.light-mode h3,
+body.light-mode h4,
+body.light-mode p,
+body.light-mode span,
+body.light-mode label {
+    color: #020617 !important;
+}
+
+body.light-mode .text-slate-400,
+body.light-mode .text-slate-500 {
+    color: #64748b !important;
+}
+
+body.light-mode .text-white {
+    color: #020617 !important;
+}
+
+/* Eliminar recuadro negro en materias */
+body.light-mode .card .absolute {
+    opacity: 0.03 !important;
+}
+body.light-mode .clase-block {
+    color: #020617 !important;
+}
+
+body.light-mode .clase-block span {
+    color: #020617 !important;
+}
+
+body.light-mode .nav-btn.active {
+    background: var(--color-principal) !important;
+    color: white !important;
+}
+
+body.light-mode #frase-inspiradora,
+body.light-mode #frase-autor {
+    color: #020617 !important;
+}
+/* ✅ Asegurar visibilidad en modo claro */
+body.light-mode .clase-block {
+    color: #020617 !important;
+}
+
+body.light-mode .clase-block span,
+body.light-mode .clase-block div {
+    color: #020617 !important;
+    text-shadow: 0 1px 2px rgba(255,255,255,0.8) !important;
+}
+
+/* ===== FLATPICKR PERSONALIZADO (TEMA OSCURO) ===== */
+.flatpickr-calendar {
+    background: #0f172a !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    box-shadow: 0 0 20px rgba(0,0,0,0.6) !important;
+    border-radius: 12px !important;
+}
+
+.flatpickr-calendar .flatpickr-innerContainer {
+    background: #0f172a !important;
+}
+
+.flatpickr-months {
+    background: #0f172a !important;
+    border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+}
+
+.flatpickr-month {
+    color: white !important;
+    font-weight: 900 !important;
+}
+
+.flatpickr-prev-month,
+.flatpickr-next-month {
+    fill: rgba(255,255,255,0.6) !important;
+}
+
+.flatpickr-prev-month:hover,
+.flatpickr-next-month:hover {
+    fill: white !important;
+}
+
+.flatpickr-weekdaycontainer {
+    background: #0f172a !important;
+}
+
+.flatpickr-weekday {
+    color: rgba(255,255,255,0.6) !important;
+    font-weight: 700 !important;
+}
+
+.flatpickr-day {
+    color: rgba(255,255,255,0.8) !important;
+    border: none !important;
+}
+
+.flatpickr-day.today {
+    background: rgba(56,189,248,0.3) !important;
+    border-color: rgba(56,189,248,0.6) !important;
+    color: white !important;
+    font-weight: bold !important;
+}
+
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange {
+    background: var(--color-principal) !important;
+    border-color: var(--color-principal)!important;
+    color: #020617 !important;
+    font-weight: bold !important;
+}
+
+.flatpickr-day.inRange {
+    background: rgba(56,189,248,0.2) !important;
+    border-color: transparent !important;
+}
+
+.flatpickr-day:hover {
+    background: rgba(56,189,248,0.4) !important;
+    border-color: rgba(56,189,248,0.6) !important;
+}
+
+.flatpickr-day.prevMonthDay,
+.flatpickr-day.nextMonthDay {
+    color: rgba(255,255,255,0.3) !important;
+}
+
+.flatpickr-day.disabled,
+.flatpickr-day.disabled:hover {
+    background: transparent !important;
+    color: rgba(255,255,255,0.2) !important;
+    cursor: not-allowed !important;
+}
+
+/* Tema claro */
+body.light-mode .flatpickr-calendar {
+    background: white !important;
+    border: 1px solid rgba(0,0,0,0.1) !important;
+}
+
+body.light-mode .flatpickr-innerContainer,
+body.light-mode .flatpickr-months {
+    background: white !important;
+    border-bottom-color: rgba(0,0,0,0.1) !important;
+}
+
+body.light-mode .flatpickr-month {
+    color: #020617 !important;
+}
+
+body.light-mode .flatpickr-prev-month,
+body.light-mode .flatpickr-next-month {
+    fill: rgba(0,0,0,0.6) !important;
+}
+
+body.light-mode .flatpickr-prev-month:hover,
+body.light-mode .flatpickr-next-month:hover {
+    fill: #020617 !important;
+}
+
+body.light-mode .flatpickr-weekday {
+    color: rgba(0,0,0,0.6) !important;
+}
+
+body.light-mode .flatpickr-day {
+    color: #020617 !important;
+}
+
+body.light-mode .flatpickr-day.today {
+    background: rgba(56,189,248,0.2) !important;
+    border-color: rgba(56,189,248,0.6) !important;
+    color: #020617 !important;
+}
+
+body.light-mode .flatpickr-day.selected,
+body.light-mode .flatpickr-day.startRange,
+body.light-mode .flatpickr-day.endRange {
+    background: var(--color-principal)!important;
+    border-color: var(--color-principal) !important;
+    color: white !important;
+}
+
+body.light-mode .flatpickr-day:hover {
+    background: rgba(56,189,248,0.3) !important;
+    border-color: rgba(56,189,248,0.6) !important;
+}
+
+body.light-mode .flatpickr-day.disabled,
+body.light-mode .flatpickr-day.disabled:hover {
+    color: rgba(0,0,0,0.2) !important;
+}
+</style>
+    
+</head>
+<body>
+
+    <canvas id="seasonal-canvas"></canvas>
+
+    <div id="custom-confirm">
+        <div class="glass p-8 rounded-[2.5rem] w-full max-w-sm text-center border border-white/10">
+            <p class="text-rose-500 text-[10px] font-black uppercase tracking-[3px] mb-2">Confirmación</p>
+            <h3 id="confirm-text" class="text-xl font-black mb-6 italic">¿Eliminar elemento?</h3>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="cerrarModal()" class="p-4 rounded-2xl bg-white/5 font-bold text-xs uppercase hover:bg-white/10">Cancelar</button>
+                <button id="confirm-delete-btn" class="p-4 rounded-2xl bg-rose-500 text-slate-950 font-black text-xs uppercase hover:bg-rose-400">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-add">
+        <div class="glass p-10 rounded-[2rem] w-full max-w-md border border-white/10 relative">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-white/50 hover:text-white text-xl">✕</button>
+            <h3 id="modal-title" class="text-sky-500 font-black uppercase text-xs mb-8 text-center tracking-[2px]">Agregar</h3>
+            <div id="form-content" class="space-y-5"></div>
+        </div>
+    </div>
+
+    <div id="modal-view">
+        <div class="glass p-8 rounded-[2rem] w-full max-w-lg border border-white/10 relative">
+            <button onclick="document.getElementById('modal-view').style.display='none'" class="absolute top-4 right-4 text-white/50 hover:text-white text-xl">✕</button>
+            
+            <p id="view-type" class="text-sky-500 text-[10px] font-bold uppercase tracking-[3px] mb-2">Detalle</p>
+            <h2 id="view-name" class="text-3xl font-black italic mb-1 leading-tight text-white">Nombre Tarea</h2>
+            <p id="view-materia" class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">Materia • Fecha</p>
+            
+            <div class="bg-white/5 rounded-2xl p-6 border border-white/5 max-h-[60vh] overflow-y-auto">
+                <p id="view-desc" class="text-sm leading-relaxed text-slate-200 whitespace-pre-wrap">Descripción...</p>
+            </div>
+
+            <div class="mt-6 flex justify-end">
+                <button onclick="document.getElementById('modal-view').style.display='none'" class="bg-white/10 hover:bg-white/20 px-6 py-2 rounded-xl text-xs font-bold uppercase transition">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="auth-overlay">
+        <div class="glass p-8 rounded-[2.5rem] w-full max-w-md text-center border border-white/10 relative z-50">
+            <h1 class="text-4xl font-black tracking-tighter mb-2 italic">Cetistapp</h1>
+            <p id="auth-desc" class="text-sky-500 text-[10px] font-bold uppercase tracking-[3px] mb-6">Acceso Estudiantil</p>
+            <div id="reg-fields" class="space-y-2 mb-2 hidden">
+                <div class="flex gap-2">
+                    <input type="text" id="reg-nombre" placeholder="Nombre">
+                    <input type="text" id="reg-apellido" placeholder="Apellido">
                 </div>
-                <div id="lista-tareas" class="space-y-2 text-sm"></div>
-            </div>
-        </section>
-
-        <section id="sec-calc" class="hidden space-y-6">
-            <div class="glass p-6 rounded-[2rem]">
-                <h3 class="font-black text-xl mb-4 text-sky-400">📊 Calculadora de Promedio</h3>
-                <div id="campos-materias" class="space-y-3">
-                    <input type="number" placeholder="Parcial 1" class="prom w-full p-3 rounded-xl bg-white/5 border border-white/10">
-                    <input type="number" placeholder="Parcial 2" class="prom w-full p-3 rounded-xl bg-white/5 border border-white/10">
-                    <input type="number" placeholder="Parcial 3" class="prom w-full p-3 rounded-xl bg-white/5 border border-white/10">
+                <div class="flex gap-2">
+                    <select id="reg-nivel">
+                        <option value="" disabled selected>Nivel</option>
+                        <option value="tecnologo">Tecnólogo</option>
+                        <option value="ingenieria">Ingeniería</option>
+                    </select>
+                    <select id="reg-semestre" class="w-24">
+                        <option value="" disabled selected>Sem</option>
+                        <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                        <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+                        <option value="7">7</option><option value="8">8</option>
+                    </select>
+                    <input type="text" id="reg-grupo" placeholder="Gp" class="w-16">
                 </div>
-                <button onclick="calcPromedio()" class="w-full bg-sky-500 text-slate-950 p-4 rounded-xl font-black mt-4 uppercase text-xs">Calcular</button>
-                <div id="res-prom" class="mt-4 text-center text-2xl font-black"></div>
             </div>
-        </section>
+            <input type="email" id="auth-email" placeholder="Correo" class="mb-2">
+            <input type="password" id="auth-pass" placeholder="Contraseña" class="mb-4">
+            <button onclick="manejarAuth()" id="auth-main-btn" class="w-full bg-sky-500 text-slate-950 font-black p-4 rounded-2xl uppercase tracking-widest hover:bg-sky-400 mb-4 transition">Entrar</button>
+            <button onclick="toggleAuth()" class="text-[10px] font-bold text-slate-500 uppercase hover:text-white transition" id="toggle-auth-text">¿No tienes cuenta? Regístrate</button>
+            <p id="auth-error" class="text-rose-500 text-[10px] mt-2 font-bold"></p>
+        </div>
+    </div>
 
-        <section id="sec-for" class="hidden space-y-6">
-            <div class="glass p-6 rounded-[2rem]">
-                <h3 class="font-bold mb-4">💬 Foro C3T1STAS</h3>
-                <textarea id="f-txt" placeholder="¿Algún aviso?" class="w-full p-4 rounded-xl bg-white/5 text-sm h-24 outline-none mb-3"></textarea>
-                <div class="flex gap-2 mb-3">
-                    <button onclick="window.prio='alta'" class="flex-1 p-2 rounded-lg border border-rose-500 text-rose-500 text-[10px] font-bold">URGENTE</button>
-                    <button onclick="window.prio='baja'" class="flex-1 p-2 rounded-lg border border-white/20 text-slate-400 text-[10px] font-bold">AVISO</button>
-                </div>
-                <button onclick="publicar()" class="w-full bg-white text-black p-4 rounded-xl font-black text-xs">PUBLICAR</button>
-            </div>
-            <div id="feed" class="space-y-4"></div>
-        </section>
-
-        <section id="sec-hor" class="hidden space-y-4">
-            <h3 class="font-black text-xl text-sky-400">📅 Horario de Clases</h3>
-            <div class="glass p-4 rounded-2xl text-xs space-y-2">
-                <div class="flex justify-between border-b border-white/5 pb-2"><span>Lunes</span><b>Mantenimiento</b></div>
-                <div class="flex justify-between border-b border-white/5 pb-2"><span>Martes</span><b>Inglés</b></div>
-                <div class="flex justify-between border-b border-white/5 pb-2"><span>Miércoles</span><b>Cálculo</b></div>
-                <div class="flex justify-between border-b border-white/5 pb-2"><span>Jueves</span><b>Física</b></div>
-                <div class="flex justify-between pb-2"><span>Viernes</span><b>Tutoría</b></div>
-            </div>
-        </section>
-
-    </main>
-
-    <nav id="nav-bar" class="fixed bottom-0 left-0 w-full h-20 glass border-t border-white/10 flex items-center justify-around hidden z-[400]">
-        <button onclick="irA('ini')" class="text-xl">🏠</button>
-        <button onclick="irA('calc')" class="text-xl">🧮</button>
-        <button onclick="irA('for')" class="text-xl">💬</button>
-        <button onclick="irA('hor')" class="text-xl">📅</button>
+    <div id="app-container" class="hidden flex w-full">
+        <aside class="sidebar p-6">
+ <div class="mb-10 px-2 relative">
+    <button onclick="cerrarSesion()" class="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-rose-500/20 hover:bg-rose-500 text-rose-400 hover:text-white transition flex items-center justify-center text-sm font-bold" title="Cerrar Sesión">
+        ✕
+    </button>
+    <h1 class="text-3xl font-black tracking-tighter italic">Cetistapp</h1>
+    <p id="user-info-side" class="text-[9px] text-sky-500 font-bold tracking-[3px] uppercase mt-2">Cargando...</p>
+    <p id="user-level-side" class="text-[8px] text-slate-500 font-bold uppercase tracking-widest mt-1">...</p>
+    
+    <!-- AGREGAR ESTO -->
+</div>
+        <nav id="nav-wrapper" class="flex-grow overflow-y-auto pr-2">
+        <div data-id="ini" onclick="show('ini')" id="btn-ini" class="nav-btn active"><span>🏠</span> <span class="nav-label">Inicio</span></div>
+        <div data-id="mat" onclick="show('mat')" id="btn-mat" class="nav-btn"><span>📚</span> <span class="nav-label">Materias</span></div>
+        <div data-id="hor" onclick="show('hor')" id="btn-hor" class="nav-btn"><span>📅</span> <span class="nav-label">Horario</span></div>
+        <div data-id="cal" onclick="show('cal')" id="btn-cal" class="nav-btn"><span>📝</span> <span class="nav-label">Calificaciones</span></div>
+        <div data-id="pen" onclick="show('pen')" id="btn-pen" class="nav-btn"><span>📌</span> <span class="nav-label">Pendientes</span></div>
+        <div data-id="for" onclick="show('for')" id="btn-for" class="nav-btn"><span>💬</span> <span class="nav-label">Foro</span></div>
+        <div data-id="cod" onclick="show('cod')" id="btn-cod" class="nav-btn"><span>🔗</span> <span class="nav-label">Códigos</span></div>
     </nav>
+<div class="mt-auto pt-6 border-t border-white/10">
+   <div data-id="cfg" onclick="show('cfg')" id="btn-cfg" class="nav-btn">
+    <div class="w-6 h-6 rounded-full overflow-hidden border-2 border-white/20 bg-white/5 flex items-center justify-center">
+        <img id="nav-foto-perfil" src="" alt="" class="w-full h-full object-cover hidden">
+        <span id="nav-placeholder-foto">⚙️</span>
+    </div>
+    <span>Configuración</span>
+</div>
+</div>
+        </aside>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        <main class="content">
+            
+            <section id="sec-ini" class="animate-in">
+    <header class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <p id="txt-saludo" class="text-sky-500 font-bold text-sm uppercase tracking-[2px]">Hola</p>
+                <h2 id="welcome-name" class="text-5xl font-black tracking-tighter italic">¡Bienvenido!</h2>
+            </div>
+        </div>
+    </header>
+    
+    <!-- GRID PRINCIPAL -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        
+        <!-- PROMEDIO GENERAL -->
+        <div class="card bg-gradient-to-br from-sky-500/20 to-blue-500/20 border-sky-500/30 border-2">
+            <h3 class="text-[10px] uppercase tracking-[2px] text-sky-300 mb-2 font-black">📊 Promedio</h3>
+            <p id="stat-promedio" class="text-6xl font-black text-white italic mb-2">0.0</p>
+            <div class="w-full bg-white/10 h-2 rounded-full overflow-hidden">
+                <div id="progreso-barra" class="bg-sky-400 h-full transition-all duration-1000" style="width: 0%"></div>
+            </div>
+        </div>
 
-        const firebaseConfig = {
+        <!-- MEJOR MATERIA -->
+        <div class="card bg-gradient-to-br from-emerald-500/20 to-green-500/20 border-emerald-500/30 border-2 clickable-card" onclick="show('cal')">
+            <h3 class="text-[10px] uppercase text-emerald-300 mb-2 font-black">🏆 Mejor Materia</h3>
+            <p id="stat-mejor" class="text-xl font-black italic mb-1 line-clamp-2">---</p>
+            <p id="stat-mejor-nota" class="text-3xl text-emerald-400 font-black">0.0</p>
+        </div>
+
+        <!-- PRÓXIMA CLASE -->
+        <div class="card bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-purple-500/30 border-2 clickable-card" onclick="show('hor')">
+            <h3 class="text-[10px] uppercase text-purple-300 mb-2 font-black">🕒 Próxima Clase</h3>
+            <p id="stat-proxima-clase" class="text-xl font-black italic mb-1">Cargando...</p>
+            <p id="stat-proxima-hora" class="text-sm font-bold text-purple-400/80 uppercase">--:--</p>
+        </div>
+
+        <!-- FORO -->
+        <div class="card bg-gradient-to-br from-amber-500/20 to-orange-500/20 border-amber-500/30 border-2 clickable-card" onclick="show('for')">
+            <h3 class="text-[10px] uppercase text-amber-300 mb-2 font-black">💬 Foro</h3>
+            <p id="stat-foro-avisos" class="text-lg font-bold mb-1">0 Avisos</p>
+            <p id="stat-foro-grupo" class="text-sm text-amber-400/70 font-bold uppercase">0 Mensajes</p>
+        </div>
+    </div>
+
+    <!-- FRASE INSPIRACIONAL (Grande y destacada) -->
+    <div class="card bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border-indigo-500/20 border-2 p-10 mb-8">
+        <h3 class="text-[10px] uppercase tracking-[4px] text-indigo-400 mb-4 font-black text-center">✨ Inspiración del Día</h3>
+        <p id="frase-inspiradora" class="text-3xl italic text-white leading-tight font-black text-center mb-4"></p>
+        <p id="frase-autor" class="text-sky-400 font-bold uppercase text-xs text-center tracking-widest"></p>
+    </div>
+
+    <!-- ACCESOS RÁPIDOS -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <button onclick="show('mat')" class="card hover:scale-105 transition-transform cursor-pointer bg-sky-500/5 border-sky-500/20 p-6 flex flex-col items-center gap-3">
+            <span class="text-4xl">📚</span>
+            <span class="text-xs font-black uppercase tracking-wider">Materias</span>
+        </button>
+        <button onclick="show('pen')" class="card hover:scale-105 transition-transform cursor-pointer bg-rose-500/5 border-rose-500/20 p-6 flex flex-col items-center gap-3">
+            <span class="text-4xl">📌</span>
+            <span class="text-xs font-black uppercase tracking-wider">Pendientes</span>
+        </button>
+        <button onclick="openAddModal('horario')" class="card hover:scale-105 transition-transform cursor-pointer bg-emerald-500/5 border-emerald-500/20 p-6 flex flex-col items-center gap-3">
+            <span class="text-4xl">➕</span>
+            <span class="text-xs font-black uppercase tracking-wider">Añadir Clase</span>
+        </button>
+        <button onclick="openAddPendienteModal()" class="card hover:scale-105 transition-transform cursor-pointer bg-purple-500/5 border-purple-500/20 p-6 flex flex-col items-center gap-3">
+            <span class="text-4xl">✍️</span>
+            <span class="text-xs font-black uppercase tracking-wider">Nueva Tarea</span>
+        </button>
+    </div>
+</section>
+
+            <section id="sec-mat" class="hidden">
+                <header class="mb-8"><h2 class="text-5xl font-black italic">Materias</h2></header>
+                <div class="card bg-white/[0.03] border-white/10 mb-8 p-6">
+                    <h3 id="mat-header-text" class="text-sky-500 font-black uppercase text-xs mb-6 transition-colors duration-300">Añadir Materia</h3>
+<div id="cont-tipo-materia" class="mb-6 hidden">
+    <label class="text-[9px] font-bold uppercase text-slate-500 ml-1 mb-2 block">Tipo de Materia</label>
+    <div class="grid grid-cols-3 gap-3">
+        <label class="cursor-pointer">
+            <input type="radio" name="tipo_mat" value="materia" checked class="hidden" onclick="updateTheme('materia')">
+            <div class="tipo-mat-option bg-gradient-to-br from-sky-500/20 to-blue-500/20 border-2 border-sky-500/30 rounded-xl py-4 px-3 text-center transition-all hover:scale-105 hover:shadow-lg hover:shadow-sky-500/20">
+                <div class="text-3xl mb-2">📚</div>
+                <p class="text-[10px] font-black uppercase tracking-wider">Normal</p>
+            </div>
+        </label>
+        <label class="cursor-pointer">
+            <input type="radio" name="tipo_mat" value="taller" class="hidden" onclick="updateTheme('taller')">
+            <div class="tipo-mat-option bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-2 border-purple-500/30 rounded-xl py-4 px-3 text-center transition-all hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20">
+                <div class="text-3xl mb-2">🔧</div>
+                <p class="text-[10px] font-black uppercase tracking-wider">Taller</p>
+            </div>
+        </label>
+        <label class="cursor-pointer">
+            <input type="radio" name="tipo_mat" value="irregular" class="hidden" onclick="updateTheme('irregular')">
+            <div class="tipo-mat-option bg-gradient-to-br from-amber-500/20 to-orange-500/20 border-2 border-amber-500/30 rounded-xl py-4 px-3 text-center transition-all hover:scale-105 hover:shadow-lg hover:shadow-amber-500/20">
+                <div class="text-3xl mb-2">⚡</div>
+                <p class="text-[10px] font-black uppercase tracking-wider">Irregular</p>
+            </div>
+        </label>
+    </div>
+</div>
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+    <div>
+        <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Nombre</label>
+        <input type="text" id="mat-nombre" placeholder="Ej: Cálculo">
+    </div>
+    <div>
+        <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Profesor</label>
+        <input type="text" id="mat-maestro" placeholder="Ej: Ing. López">
+    </div>
+    <div>
+        <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Color</label>
+        <input type="color" id="mat-color" value="var(--color-principal)" class="h-[42px] p-1 cursor-pointer w-full">
+    </div>
+ <div>
+    <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Icono PNG</label>
+    <div class="custom-file-input">
+        <input type="file" id="mat-icono" accept=".png,.jpg,.jpeg" onchange="updateFileButton(this, 'mat-icono-label')">
+        <div id="mat-icono-label" class="custom-file-button">
+            <span>📁</span>
+            <span>Agregar Imagen</span>
+        </div>
+    </div>
+</div>
+    <button id="btn-add-mat" onclick="crearMateria()" class="bg-sky-500 text-slate-950 font-black h-[42px] rounded-xl uppercase text-[10px] hover:brightness-110 transition-all duration-300 shadow-lg">
+        ✨ Añadir
+    </button>
+</div>
+                </div>
+                <div id="grid-materias" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+                <!-- Botón pequeño para acceder a Kardex (solo emoji) -->
+                <button id="kardex-hint" title="Abrir Kardex" onclick="show('kard')" style="position: fixed; right: 28px; bottom: 28px; z-index: 60; width:56px; height:56px; border-radius:999px; display:flex;align-items:center;justify-content:center; background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.06); box-shadow: 0 8px 24px rgba(2,6,23,0.6);">🏅</button>
+            </section>
+
+            <section id="sec-kard" class="hidden">
+                <header class="mb-8"><h2 class="text-5xl font-black italic">Kardex</h2></header>
+                <div class="card p-8 text-center">
+                    <p class="text-lg font-black mb-4">🏅 Kardex vacío</p>
+                    <p class="text-sm text-slate-400">En esta sección aparecerán tus materias archivadas una vez que las migres al kardex. Es un historial de materias y calificaciones finales.</p>
+                </div>
+            </section>
+
+            <section id="sec-cal" class="hidden">
+                <header class="mb-8"><h2 class="text-5xl font-black italic">Calificaciones</h2></header>
+                <div id="grid-calificaciones" class="grid grid-cols-1 gap-8 pb-20"></div>
+            </section>
+
+            <section id="sec-hor" class="hidden">
+                <header class="mb-8 flex flex-col md:flex-row justify-between items-end gap-4">
+                    <div>
+                        <h2 class="text-5xl font-black italic tracking-tighter">Horario Semanal</h2>
+                        <p id="horario-desc" class="text-slate-400 text-xs mt-2 font-bold uppercase tracking-widest">Cargando...</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <!-- Botón 'Mover barra' eliminado según solicitud del usuario -->
+                        <button onclick="toggleFullScreen()" id="btn-fullscreen" class="bg-white/5 hover:bg-white/10 text-white font-bold px-4 py-2 rounded-2xl uppercase text-xs transition" title="Pantalla completa">⛶ Pantalla</button>
+                        <button onclick="openAddModal('horario')" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-8 py-3 rounded-2xl uppercase text-xs transition shadow-lg shadow-emerald-500/20 w-full md:w-auto">
+                            + Añadir al Horario
+                        </button>
+                    </div>
+                </header>
+                
+                <div id="horario-scrollbar" class="horario-scrollbar" style="display:none;"><div class="track"></div></div>
+                <div id="main-schedule-grid" class="horario-grid">
+                    <div class="horario-header">Hora</div>
+                    <div class="horario-header">Lun</div>
+                    <div class="horario-header">Mar</div>
+                    <div class="horario-header">Mié</div>
+                    <div class="horario-header">Jue</div>
+                    <div class="horario-header">Vie</div>
+                    <div id="horario-body" class="contents"></div>
+                </div>
+            </section>
+
+            <section id="sec-pen" class="hidden">
+                <header class="mb-8 flex flex-col md:flex-row justify-between items-end gap-4">
+                    <h2 class="text-5xl font-black italic tracking-tighter">Pendientes</h2>
+                    <button onclick="openAddPendienteModal()" class="bg-indigo-500 hover:bg-indigo-400 text-white font-black px-8 py-4 rounded-2xl uppercase text-xs transition shadow-lg shadow-indigo-500/20 w-full md:w-auto">
+                        + Nuevo Pendiente
+                    </button>
+                </header>
+
+                <div class="flex flex-wrap justify-between items-center mb-8 gap-4">
+                    <div class="flex gap-4 overflow-x-auto pb-2">
+                        <button onclick="switchPendienteTab('tareas')" id="tab-tareas" class="tab-pen active">Tareas</button>
+                        <button onclick="switchPendienteTab('recordatorios')" id="tab-recordatorios" class="tab-pen">Recordatorios</button>
+                        <button onclick="switchPendienteTab('fechas')" id="tab-fechas" class="tab-pen">Fechas Importantes</button>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="setSort('date')" id="sort-date" class="btn-sort">📅 Fecha</button>
+                        <button onclick="setSort('materia')" id="sort-materia" class="btn-sort">📚 Materia</button>
+                        <button onclick="setSort('priority')" id="sort-priority" class="btn-sort active">🚨 Prioridad IA</button>
+                    </div>
+                </div>
+
+                <div id="grid-pendientes" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </section>
+
+<section id="sec-for" class="hidden">
+    <header class="mb-8 flex flex-col md:flex-row justify-between items-end gap-4">
+        <div>
+            <h2 class="text-5xl font-black italic tracking-tighter">Foro</h2>
+            <p id="foro-grupo-info" class="text-slate-400 text-xs mt-2 font-bold uppercase tracking-widest">Cargando...</p>
+        </div>
+    </header>
+
+    <div class="flex gap-4 mb-8 overflow-x-auto pb-2">
+        <button onclick="switchForoTab('avisos')" id="tab-avisos" class="tab-pen active">📢 Avisos Generales</button>
+        <button onclick="switchForoTab('grupo')" id="tab-grupo" class="tab-pen">👥 Resumen of the day</button>
+        <button onclick="switchForoTab('quejas')" id="tab-quejas" class="tab-pen" style="display: none;">📬 Quejas/Sugerencias</button>
+    </div>
+    <div id="foro-avisos" class="animate-in">
+        <div id="aviso-form-container" class="card bg-white/[0.03] border-white/10 mb-6 p-6" style="display: none;">
+            <h3 class="text-sky-500 font-black uppercase text-xs mb-4">📢 Publicar Aviso General (Solo Admin)</h3>
+            <textarea id="aviso-texto" placeholder="Escribe un aviso para todos..." rows="3" class="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm mb-4"></textarea>
+            <button onclick="publicarAviso()" class="bg-sky-500 text-slate-950 font-black px-6 py-3 rounded-xl uppercase text-xs hover:bg-sky-400 transition">📢 Publicar Aviso</button>
+        </div>
+        <div id="grid-avisos" class="space-y-4"></div>
+    </div>
+
+<div id="foro-grupo" class="hidden animate-in">
+    <div id="grupo-form-container" class="card bg-white/[0.03] border-white/10 mb-6 p-6" style="display: none;">
+        <h3 id="grupo-header" class="text-emerald-500 font-black uppercase text-xs mb-4">Chat Grupo (Solo Admin)</h3>
+        <textarea id="grupo-texto" placeholder="Mensaje para tu grupo..." rows="3" class="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm mb-4"></textarea>
+        <button onclick="publicarMensajeGrupo()" class="bg-emerald-500 text-slate-950 font-black px-6 py-3 rounded-xl uppercase text-xs hover:bg-emerald-400 transition">💬 Enviar</button>
+    </div>
+
+    <div id="grid-grupo" class="space-y-4"></div>
+</div>
+    <div id="foro-quejas" class="hidden animate-in">
+    <div id="grid-quejas" class="space-y-4"></div>
+</div>
+        </section>
+            <section id="sec-cod" class="hidden">
+    <header class="mb-8">
+        <h2 class="text-5xl font-black italic tracking-tighter">Códigos de Configuración</h2>
+        <p class="text-slate-400 text-xs mt-2 font-bold uppercase tracking-widest">Importa o exporta tu horario y materias</p>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+ <!-- EXPORTAR -->
+<div class="card bg-emerald-500/5 border-emerald-500/20 border-l-4">
+    <h3 class="text-emerald-500 font-black uppercase text-xs mb-4 flex items-center gap-2">
+        <span>📤</span> Exportar Configuración
+    </h3>
+    <p class="text-sm text-slate-300 mb-4">Selecciona qué quieres exportar:</p>
+    
+    <div class="space-y-2 mb-4">
+        <label class="flex items-center gap-2 cursor-pointer p-3 rounded-lg hover:bg-white/5 transition">
+            <input type="checkbox" id="exp-materias" checked class="w-4 h-4 accent-emerald-500">
+            <span class="text-sm font-bold">📚 Materias</span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer p-3 rounded-lg hover:bg-white/5 transition">
+            <input type="checkbox" id="exp-horario" checked class="w-4 h-4 accent-emerald-500">
+            <span class="text-sm font-bold">📅 Horario</span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer p-3 rounded-lg hover:bg-white/5 transition">
+            <input type="checkbox" id="exp-tareas" checked class="w-4 h-4 accent-emerald-500">
+            <span class="text-sm font-bold">📝 Tareas/Pendientes</span>
+        </label>
+    </div>
+    
+    <div class="bg-white/5 rounded-xl p-4 mb-4 border border-white/5">
+        <p class="text-[10px] text-slate-500 font-bold uppercase mb-2">Tu Código:</p>
+        <div class="flex items-center gap-2">
+            <input type="text" id="codigo-generado" readonly class="flex-1 bg-white/10 text-2xl font-black tracking-widest text-center" value="------">
+            <button onclick="copiarCodigo()" class="bg-white/10 hover:bg-white/20 p-3 rounded-lg transition" title="Copiar">
+                📋
+            </button>
+        </div>
+    </div>
+    
+    <button onclick="generarCodigoSelectivo()" class="w-full bg-emerald-500 text-slate-950 font-black px-6 py-3 rounded-xl uppercase text-xs hover:bg-emerald-400 transition">
+        ✨ Generar Código
+    </button>
+</div>
+        <!-- IMPORTAR -->
+        <div class="card bg-sky-500/5 border-sky-500/20 border-l-4">
+            <h3 class="text-sky-500 font-black uppercase text-xs mb-4 flex items-center gap-2">
+                <span>📥</span> Importar Configuración
+            </h3>
+            <p class="text-sm text-slate-300 mb-4">Ingresa un código de 6 caracteres para cargar horario y materias.</p>
+            
+            <div class="mb-4">
+                <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Código</label>
+                <input type="text" id="codigo-importar" placeholder="Ej: A1B2C3" maxlength="6" class="uppercase text-2xl font-black tracking-widest">
+            </div>
+            
+            <div id="preview-importar" class="bg-white/5 rounded-xl p-4 mb-4 border border-white/5 hidden">
+                <p class="text-[10px] text-slate-500 font-bold uppercase mb-2">Vista Previa:</p>
+                <p id="preview-materias" class="text-xs text-slate-300 mb-1">📚 0 materias</p>
+                <p id="preview-horario" class="text-xs text-slate-300">📅 0 clases</p>
+            </div>
+            
+            <button onclick="verificarCodigo()" class="w-full bg-sky-500 text-slate-950 font-black px-6 py-3 rounded-xl uppercase text-xs hover:bg-sky-400 transition mb-2">
+                🔍 Verificar Código
+            </button>
+            <button onclick="importarCodigo()" id="btn-importar" class="w-full bg-white/10 text-slate-500 font-black px-6 py-3 rounded-xl uppercase text-xs cursor-not-allowed" disabled>
+                📥 Importar Configuración
+            </button>
+        </div>
+    </div>
+
+    <div class="card bg-white/[0.02] border-white/5 mt-6">
+        <h3 class="text-white/50 font-black uppercase text-xs mb-3">⚠️ Importante</h3>
+        <ul class="text-xs text-slate-400 space-y-2">
+            <li>• Al importar se <strong class="text-rose-400">BORRARÁN</strong> tus materias y horario actuales</li>
+            <li>• Los códigos son válidos por <strong class="text-sky-400">30 días</strong></li>
+            <li>• Guarda tu código en un lugar seguro</li>
+        </ul>
+    </div>
+</section>
+<section id="sec-cfg" class="hidden">
+    <header class="mb-8">
+        <h2 class="text-5xl font-black italic tracking-tighter">Configuración</h2>
+        <p class="text-slate-400 text-xs mt-2 font-bold uppercase tracking-widest">Personaliza tu experiencia</p>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- DATOS PERSONALES -->
+        <div class="card border-l-4 border-sky-500 bg-sky-500/5">
+            <h3 class="text-sky-500 font-black uppercase text-xs mb-6">👤 Datos Personales</h3>
+            
+            <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Nombre</label>
+                        <input type="text" id="cfg-nombre" placeholder="Nombre">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Apellido</label>
+                        <input type="text" id="cfg-apellido" placeholder="Apellido">
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Nivel</label>
+                        <select id="cfg-nivel">
+                            <option value="tecnologo">Tecnólogo</option>
+                            <option value="ingenieria">Ingeniería</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Semestre</label>
+                        <select id="cfg-semestre">
+                            <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                            <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+                            <option value="7">7</option><option value="8">8</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Grupo</label>
+                        <input type="text" id="cfg-grupo" placeholder="A" maxlength="1" class="uppercase">
+                    </div>
+                </div>
+                
+                <button onclick="guardarDatosPersonales()" class="w-full bg-sky-500 text-slate-950 font-black px-6 py-3 rounded-xl uppercase text-xs hover:bg-sky-400 transition">
+                    💾 Guardar Cambios
+                </button>
+            </div>
+        </div>
+<!-- PERSONALIZACIÓN DE COLOR -->
+<div class="card border-l-4 border-indigo-500 bg-indigo-500/5">
+    <h3 class="text-indigo-500 font-black uppercase text-xs mb-6">🎨 Color Principal</h3>
+    
+    <div class="space-y-4">
+        <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Elige tu color favorito</label>
+        <input type="color" id="cfg-color-principal" value="#38bdf8" 
+               onchange="cambiarColorPrincipal(this.value)"
+               class="w-full h-16 cursor-pointer rounded-xl border-2 border-white/10">
+        
+        <div class="grid grid-cols-4 gap-2">
+            <button onclick="document.getElementById('cfg-color-principal').value='#38bdf8'; cambiarColorPrincipal('#38bdf8')" 
+                    class="w-full h-10 rounded-lg border-2 border-white/20" style="background: #38bdf8" title="Azul (Default)"></button>
+            <button onclick="document.getElementById('cfg-color-principal').value='#a855f7'; cambiarColorPrincipal('#a855f7')" 
+                    class="w-full h-10 rounded-lg border-2 border-white/20" style="background: #a855f7" title="Morado"></button>
+            <button onclick="document.getElementById('cfg-color-principal').value='#22c55e'; cambiarColorPrincipal('#22c55e')" 
+                    class="w-full h-10 rounded-lg border-2 border-white/20" style="background: #22c55e" title="Verde"></button>
+            <button onclick="document.getElementById('cfg-color-principal').value='#ef4444'; cambiarColorPrincipal('#ef4444')" 
+                    class="w-full h-10 rounded-lg border-2 border-white/20" style="background: #ef4444" title="Rojo"></button>
+        </div>
+        
+        <button onclick="resetearColor()" class="w-full text-slate-500 hover:text-white text-xs font-bold uppercase">
+            Restaurar Azul Original
+        </button>
+    </div>
+</div>
+        <!-- COMPORTAMIENTO BARRA LATERAL -->
+        <div class="card border-l-4 border-amber-500 bg-amber-500/5">
+            <h3 class="text-amber-500 font-black uppercase text-xs mb-6">🔧 Barra de Opciones</h3>
+            <div class="space-y-3">
+                <label class="text-[10px] font-bold">Modo de la barra lateral</label>
+                <select id="cfg-sidebar-mode" onchange="changeSidebarMode(this.value)" class="w-full p-3 rounded-xl">
+                    <option value="fija">Fija (ancha)</option>
+                    <option value="hover">Solo al pasar el cursor (expandible)</option>
+                    <option value="icons">Extraída (solo íconos)</option>
+                </select>
+                <p class="text-xs text-slate-400">Elige si la barra se mantiene fija, se expande al pasar el cursor o se muestra solo como tira de íconos.</p>
+            </div>
+        </div>
+
+        <!-- FOTO DE PERFIL -->
+        <div class="card border-l-4 border-purple-500 bg-purple-500/5">
+            <h3 class="text-purple-500 font-black uppercase text-xs mb-6">📸 Foto de Perfil</h3>
+            
+            <div class="flex flex-col items-center">
+                <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-white/10 mb-4 bg-white/5 flex items-center justify-center">
+                    <img id="preview-foto-perfil" src="" alt="Perfil" class="w-full h-full object-cover hidden">
+                    <span id="placeholder-foto" class="text-6xl">👤</span>
+                </div>
+                
+               <div class="custom-file-input w-full mb-2">
+    <input type="file" id="input-foto-perfil" accept="image/*" onchange="cargarFotoPerfil(event); updateFileButton(this, 'foto-perfil-label')">
+    <div id="foto-perfil-label" class="custom-file-button">
+        <span>📤</span>
+        <span>Subir Foto</span>
+    </div>
+</div>
+                <button onclick="eliminarFotoPerfil()" class="text-rose-500 hover:text-rose-400 text-xs font-bold uppercase">
+                    Eliminar Foto
+                </button>
+            </div>
+        </div>
+
+        <!-- FONDO PERSONALIZADO -->
+        <div class="card border-l-4 border-emerald-500 bg-emerald-500/5">
+            <h3 class="text-emerald-500 font-black uppercase text-xs mb-6">🖼️ Fondo Personalizado</h3>
+            
+            <div class="space-y-4">
+                <div class="bg-white/5 rounded-xl p-4 border border-white/5 flex items-center justify-center min-h-[100px]" id="preview-fondo">
+                    <span class="text-slate-500 text-sm">Sin fondo personalizado</span>
+                </div>
+                
+                <div class="custom-file-input w-full">
+    <input type="file" id="input-fondo" accept="image/*" onchange="cargarFondo(event); updateFileButton(this, 'fondo-label')">
+    <div id="fondo-label" class="custom-file-button">
+        <span>📤</span>
+        <span>Subir Fondo</span>
+    </div>
+</div>
+                <button onclick="eliminarFondo()" class="w-full text-rose-500 hover:text-rose-400 text-xs font-bold uppercase">
+                    Eliminar Fondo
+                </button>
+            </div>
+        </div>
+
+        <!-- QUEJAS Y SUGERENCIAS -->
+        <div class="card border-l-4 border-amber-500 bg-amber-500/5">
+            <h3 class="text-amber-500 font-black uppercase text-xs mb-6">💬 Quejas y Sugerencias</h3>
+            
+            <textarea id="queja-texto" placeholder="Escribe tu queja o sugerencia..." rows="4" class="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm mb-4"></textarea>
+            
+            <button onclick="enviarQueja()" class="w-full bg-amber-500 text-slate-950 font-black px-6 py-3 rounded-xl uppercase text-xs hover:bg-amber-400 transition">
+                📨 Enviar al Admin
+            </button>
+        </div>
+    </div>
+</section>
+        </main>
+    </div>
+<!-- MODAL PERSONALIZADO DE CONFIRMACIÓN GENÉRICO -->
+<div id="custom-alert" style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+    <div class="glass p-8 rounded-[2rem] w-full max-w-sm text-center border border-white/10">
+        <p id="alert-title" class="text-sky-500 text-[10px] font-black uppercase tracking-[3px] mb-2">Mensaje</p>
+        <h3 id="alert-text" class="text-lg font-bold mb-6">Texto del mensaje</h3>
+        <div id="alert-buttons" class="flex gap-3"></div>
+    </div>
+</div>
+    <script>
+        // 1. CONFIGURACIÓN FIREBASE
+        const config = {
             apiKey: "AIzaSyBliPWrdCDZzlFDIdsI17fyINeW-TsMgr0",
             authDomain: "schoolog-ee12b.firebaseapp.com",
             databaseURL: "https://schoolog-ee12b-default-rtdb.firebaseio.com",
             projectId: "schoolog-ee12b",
             storageBucket: "schoolog-ee12b.firebasestorage.app",
+            messagingSenderId: "11132093202",
             appId: "1:11132093202:web:fe1f1d743eb0fb398529cb"
         };
+        firebase.initializeApp(config);
+        const auth = firebase.auth();
+        const db = firebase.database();
+        
+        // Variables Globales
+        let materiaParaBorrar = null;
+        let idParaBorrar = null;
+        let tipoParaBorrar = ""; 
+        let isLogin = true;
+        
+        let materiasCache = {}; 
+        let horarioData = [];
+        let pendientesData = [];
+        
+        let userLevel = ""; 
+        let modulos = [];
+        let currentPendienteTab = 'tareas'; 
+        let currentSort = 'priority';
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getDatabase(app);
-        window.prio = 'baja';
+        let avisosData = [];
+        let grupoData = [];
+        let currentForoTab = 'avisos';
+        let miGrupo = "";
 
-        // LOGIN Y REGISTRO
-        window.registro = () => {
-            const e = document.getElementById('log-email').value, p = document.getElementById('log-pass').value;
-            if(!e || !p) return alert("Llena los campos");
-            createUserWithEmailAndPassword(auth, e, p).catch(err => alert(err.message));
+        // ===== SISTEMA DE ALERTAS Y CONFIRMACIONES PERSONALIZADAS =====
+function showAlert(message, title = 'Mensaje') {
+    const modal = document.getElementById('custom-alert');
+    document.getElementById('alert-title').innerText = title;
+    document.getElementById('alert-text').innerText = message;
+    document.getElementById('alert-buttons').innerHTML = `
+        <button onclick="document.getElementById('custom-alert').style.display='none'" 
+                class="flex-1 p-4 rounded-xl bg-sky-500 text-slate-950 font-black text-xs uppercase hover:bg-sky-400 transition">
+            Aceptar
+        </button>
+    `;
+    modal.style.display = 'flex';
+}
+function updateFileButton(input, labelId) {
+    const label = document.getElementById(labelId);
+    if(input.files && input.files.length > 0) {
+        const fileName = input.files[0].name;
+        label.classList.add('has-file');
+        label.innerHTML = `<span>✓</span><span>${fileName.length > 20 ? fileName.substring(0, 20) + '...' : fileName}</span>`;
+    }
+}
+function showConfirm(message, onConfirm, title = 'Confirmación') {
+    const modal = document.getElementById('custom-alert');
+    document.getElementById('alert-title').innerText = title;
+    document.getElementById('alert-text').innerText = message;
+    document.getElementById('alert-buttons').innerHTML = `
+        <button onclick="document.getElementById('custom-alert').style.display='none'" 
+                class="flex-1 p-4 rounded-xl bg-white/5 font-bold text-xs uppercase hover:bg-white/10">
+            Cancelar
+        </button>
+        <button onclick="document.getElementById('custom-alert').style.display='none'; (${onConfirm})();" 
+                class="flex-1 p-4 rounded-xl bg-sky-500 text-slate-950 font-black text-xs uppercase hover:bg-sky-400">
+            Confirmar
+        </button>
+    `;
+    modal.style.display = 'flex';
+}
+
+// Reemplazar alert() y confirm() nativos
+window.alert = showAlert;
+// confirm() requiere callback, mantener nativo por ahora
+        // 2. TEMAS DINÁMICOS
+        const themes = {
+            materia: '#38bdf8', // Sky Blue
+            taller: '#a855f7',  // Purple
+            irregular: '#fbbf24' // Amber
         };
-        window.login = () => {
-            const e = document.getElementById('log-email').value, p = document.getElementById('log-pass').value;
-            if(!e || !p) return alert("Llena los campos");
-            signInWithEmailAndPassword(auth, e, p).catch(() => alert("Error de acceso"));
-        };
-        window.cerrarSesion = () => signOut(auth).then(() => location.reload());
 
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                document.getElementById('sec-login').classList.add('hidden');
-                document.getElementById('app').classList.remove('hidden');
-                document.getElementById('nav-bar').classList.remove('hidden');
-                document.getElementById('user-name').innerText = user.email.split('@')[0].toUpperCase();
-                saludo();
-                conectar(user);
+        function updateTheme(type) {
+            const color = themes[type];
+            document.getElementById('mat-header-text').style.color = color;
+            document.getElementById('mat-header-text').innerText = type === 'materia' ? 'AÑADIR MATERIA' : `AÑADIR ${type.toUpperCase()}`;
+            
+            const btn = document.getElementById('btn-add-mat');
+            btn.style.backgroundColor = color;
+            btn.innerText = `✨ AÑADIR ${type === 'materia' ? '' : type.toUpperCase()}`;
+            
+            document.getElementById('mat-color').value = color;
+        }
+
+        // 3. EFECTOS VISUALES
+        function initSeasonalEffects() {
+            const canvas = document.getElementById('seasonal-canvas');
+            const ctx = canvas.getContext('2d');
+            let width, height, particles = [];
+            const month = new Date().getMonth();
+            
+            let theme = { type: 'snow', color: ['#ffffff', '#e0f2fe'], speedY: 0.8, speedX: 0.3, size: 2.5 };
+            if (month === 9) theme = { type: 'halloween', color: ['#f97316', '#a855f7'], speedY: -0.6, speedX: 0.2, size: 3 };
+            else if (month === 1) theme = { type: 'love', color: ['#f43f5e', '#fda4af'], speedY: -0.8, speedX: 0.2, size: 3 };
+            else if (month >= 5 && month <= 7) theme = { type: 'summer', color: ['#fbbf24', '#fef3c7'], speedY: -0.2, speedX: 0.2, size: 2 };
+            else if (month !== 11) theme = { type: 'tech', color: ['var(--color-principal)', '#ffffff'], speedY: -0.3, speedX: 0.1, size: 1.5 };
+
+            function resize() { width = window.innerWidth; height = window.innerHeight; canvas.width = width; canvas.height = height; }
+            window.addEventListener('resize', resize); resize();
+
+            class Particle {
+                constructor() { this.reset(); this.y = Math.random() * height; }
+                reset() {
+                    this.x = Math.random() * width;
+                    this.y = theme.speedY > 0 ? -10 : height + 10;
+                    this.size = Math.random() * theme.size + 1;
+                    this.speedX = (Math.random() - 0.5) * theme.speedX;
+                    this.speedY = (Math.random() * 0.5 + 0.5) * theme.speedY;
+                    this.color = theme.color[Math.floor(Math.random() * theme.color.length)];
+                    this.opacity = Math.random() * 0.4 + 0.1;
+                }
+                update() {
+                    this.x += this.speedX + (theme.type === 'snow' ? Math.sin(this.y/50)*0.5 : 0);
+                    this.y += this.speedY;
+                    if (theme.speedY > 0 && this.y > height) this.reset();
+                    else if (theme.speedY < 0 && this.y < -10) this.reset();
+                }
+                draw() {
+                    ctx.fillStyle = this.color; ctx.globalAlpha = this.opacity;
+                    if(theme.type === 'snow') { ctx.shadowBlur = 4; ctx.shadowColor = "white"; }
+                    ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
+                    ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+                }
+            }
+            for (let i = 0; i < 60; i++) particles.push(new Particle());
+            function animate() { ctx.clearRect(0, 0, width, height); particles.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animate); }
+            animate();
+        }
+
+        // 4. AUTENTICACIÓN
+function toggleAuth() { 
+    isLogin = !isLogin; 
+    document.getElementById('reg-fields').classList.toggle('hidden', isLogin);
+    document.getElementById('auth-main-btn').innerText = isLogin ? 'ENTRAR' : 'REGISTRARSE';
+    document.getElementById('auth-desc').innerText = isLogin ? 'Acceso Estudiantil' : 'Crear Cuenta';
+    document.getElementById('toggle-auth-text').innerText = isLogin ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia Sesión';
+}
+async function manejarAuth() {
+    const email = document.getElementById('auth-email').value;
+    const pass = document.getElementById('auth-pass').value;
+    const err = document.getElementById('auth-error');
+    err.innerText = "";
+    
+    try {
+        if (isLogin) {
+            await auth.signInWithEmailAndPassword(email, pass);
+        } else {
+            const nom = document.getElementById('reg-nombre').value;
+            const ape = document.getElementById('reg-apellido').value;
+            const niv = document.getElementById('reg-nivel').value; 
+            const sem = document.getElementById('reg-semestre').value;
+            const gru = document.getElementById('reg-grupo').value;
+            
+            if(!nom || !ape || !niv || !sem || !gru) {
+                err.innerText = "❌ Completa todos los campos";
+                return;
+            }
+            
+            const res = await auth.createUserWithEmailAndPassword(email, pass);
+            const nowIso = new Date().toISOString();
+            await db.ref('usuarios/' + res.user.uid + '/perfil').set({ 
+                nombre: nom,
+                apellido: ape,
+                nivel: niv,
+                semestre: sem,
+                grupo: gru,
+                createdAt: nowIso,
+                lastModified: nowIso
+            });
+        }
+    } catch (e) {
+        // ✅ Mensajes amigables
+        if(e.code === 'auth/invalid-email') {
+            err.innerText = "❌ Correo inválido";
+        } else if(e.code === 'auth/user-not-found') {
+            err.innerText = "❌ Usuario no encontrado";
+        } else if(e.code === 'auth/wrong-password') {
+            err.innerText = "❌ Escriba la contraseña";
+        } else if(e.code === 'auth/weak-password') {
+            err.innerText = "❌ La contraseña debe tener al menos 6 caracteres";
+        } else if(e.code === 'auth/email-already-in-use') {
+            err.innerText = "❌ Este correo ya está registrado";
+        } else if(e.code === 'auth/invalid-credential') {
+            err.innerText = "❌ Credenciales incorrectas";
+        } else {
+            err.innerText = "❌ Su contraseña es incorrecta";
+        }
+    }
+}
+
+// ✅ Verificar y preguntar si repitió antes de incrementar semestre (desde agosto 2026)
+function verificarYActualizarSemestre(uid, perfil) {
+    const hoy = new Date();
+    const mes = hoy.getMonth() + 1; // 1-12
+    const dia = hoy.getDate();
+    const ano = hoy.getFullYear();
+
+    // Solo iniciar comportamiento desde 1 de agosto de 2026
+    const fechaInicio = new Date(2026, 7, 1); // 1 de agosto 2026
+    if (hoy < fechaInicio) return;
+
+    // Solo actuar en FEBRERO o AGOSTO
+    if (!(mes === 2 || mes === 8)) return;
+
+    // Excepciones: si usuario modificó perfil hace 0-10 días -> no preguntar
+    if (perfil.lastModified) {
+        const last = new Date(perfil.lastModified);
+        const diffDays = (hoy - last) / (1000 * 60 * 60 * 24);
+        if (diffDays <= 10) return;
+    }
+
+    // Excepción: usuario nuevo (creado hace <=30 días) -> no preguntar
+    if (perfil.createdAt) {
+        const created = new Date(perfil.createdAt);
+        const ageDays = (hoy - created) / (1000 * 60 * 60 * 24);
+        if (ageDays <= 30) return;
+    }
+
+    const mesNombre = mes === 2 ? 'FEBRERO' : 'AGOSTO';
+    const ultimaConsulta = perfil.ultimaConsultaSemestre || '0';
+
+    // Si ya se preguntó esta época -> no repetir
+    if (ultimaConsulta.includes(mesNombre + ano.toString())) return;
+
+    // Revisar calificaciones para decidir comportamiento
+    db.ref('usuarios/' + uid + '/materias_config').once('value').then(snap => {
+        const materias = snap.val() || {};
+        let allRegistered = true;
+        let failedCount = 0;
+        let total = 0;
+
+        Object.keys(materias).forEach(k => {
+            const m = materias[k];
+            total++;
+            const p1 = m.p1 !== undefined && m.p1 !== '' ? parseFloat(m.p1) : null;
+            const p2 = m.p2 !== undefined && m.p2 !== '' ? parseFloat(m.p2) : null;
+            const p3 = m.p3 !== undefined && m.p3 !== '' ? parseFloat(m.p3) : null;
+            if (p1 === null || p2 === null || p3 === null) {
+                allRegistered = false;
+            } else {
+                const w1 = parseFloat(m.w1) || 0; const w2 = parseFloat(m.w2) || 0; const w3 = parseFloat(m.w3) || 0;
+                const prom = (p1 * (w1/100)) + (p2 * (w2/100)) + (p3 * (w3/100));
+                if (prom < 70) failedCount++;
             }
         });
 
-        // NAVEGACIÓN
-        window.irA = (s) => {
-            document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
-            document.getElementById('sec-' + s).classList.remove('hidden');
-        };
+        // Si todas las calificaciones están registradas
+        if (allRegistered && total > 0) {
+            if (failedCount > 2) {
+                // Preguntar al usuario
+                mostrarDialogoRepeticion(uid, perfil, mesNombre, ano);
+            } else {
+                // Dar por hecho que pasó y avanzar 1 semestre
+                procesarRepeticion(uid, perfil.semestre, mesNombre + ano.toString(), false);
+                // Si es exactamente el primer día del semestre (1 feb / 1 ago), solicitar confirmación y migrar materias
+                if ((mes === 2 && dia === 1) || (mes === 8 && dia === 1)) {
+                    pedirConfirmacionMigracion(uid);
+                }
+            }
+        } else {
+            // Si no están todas las calificaciones, preguntar para confirmar
+            mostrarDialogoRepeticion(uid, perfil, mesNombre, ano);
+        }
+    }).catch(err => {
+        console.error('Error comprobando materias para semestre:', err);
+        // En caso de fallo, preguntar al usuario
+        mostrarDialogoRepeticion(uid, perfil, mesNombre, ano);
+    });
+}
 
-        // SALUDO POR HORA
-        function saludo() {
-            const hora = new Date().getHours();
-            let txt = "¡Buenas noches!";
-            if(hora >= 6 && hora < 12) txt = "¡Buenos días!";
-            if(hora >= 12 && hora < 19) txt = "¡Buenas tardes!";
-            document.getElementById('txt-saludo').innerText = txt;
+// Modal para preguntar si el usuario repitió
+function mostrarDialogoRepeticion(uid, perfil, mes, ano) {
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.85);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(5px);
+    `;
+    
+    modal.innerHTML = `
+        <div style="
+            background: #0f172a;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+        ">
+            <h2 style="
+                color: var(--color-principal);
+                font-size: 20px;
+                font-weight: 900;
+                margin-bottom: 20px;
+                letter-spacing: 2px;
+            ">¿REPETISTE DE SEMESTRE?</h2>
+            
+            <p style="
+                color: rgba(255,255,255,0.8);
+                font-size: 14px;
+                margin-bottom: 30px;
+                line-height: 1.6;
+            ">Es el inicio de <strong>${mes}</strong>, ¿completaste todos los requisitos para pasar al siguiente semestre?</p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <button onclick="procesarRepeticion('${uid}', '${perfil.semestre}', '${mes}${ano}', false)" style="
+                    background: #10b981;
+                    color: white;
+                    font-weight: 900;
+                    font-size: 12px;
+                    padding: 14px;
+                    border: none;
+                    border-radius: 12px;
+                    cursor: pointer;
+                    text-transform: uppercase;
+                    transition: 0.2s;
+                " onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
+                    No, Avancé ✓
+                </button>
+                
+                <button onclick="procesarRepeticion('${uid}', '${perfil.semestre}', '${mes}${ano}', true)" style="
+                    background: #ef4444;
+                    color: white;
+                    font-weight: 900;
+                    font-size: 12px;
+                    padding: 14px;
+                    border: none;
+                    border-radius: 12px;
+                    cursor: pointer;
+                    text-transform: uppercase;
+                    transition: 0.2s;
+                " onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">
+                    Sí, Repetí ✗
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+// Procesar la respuesta del usuario
+function procesarRepeticion(uid, semestreActual, marca, repitio) {
+    // Determinar nuevo semestre
+    let nuevoSemestre = parseInt(semestreActual);
+    if (!repitio) {
+        nuevoSemestre = parseInt(semestreActual) + 1;
+    }
+    
+    // Actualizar en BD
+    db.ref('usuarios/' + uid + '/perfil').update({
+        semestre: nuevoSemestre.toString(),
+        ultimaConsultaSemestre: marca // Para no preguntar de nuevo este mes/año
+    });
+    
+    // Cerrar modal
+    const modales = document.querySelectorAll('div[style*="position: fixed"][style*="9999"]');
+    modales.forEach(m => {
+        if (m.innerHTML.includes('¿REPETISTE DE SEMESTRE?')) {
+            m.remove();
+        }
+    });
+    // Si avanzó de semestre y es 1 de Febrero o 1 de Agosto (y >=2026), migrar materias a kardex
+    const hoy = new Date();
+    const mes = hoy.getMonth() + 1; const dia = hoy.getDate(); const ano = hoy.getFullYear();
+    if (!repitio && ((mes === 2 && dia === 1) || (mes === 8 && dia === 1)) && ano >= 2026) {
+        pedirConfirmacionMigracion(uid);
+    }
+}
+
+// Ejecutar migración de materias al kardex (archivado) y limpieza de horario/pendientes
+function moverMateriasAKardex(uid) {
+    const userRef = db.ref('usuarios/' + uid);
+    const movedAt = new Date().toISOString();
+
+    // Obtener perfil y materias
+    Promise.all([
+        userRef.child('perfil').once('value'),
+        userRef.child('materias_config').once('value'),
+        userRef.child('horario').once('value'),
+        userRef.child('pendientes').once('value')
+    ]).then(([snapPerfil, snapMat, snapHor, snapPen]) => {
+        const perfil = snapPerfil.val() || {};
+        const materias = snapMat.val() || {};
+        const horario = snapHor.val() || {};
+        const pendientes = snapPen.val() || {};
+
+        const updates = {};
+
+        Object.keys(materias).forEach(matId => {
+            const m = materias[matId];
+            // Calcular promedio si hay datos
+            const p1 = parseFloat(m.p1) || 0; const p2 = parseFloat(m.p2) || 0; const p3 = parseFloat(m.p3) || 0;
+            const w1 = parseFloat(m.w1) || 0; const w2 = parseFloat(m.w2) || 0; const w3 = parseFloat(m.w3) || 0;
+            const prom = (p1 * (w1/100)) + (p2 * (w2/100)) + (p3 * (w3/100));
+
+            // Si reprobó y tiene extraordinario pendiente, la dejamos (no mover)
+            const tieneExtra = m.extraordinario && typeof m.extraordinario === 'object';
+            const extraCompleto = tieneExtra && m.extraordinario.promedioFinal !== undefined;
+
+            const debeMover = !(prom < 70 && tieneExtra && !extraCompleto);
+
+            if (debeMover) {
+                // Guardar en kardex
+                const tarjeta = {
+                    materiaId: matId,
+                    nombre: m.nombre || '',
+                    maestro: m.maestro || '',
+                    color: m.color || '',
+                    final: Number.isFinite(prom) ? prom.toFixed(1) : null,
+                    movedAt,
+                    semestre: perfil.semestre || null,
+                    extraordinario: m.extraordinario || null
+                };
+                const newKey = userRef.child('kardex').push().key;
+                updates['kardex/' + newKey] = tarjeta;
+
+                // Borrar materia de materias_config
+                updates['materias_config/' + matId] = null;
+            }
+        });
+
+        // Limpiar horario: eliminar entradas que referencien materias movidas
+        Object.keys(horario).forEach(hk => {
+            const entry = horario[hk];
+            if (entry && entry.materiaId && updates['materias_config/' + entry.materiaId] === null) {
+                updates['horario/' + hk] = null;
+            }
+        });
+
+        // Limpiar pendientes relacionados
+        Object.keys(pendientes).forEach(pk => {
+            const p = pendientes[pk];
+            if (p && p.materiaId && updates['materias_config/' + p.materiaId] === null) {
+                updates['pendientes/' + pk] = null;
+            }
+        });
+
+        // Aplicar actualizaciones atómicas
+        return userRef.update(updates);
+    }).then(() => {
+        console.log('Migración a kardex completada');
+    }).catch(err => console.error('Error moviendo a kardex', err));
+}
+
+auth.onAuthStateChanged(user => {
+    if (user) {
+        document.getElementById('auth-overlay').style.display = 'none';
+        document.getElementById('app-container').classList.remove('hidden');
+        
+        db.ref('usuarios/' + user.uid + '/perfil').on('value', snap => {
+            const p = snap.val();
+            if(p) {
+                // ✅ VERIFICAR Y ACTUALIZAR SEMESTRE AUTOMÁTICAMENTE
+                verificarYActualizarSemestre(user.uid, p);
+                
+                document.getElementById('welcome-name').innerText = `¡Hola, ${p.nombre}!`;
+                document.getElementById('user-info-side').innerText = `${p.semestre}° SEMESTRE • GRUPO ${p.grupo}`;
+                document.getElementById('user-level-side').innerText = p.nivel.toUpperCase();
+                
+                userLevel = p.nivel;
+                miGrupo = p.grupo;
+                document.getElementById('foro-grupo-info').innerText = `Grupo ${miGrupo}`;
+                document.getElementById('grupo-header').innerText = `Chat Grupo ${miGrupo}`;
+                
+                // CARGAR FONDO AQUÍ
+                if(p.fondoPersonalizado) {
+                    document.body.style.backgroundImage = `url(${p.fondoPersonalizado})`;
+                    document.body.style.backgroundSize = 'cover';
+                    document.body.style.backgroundPosition = 'center';
+                    document.body.style.backgroundAttachment = 'fixed';
+                    document.body.classList.add('has-custom-bg');
+                }
+                
+                if(userLevel === 'tecnologo') {
+                    document.getElementById('cont-tipo-materia').classList.remove('hidden');
+                    updateTheme('materia'); 
+                } else {
+                    document.getElementById('cont-tipo-materia').classList.add('hidden');
+                    updateTheme('materia');
+                }
+                generarModulos();
+            }
+        });
+        
+        cargarOrdenMenu();
+        escucharDatosMaterias();
+        escucharHorario(); 
+        escucharPendientes(); 
+        escucharForo();
+                console.log("Configuración cargada");
+                cargarConfiguracion();
+        cargarInicio();
+        initSeasonalEffects();
+    }else {
+                document.getElementById('auth-overlay').style.display = 'flex';
+                document.getElementById('app-container').classList.add('hidden');
+                initSeasonalEffects(); 
+            }
+        });
+
+        // 5. MATERIAS
+        function escucharDatosMaterias() {
+            db.ref('usuarios/' + auth.currentUser.uid + '/materias_config').on('value', snap => {
+                materiasCache = {}; 
+                const matCont = document.getElementById('grid-materias');
+                const calCont = document.getElementById('grid-calificaciones');
+                matCont.innerHTML = ""; calCont.innerHTML = "";
+                let sumaProm = 0, numMat = 0;
+                let mejor = { nombre: "---", nota: 0 };
+
+                if (snap.exists()) {
+                    snap.forEach(child => {
+                        const m = child.val(); const id = child.key;
+                        materiasCache[id] = m; 
+                        
+                        const p1 = parseFloat(m.p1) || 0; const p2 = parseFloat(m.p2) || 0; const p3 = parseFloat(m.p3) || 0;
+                        const prom = (p1 * (m.w1/100)) + (p2 * (m.w2/100)) + (p3 * (m.w3/100));
+                        sumaProm += prom; numMat++;
+                        if (prom > mejor.nota) mejor = { nombre: m.nombre, nota: prom };
+
+                        // Preferir iniciales guardadas en la materia; si no existen, calcular desde horarioData
+                        let diasStr = '';
+                        if (m.diasIniciales && m.diasIniciales.trim() !== '') {
+                            diasStr = `<div class="absolute top-10 left-0 mt-2 text-[9px] font-bold opacity-60 bg-black/30 px-2 py-1 rounded tracking-widest inline-block">${m.diasIniciales}</div>`;
+                        } else {
+                            let diasClase = [];
+                            horarioData.forEach(h => { 
+                                if(h.tipo === 'clase' && h.materiaId === id && !diasClase.includes(h.dia.substring(0,1))) {
+                                    diasClase.push(h.dia.substring(0,1)); 
+                                }
+                            });
+                            diasStr = diasClase.length > 0 ? `<div class="absolute top-10 left-0 mt-2 text-[9px] font-bold opacity-60 bg-black/30 px-2 py-1 rounded tracking-widest inline-block">${diasClase.join(' ')}</div>` : "";
+                        }
+                        
+                        const tipoLabel = (m.tipo && m.tipo !== 'materia') ? `<span class="bg-white/10 px-2 py-1 rounded text-[8px] font-bold uppercase ml-2 border border-white/20">${m.tipo}</span>` : '';
+                        const emojiDisplay = m.emoji && m.emoji.startsWith('data:image') 
+    ? `<img src="${m.emoji}" class="w-8 h-8 object-contain">` 
+    : '';
+const emojiBackground = m.emoji && m.emoji.startsWith('data:image') 
+    ? `<img src="${m.emoji}" class="w-full h-full object-contain">` 
+    : '';
+                        matCont.innerHTML += `<div class="card h-48 border-l-4 relative overflow-hidden group flex flex-col justify-between" style="border-color: ${m.color}">
+                            <div class="absolute -top-4 -right-4 p-4 opacity-[0.05] text-8xl pointer-events-none select-none transition-transform group-hover:scale-110 duration-500">${emojiBackground}</div>
+                            <div class="relative z-10">
+                                <div class="flex items-center gap-2">
+                                    ${emojiDisplay}
+                                    <h3 class="text-2xl font-black italic tracking-tight line-clamp-2 break-words">${m.nombre}</h3>${tipoLabel}
+                                </div>
+                                <p class="text-[10px] font-bold text-white/50 uppercase tracking-widest mt-1">${m.maestro || 'Sin Profesor'}</p>
+                                ${diasStr}
+                            </div>
+                            <div class="relative z-10 flex justify-between items-end mt-4">
+                                <button onclick="goToCalif('${id}')" class="bg-white/10 hover:bg-white/20 w-10 h-10 rounded-xl flex items-center justify-center transition backdrop-blur-md"><span class="text-lg">📊</span></button>
+                                <button onclick="pedirConfirmacion('${id}', 'materia')" class="text-[10px] font-bold uppercase text-rose-500/60 hover:text-rose-400 bg-rose-500/10 px-3 py-2 rounded-lg transition backdrop-blur-md">BORRAR</button>
+                            </div>
+                        </div>`;
+
+                       const calEmojiDisplay = m.emoji && m.emoji.startsWith('data:image') 
+    ? `<img src="${m.emoji}" class="w-8 h-8 object-contain">` 
+    : '';
+const calEmojiBackground = m.emoji && m.emoji.startsWith('data:image') 
+    ? `<img src="${m.emoji}" class="w-full h-full object-contain">` 
+    : '';
+
+                       calCont.innerHTML += `<div id="cal-card-${id}" class="card border-l-8 overflow-hidden group mb-4 relative" style="border-color: ${m.color}">
+    <div class="absolute -top-10 -right-10 p-4 opacity-[0.05] text-9xl pointer-events-none rotate-12 select-none">${calEmojiBackground}</div>
+    <div class="flex flex-col xl:flex-row justify-between gap-10 relative z-10">
+        <div class="w-full xl:w-1/4">
+            <div class="flex items-center gap-2 mb-1">
+                ${calEmojiDisplay}
+                <h3 class="text-3xl font-black italic line-clamp-2 break-words">${m.nombre}</h3>
+            </div>
+           <p class="text-5xl font-black mb-2" style="color: ${m.color}">
+    ${m.extraordinario && m.extraordinario.promedioFinal >= 70 
+        ? `<span class="text-emerald-500">${m.extraordinario.promedioFinal.toFixed(1)}</span>` 
+        : prom.toFixed(1)
+    }
+</p>
+${m.extraordinario && m.extraordinario.promedioFinal >= 70 
+    ? `<span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded font-bold uppercase">✅ Aprobada en ${m.extraordinario.tipo}</span>` 
+    : ''
+}
+            <p class="text-[11px] font-bold text-slate-400 mt-4 bg-black/30 p-3 rounded-xl inline-block leading-relaxed border border-white/5 shadow-lg">${obtenerPrediccion(m)}</p>
+            
+            ${prom < 70 && p1 > 0 && p2 > 0 && p3 > 0 ? `
+                <button onclick="abrirExtraordinario('${id}')" class="mt-4 bg-amber-500 text-slate-950 font-black px-4 py-2 rounded-xl uppercase text-[10px] hover:bg-amber-400 transition w-full">
+                    🔄 Intentar Rescatar
+                </button>
+            ` : ''}
+        </div>
+        <div id="parciales-${id}" class="flex-grow grid grid-cols-1 md:grid-cols-3 gap-6">
+            ${[1,2,3].map(p => `<div class="bg-white/5 p-4 rounded-2xl border border-white/5 backdrop-blur-sm"><p class="text-[10px] font-black uppercase text-sky-500 mb-3 text-center border-b border-white/10 pb-2">Parcial ${p}</p><div class="mb-3"><label class="text-[8px] font-bold text-slate-400 block">Nota (0-100)</label>
+<input type="number" min="0" max="100" step="1" value="${m['p'+p] || ''}" 
+       onchange="guardarDato('${id}', 'p${p}', Math.min(100, Math.max(0, Math.floor(this.value || 0))))" 
+       class="text-lg font-bold">
+                </div><div><label class="text-[8px] font-bold text-slate-400 block">Peso %</label><input type="number" min="0" max="100" step="1" value="${m['w'+p] || ''}" 
+       onchange="ajustarPonderacion('${id}', ${p}, Math.min(100, Math.max(0, Math.floor(this.value || 0))))" 
+       class="opacity-70 text-xs"></div></div>`).join('')}
+        </div>
+    </div>
+</div>`;
+                    });
+                } else {
+                    calCont.innerHTML = `<div class="text-center py-20"><p class="text-2xl font-black italic mb-6 opacity-50">Añade Materias Primero</p><button onclick="show('mat')" class="bg-sky-500 text-slate-950 font-black px-8 py-4 rounded-xl uppercase text-xs hover:bg-sky-400 transition shadow-lg shadow-sky-500/20 transform hover:scale-105 active:scale-95">➜ Ir a Materias</button></div>`;
+                    document.getElementById('stat-promedio').innerText = "0.0";
+                }
+
+                const promFinal = numMat > 0 ? (sumaProm / numMat).toFixed(1) : "0.0";
+                document.getElementById('stat-promedio').innerText = promFinal;
+                document.getElementById('stat-mejor').innerText = mejor.nombre;
+                document.getElementById('stat-mejor-nota').innerText = mejor.nota.toFixed(1) + " pts";
+                document.getElementById('progreso-barra').style.width = Math.min(100, promFinal) + "%"; 
+                
+                generarModulos();
+                renderPendientes(); 
+            });
         }
 
-        // CALCULADORA
-        window.calcPromedio = () => {
-            const notas = document.querySelectorAll('.prom');
-            let suma = 0, count = 0;
-            notas.forEach(n => { if(n.value){ suma += parseFloat(n.value); count++; } });
-            const res = count > 0 ? (suma / count).toFixed(1) : "0.0";
-            document.getElementById('res-prom').innerText = "Promedio: " + res;
-        };
-
-        // FIREBASE: FORO Y TAREAS
-        function conectar(user) {
-            // Tareas
-            onValue(ref(db, 'tareas/' + user.uid), (s) => {
-                const lista = document.getElementById('lista-tareas'); lista.innerHTML = "";
-                if(s.val()) Object.entries(s.val()).forEach(([id, t]) => {
-                    lista.innerHTML += `<div class="flex justify-between bg-white/5 p-2 rounded-lg"><span>${t.txt}</span><button onclick="borrarTarea('${id}')">❌</button></div>`;
-                });
-            });
-            // Foro
-            onValue(ref(db, 'foro/posts'), (s) => {
-                const feed = document.getElementById('feed'); feed.innerHTML = "";
-                if(s.val()) Object.entries(s.val()).reverse().forEach(([id, p]) => {
-                    const cl = p.prio === 'alta' ? 'border-rose-500 bg-rose-500/5' : 'border-white/10';
-                    feed.innerHTML += `<div class="glass p-4 rounded-2xl border-l-4 ${cl}"><p class="text-[9px] font-black text-sky-400 mb-1">${p.aut}</p><p class="text-sm">${p.txt}</p></div>`;
+        // 6. HORARIO
+        function escucharHorario() {
+             db.ref('usuarios/'+auth.currentUser.uid+'/horario').on('value', s => {
+            horarioData = []; 
+         if (s.exists()) {
+            s.forEach(c => {
+                const clase = c.val();
+                horarioData.push({
+                    ...clase, 
+                    key: c.key
                 });
             });
         }
+        console.log("✅ Clases cargadas:", horarioData.length, horarioData); // DEBUG
+        renderHorarioGrid(); // IMPORTANTE: Llamar directamente aquí
+    });
+}
 
-        window.addTarea = () => {
-            const t = document.getElementById('task-input').value;
-            if(t) push(ref(db, 'tareas/' + auth.currentUser.uid), { txt: t });
-            document.getElementById('task-input').value = "";
-        };
-        window.borrarTarea = (id) => remove(ref(db, 'tareas/' + auth.currentUser.uid + '/' + id));
+        function generarModulos() {
+            modulos = [];
+            let startHour = 7; let startMin = 30;
+            let endLimitHour = 15; let endLimitMin = 0; 
 
-        window.publicar = () => {
-            const t = document.getElementById('f-txt').value;
-            if(!t) return;
-            push(ref(db, 'foro/posts'), { aut: auth.currentUser.email.split('@')[0], txt: t, prio: window.prio });
-            document.getElementById('f-txt').value = "";
+            if (userLevel === 'ingenieria') {
+                startHour = 15; startMin = 0;
+                endLimitHour = 21; endLimitMin = 40;
+                document.getElementById('horario-desc').innerText = "Ingeniería (15:00 - 21:40)";
+            } else {
+                let hasTaller = false;
+                let hasIrregular = false;
+                for (let k in materiasCache) {
+                    if (materiasCache[k].tipo === 'taller') hasTaller = true;
+                    if (materiasCache[k].tipo === 'irregular') hasIrregular = true;
+                }
+                if (hasTaller) {
+                    endLimitHour = 20; endLimitMin = 0;
+                    document.getElementById('horario-desc').innerText = "Tecnólogo + Taller (07:30 - 20:00)";
+                } else if (hasIrregular) {
+                    endLimitHour = 17; endLimitMin = 30;
+                    document.getElementById('horario-desc').innerText = "Tecnólogo + Irregular (07:30 - 17:30)";
+                } else {
+                    document.getElementById('horario-desc').innerText = "Tecnólogo Matutino (07:30 - 15:00)";
+                }
+            }
+
+            let currentTotalMin = startHour * 60 + startMin;
+            let endTotalMin = endLimitHour * 60 + endLimitMin;
+
+            while (currentTotalMin < endTotalMin) {
+                let sH = Math.floor(currentTotalMin / 60);
+                let sM = currentTotalMin % 60;
+                let nextTotalMin = currentTotalMin + 50;
+                if (nextTotalMin > endTotalMin + 10) break; 
+                let eH = Math.floor(nextTotalMin / 60);
+                let eM = nextTotalMin % 60;
+                const f = (n) => n.toString().padStart(2, '0');
+                modulos.push({ h: `${f(sH)}:${f(sM)}`, end: `${f(eH)}:${f(eM)}` });
+                currentTotalMin = nextTotalMin;
+            }
+        }
+
+        // --- RENDERIZADO DEL HORARIO (CORRECCIÓN APLICADA) ---
+function renderHorarioGrid() {
+    const container = document.getElementById('horario-body');
+    if(!container) return;
+    
+    let fullHTML = "";
+    let celdasOcupadas = {};
+    
+    modulos.forEach((mod, idx) => {
+        fullHTML += `<div class="horario-time"><span>${mod.h}</span><span class="text-[8px] opacity-50">${mod.end}</span></div>`;
+        
+        for(let d=1; d<=5; d++) {
+            const diaKey = ["Lunes","Martes","Miércoles","Jueves","Viernes"][d-1];
+            const celdaKey = `${diaKey}-${idx}`;
+            
+            // Si esta celda está ocupada por un módulo doble, renderizar celda vacía
+            if(celdasOcupadas[celdaKey]) {
+                continue; // NO renderizar nada, el módulo doble ya ocupa este espacio
+            }
+            
+            const clasesEnEsteBloque = horarioData.filter(c => 
+                c.dia === diaKey && parseInt(c.moduloInicio) === idx
+            );
+            
+            let cellContent = "";
+            let rowSpan = 1;
+                    if(clasesEnEsteBloque.length > 0) {
+    cellContent = clasesEnEsteBloque.map(clase => {
+        const mat = materiasCache[clase.materiaId] || { 
+            nombre: '???', 
+            color: '#334155', 
+            emoji: '❓',
+            maestro: ''
         };
+        
+        // Marcar siguiente celda como ocupada si es doble
+        if(clase.doble && idx + 1 < modulos.length) {
+            celdasOcupadas[`${diaKey}-${idx + 1}`] = true;
+            rowSpan = 2;
+        }
+        
+                    const indicadorDoble = clase.doble ? '<span class="doble-badge">DOBLE</span>' : '';
+
+        // ✅ EMOJI PARA FONDO (grande y opaco)
+        const emojiBackground = mat.emoji && mat.emoji.startsWith('data:image') 
+            ? `<img src="${mat.emoji}" style="width:100%; height:100%; object-fit:contain; filter: brightness(0.8);">` 
+            : '';
+
+        // ✅ EMOJI PARA MOSTRAR (pequeño junto al nombre)
+        const emojiDisplay = mat.emoji && mat.emoji.startsWith('data:image') 
+            ? `<img src="${mat.emoji}" style="width:18px; height:18px; object-fit:contain; flex-shrink:0;">` 
+            : '';
+
+        return `
+            <div class="clase-block" style="
+                background: linear-gradient(135deg, ${mat.color}35, ${mat.color}50); 
+                border-left: 4px solid ${mat.color}; 
+                border-radius: 8px;
+                backdrop-filter: blur(4px);
+                height: 100%;
+                position: relative;
+                overflow: hidden;
+                padding: 8px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            " onclick="pedirConfirmacion('${clase.key}', 'clase')">
+                
+                <!-- 🎨 EMOJI DE FONDO -->
+                <div style="
+                    position: absolute;
+                    right: 6px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    width: 56px;
+                    height: 56px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    opacity: 0.15;
+                    pointer-events: none;
+                    z-index: 1;
+                ">
+                    ${emojiBackground}
+                </div>
+                
+                <!-- ✅ CONTENIDO PRINCIPAL -->
+                <div style="position: relative; z-index: 2;">
+                    <!-- PRIMERA LÍNEA: Emoji + Nombre + Badge DOBLE -->
+                    <div style="
+                        display: flex; 
+                        align-items: center; 
+                        justify-content: space-between; 
+                        gap: 6px;
+                        margin-bottom: 4px;
+                    ">
+                        <div style="
+                            display: flex; 
+                            align-items: center; 
+                            gap: 6px; 
+                            min-width: 0; 
+                            flex: 1;
+                        ">
+                            ${emojiDisplay}
+                            <span style="
+                                color: white;
+                                font-weight: 900;
+                                font-size: 11px;
+                                line-height: 1.2;
+                                text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+                                overflow: hidden;
+                                text-overflow: ellipsis;
+                                white-space: nowrap;
+                                flex: 1;
+                            " title="${mat.nombre}">${
+                                mat.nombre.length > 14 ? mat.nombre.substring(0, 14) + '...' : mat.nombre
+                            }</span>
+                        </div>
+                        ${indicadorDoble}
+                    </div>
+                    
+                    <!-- SEGUNDA LÍNEA: Profesor + Aula -->
+                    <div style="
+                        font-size: 8px; 
+                        opacity: 0.9; 
+                        line-height: 1.3; 
+                        color: white;
+                        text-shadow: 0 1px 2px rgba(0,0,0,0.6); 
+                        overflow: hidden; 
+                        text-overflow: ellipsis; 
+                        white-space: nowrap;
+                    ">
+                        ${mat.maestro || 'Sin profesor'}${clase.aula ? ' • ' + clase.aula : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+                }).join('');
+            }
+            
+const gridStyle = rowSpan === 2 ? 'style="grid-row: span 2;"' : '';
+
+// ✅ Si la celda está vacía, agregar evento de click
+if(cellContent === "") {
+    fullHTML += `<div class="horario-cell ${gridStyle}" onclick="abrirModalAgregarClase('${diaKey}', ${idx})">
+        <div style="
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100%; 
+            opacity: 0; 
+            transition: opacity 0.2s;
+            cursor: pointer;
+        " onmouseover="this.style.opacity='0.5'" onmouseout="this.style.opacity='0'">
+            <span style="font-size: 24px; color: rgba(56, 189, 248, 0.6);">➕</span>
+        </div>
+    </div>`;
+} else {
+    fullHTML += `<div class="horario-cell" ${gridStyle}>${cellContent}</div>`;
+}
+        }
+    });
+    
+    container.innerHTML = fullHTML;
+    actualizarProximaClase();
+    setupHorarioScrollbarSync();
+}
+// Sincroniza la barra de scroll superior con el grid del horario
+function setupHorarioScrollbarSync() {
+    const topBar = document.getElementById('horario-scrollbar');
+    const mainGrid = document.getElementById('main-schedule-grid');
+    if (!topBar || !mainGrid) return;
+    // Evitar inicializar múltiples veces
+    if (topBar.dataset.syncInit === '1') return;
+    topBar.dataset.syncInit = '1';
+
+    const track = topBar.querySelector('.track');
+    if (!track) return;
+
+    const updateTrack = () => {
+        // Asegurar que el "track" tenga el ancho total del contenido scrollable
+        track.style.width = mainGrid.scrollWidth + 'px';
+        // Mostrar solo si hay overflow horizontal
+        topBar.style.display = mainGrid.scrollWidth > mainGrid.clientWidth ? '' : 'none';
+    };
+
+    // Inicializar
+    updateTrack();
+
+    let isSyncing = false;
+    mainGrid.addEventListener('scroll', () => {
+        if (isSyncing) return;
+        isSyncing = true;
+        topBar.scrollLeft = mainGrid.scrollLeft;
+        requestAnimationFrame(() => { isSyncing = false; });
+    });
+
+    topBar.addEventListener('scroll', () => {
+        if (isSyncing) return;
+        isSyncing = true;
+        mainGrid.scrollLeft = topBar.scrollLeft;
+        requestAnimationFrame(() => { isSyncing = false; });
+    });
+
+    // Actualizar en cambios de tamaño
+    window.addEventListener('resize', updateTrack);
+
+    // Usar ResizeObserver cuando esté disponible para cambios en contenido
+    if (typeof ResizeObserver !== 'undefined') {
+        try {
+            const ro = new ResizeObserver(updateTrack);
+            ro.observe(mainGrid);
+        } catch (e) { /* no crítico */ }
+    }
+}
+        function actualizarProximaClase() {
+            if(modulos.length === 0) return;
+            const ahora = new Date();
+            const minutosAhora = ahora.getHours() * 60 + ahora.getMinutes();
+            const mapDia = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
+            const hoyStr = mapDia[ahora.getDay()];
+            
+            const [baseH, baseM] = modulos[0].h.split(':').map(Number);
+            const baseMin = baseH*60 + baseM;
+
+            const proxima = horarioData.filter(c => c.dia === hoyStr).find(c => {
+                let mIni = baseMin + (parseInt(c.moduloInicio) * 50);
+                return mIni > minutosAhora;
+            });
+            const statusLabel = document.getElementById('stat-proxima-clase');
+            const hourLabel = document.getElementById('stat-proxima-hora');
+            if(proxima) {
+                let nombre = "Clase";
+                if(proxima.tipo === 'clase' && materiasCache[proxima.materiaId]) nombre = materiasCache[proxima.materiaId].nombre;
+                const modInfo = modulos[proxima.moduloInicio];
+                const horaStr = modInfo ? modInfo.h : "??:??";
+                statusLabel.innerText = nombre;
+                hourLabel.innerText = `Inicia ${horaStr}`;
+            } else {
+                statusLabel.innerText = "Día Terminado";
+                hourLabel.innerText = "¡A descansar!";
+            }
+        }
+
+        // 7. PENDIENTES CON INTELIGENCIA (CORREGIDO)
+        function escucharPendientes() {
+            db.ref('usuarios/'+auth.currentUser.uid+'/pendientes').on('value', s => {
+                pendientesData = []; 
+                if(s.exists()) {
+                    s.forEach(c => {
+                        pendientesData.push({...c.val(), key: c.key});
+                    });
+                }
+                renderPendientes();
+            });
+        }
+        function setSort(type) {
+            currentSort = type;
+            ['date','materia','priority'].forEach(t => document.getElementById(`sort-${t}`).classList.remove('active'));
+            document.getElementById(`sort-${type}`).classList.add('active');
+            renderPendientes();
+        }
+
+        function getPriorityScore(p) {
+            if (p.type === 'recordatorio') return 0;
+            if (!p.fecha) return 0;
+
+            const parts = p.fecha.split('-');
+            const dueYear = parseInt(parts[0]);
+            const dueMonth = parseInt(parts[1]) - 1; 
+            const dueDay = parseInt(parts[2]);
+
+            const due = new Date(dueYear, dueMonth, dueDay);
+            const now = new Date();
+            now.setHours(0,0,0,0);
+            due.setHours(0,0,0,0);
+
+            const diffTime = due - now;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+
+            let level = 1; // Verde
+            if (diffDays <= 1) level = 3; // Rojo
+            else if (diffDays <= 3) level = 2; // Amarillo
+
+            if (level === 3) return 100; // Rojo
+            if (level === 2) return 50;  // Amarillo
+            return 10;                   // Verde
+        }
+
+        function openViewPendiente(id) {
+            const p = pendientesData.find(item => item.key === id);
+            if(!p) return;
+
+            const typeLabels = { 'tarea': 'TAREA', 'proyecto': 'PROYECTO', 'examen': 'EXAMEN', 'recordatorio': 'RECORDATORIO' };
+            document.getElementById('view-type').innerText = typeLabels[p.type] || 'PENDIENTE';
+            
+            let materiaName = "General";
+            if(p.materiaId && materiasCache[p.materiaId]) {
+                materiaName = materiasCache[p.materiaId].nombre;
+                document.getElementById('view-type').style.color = materiasCache[p.materiaId].color;
+            }
+
+            if (p.type === 'examen') {
+                document.getElementById('view-name').innerText = materiaName;
+            } else {
+                document.getElementById('view-name').innerText = p.nombre || 'Sin Título';
+            }
+            
+            document.getElementById('view-materia').innerText = p.fecha ? `${materiaName} • ${p.fecha}` : materiaName;
+            
+            let content = p.desc || "";
+            if(p.type === 'proyecto' && p.materiales) content = "📦 Materiales:\n" + p.materiales;
+            if(p.type === 'examen' && p.temario) content = "📚 Temario:\n" + p.temario;
+            
+            document.getElementById('view-desc').innerText = content || "Sin detalles adicionales.";
+            document.getElementById('modal-view').style.display = 'flex';
+        }
+
+        function renderPendientes() {
+            const container = document.getElementById('grid-pendientes');
+            if(!container) return;
+            container.innerHTML = "";
+            
+            let filtered = [];
+            if(currentPendienteTab === 'tareas') filtered = pendientesData.filter(p => p.type === 'tarea');
+            if(currentPendienteTab === 'recordatorios') filtered = pendientesData.filter(p => p.type === 'recordatorio');
+            if(currentPendienteTab === 'fechas') filtered = pendientesData.filter(p => p.type === 'proyecto' || p.type === 'examen');
+
+            if(filtered.length === 0) { 
+                container.innerHTML = `<div class="col-span-full text-center py-10 opacity-50 italic">No hay pendientes aquí</div>`; 
+                return; 
+            }
+
+            filtered.sort((a,b) => {
+                if (currentSort === 'date') return new Date(a.fecha || '9999-12-31') - new Date(b.fecha || '9999-12-31');
+                if (currentSort === 'materia') return (materiasCache[a.materiaId]?.nombre || 'Z').localeCompare(materiasCache[b.materiaId]?.nombre || 'Z');
+                return getPriorityScore(b) - getPriorityScore(a); 
+            });
+
+            filtered.forEach(p => {
+                let matColor = '#64748b'; let materiaNombre = 'General';
+                if(p.materiaId && materiasCache[p.materiaId]) { 
+                    matColor = materiasCache[p.materiaId].color; 
+                    materiaNombre = materiasCache[p.materiaId].nombre; 
+                }
+
+                const score = getPriorityScore(p);
+                let borderColor = matColor;
+                let badge = "";
+                
+                if (currentSort === 'priority' && p.type !== 'recordatorio') {
+                    if (score >= 100) { 
+                        borderColor = '#ef4444'; // ROJO
+                        badge = `<span class="bg-red-500 text-white text-[8px] font-black px-2 py-0.5 rounded uppercase ml-2 animate-pulse">Urgente</span>`; 
+                    } else if (score >= 50) { 
+                        borderColor = '#eab308'; // AMARILLO
+                        badge = `<span class="bg-yellow-500 text-black text-[8px] font-black px-2 py-0.5 rounded uppercase ml-2">Importante</span>`; 
+                    } else { 
+                        borderColor = '#22c55e'; // VERDE
+                        badge = `<span class="bg-green-500 text-black text-[8px] font-black px-2 py-0.5 rounded uppercase ml-2">Relajado</span>`; 
+                    }
+                }
+
+                const clickAction = `onclick="openViewPendiente('${p.key}')"`;
+                let cardHTML = "";
+
+                if(p.type === 'tarea') {
+                    cardHTML = `
+                        <div class="card border-l-4 p-5 flex flex-col justify-between clickable-card animate-in" style="border-color: ${borderColor}; box-shadow: -5px 0 15px -5px ${borderColor}20" ${clickAction}>
+                            <div>
+                                <div class="flex items-center mb-2">
+                                    <span class="bg-blue-500/20 text-blue-400 text-[9px] font-black px-2 py-1 rounded uppercase">Tarea</span>
+                                    ${badge}
+                                </div>
+                                <h4 class="text-xl font-black italic leading-tight">${p.nombre || 'Sin Título'}</h4>
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">${materiaNombre}</p>
+                                <p class="text-sm text-slate-300 mb-4 line-clamp-2">${p.desc || ''}</p>
+                            </div>
+                            <div class="flex justify-between items-center pt-4 border-t border-white/5">
+                                <span class="text-xs font-bold text-white">📅 ${p.fecha}</span>
+                                <button onclick="event.stopPropagation(); pedirConfirmacion('${p.key}', 'pendiente')" class="text-rose-500 hover:text-rose-400 text-xs font-black uppercase z-10">Terminar</button>
+                            </div>
+                        </div>
+                    `;
+                } else if (p.type === 'recordatorio') {
+                    cardHTML = `
+                        <div class="card border-l-4 p-5 flex flex-col justify-between bg-yellow-500/5 clickable-card animate-in" style="border-color: #eab308" ${clickAction}>
+                            <div>
+                                <span class="bg-yellow-500/20 text-yellow-400 text-[9px] font-black px-2 py-1 rounded uppercase mb-2 inline-block">Recordatorio</span>
+                                <h4 class="text-lg font-bold mb-1">${p.nombre || 'Sin Título'}</h4>
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">${materiaNombre}</p>
+                                <p class="text-sm text-slate-300 italic line-clamp-3">"${p.desc || ''}"</p>
+                            </div>
+                            <div class="mt-4 flex justify-end">
+                                <button onclick="event.stopPropagation(); pedirConfirmacion('${p.key}', 'pendiente')" class="text-slate-500 hover:text-white text-[10px] font-black uppercase z-10">Borrar</button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    const isExamen = p.type === 'examen'; 
+                    const badgeColor = isExamen ? 'bg-rose-500/20 text-rose-400' : 'bg-purple-500/20 text-purple-400';
+                    const extraField = isExamen ? `📚 Temario: ${p.temario || 'N/A'}` : `📦 Materiales: ${p.materiales || 'N/A'}`;
+                    if(currentSort !== 'priority') borderColor = isExamen ? '#f43f5e' : '#a855f7'; 
+
+                    cardHTML = `
+                        <div class="card border-l-4 p-5 flex flex-col justify-between clickable-card animate-in" style="border-color: ${borderColor}" ${clickAction}>
+                            <div>
+                                <div class="flex items-center mb-2">
+                                    <span class="${badgeColor} text-[9px] font-black px-2 py-1 rounded uppercase">${isExamen ? 'Examen' : 'Proyecto'}</span>
+                                    ${badge}
+                                </div>
+                                <h4 class="text-xl font-black italic leading-tight">${isExamen ? materiaNombre : (p.nombre || 'Sin Título')}</h4>
+                                ${!isExamen ? `<p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">${materiaNombre}</p>` : ''}
+                                <div class="mt-4 bg-white/5 p-3 rounded-lg text-xs text-slate-300 line-clamp-3">${extraField}</div>
+                            </div>
+                            <div class="flex justify-between items-center pt-4 mt-4 border-t border-white/5">
+                                <span class="text-xs font-bold text-white">📅 ${p.fecha}</span>
+                                <button onclick="event.stopPropagation(); pedirConfirmacion('${p.key}', 'pendiente')" class="text-slate-500 hover:text-white text-[10px] font-black uppercase z-10">Listo</button>
+                            </div>
+                        </div>
+                    `;
+                }
+                container.innerHTML += cardHTML;
+            });
+        }
+
+        // ==================== FORO ====================
+function escucharForo() {
+    const emailAdmin = "a24300203@ceti.mx";
+    const esAdmin = auth.currentUser.email === emailAdmin;
+    
+    document.getElementById('aviso-form-container').style.display = esAdmin ? 'block' : 'none';
+    
+    if(esAdmin) {
+        document.getElementById('tab-quejas').style.display = 'block';
+        escucharQuejas(); // ✅ Ahora esta función estará FUERA
+    }
+    
+    db.ref('usuarios/' + auth.currentUser.uid + '/perfil').once('value', snap => {
+        const perfil = snap.val();
+        const puedeVerGrupo = perfil.semestre === "4" && perfil.grupo === "A" && perfil.nivel === "tecnologo";
+        
+        if(puedeVerGrupo) {
+            document.getElementById('tab-grupo').style.display = 'block';
+            document.getElementById('grupo-form-container').style.display = esAdmin ? 'block' : 'none';
+        } else {
+            document.getElementById('tab-grupo').style.display = 'none';
+        }
+    });
+    
+    db.ref('foro/avisos').on('value', s => {
+        avisosData = [];
+        if(s.exists()) {
+            s.forEach(c => {
+                avisosData.push({...c.val(), key: c.key});
+            });
+        }
+        renderAvisos();
+    });
+
+    db.ref('foro/grupos/A').on('value', s => {
+        grupoData = [];
+        if(s.exists()) {
+            s.forEach(c => {
+                grupoData.push({...c.val(), key: c.key});
+            });
+        }
+        renderGrupo();
+    });
+}  // ✅ CIERRE DE escucharForo()
+
+// ==================== QUEJAS (FUERA DE ESCUCHAR FORO) ====================
+let quejasData = [];
+
+function escucharQuejas() {
+    db.ref('quejas_sugerencias').on('value', s => {
+        quejasData = [];
+        if(s.exists()) {
+            s.forEach(c => {
+                quejasData.push({...c.val(), key: c.key});
+            });
+        }
+        renderQuejas();
+    });
+}
+
+function renderQuejas() {
+    const container = document.getElementById('grid-quejas');
+    if(!container) return;
+    
+    container.innerHTML = "";
+    
+    if(quejasData.length === 0) {
+        container.innerHTML = `<div class="text-center py-10 opacity-50 italic">No hay quejas o sugerencias</div>`;
+        return;
+    }
+    
+    quejasData.sort((a, b) => b.timestamp - a.timestamp);
+    
+    quejasData.forEach(q => {
+        const fecha = new Date(q.timestamp);
+        const fechaStr = fecha.toLocaleDateString() + " " + fecha.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        container.innerHTML += `
+            <div class="card border-l-4 border-amber-500 bg-amber-500/5 p-5">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <p class="text-xs font-black uppercase text-amber-400">📬 Mensaje de Usuario</p>
+                        <p class="text-sm font-bold text-slate-300 mt-1">${q.usuario} • ${q.semestre}° Sem • Grupo ${q.grupo}</p>
+                    </div>
+                    <button onclick="borrarQueja('${q.key}')" class="text-rose-500 hover:text-rose-400 text-[10px] font-bold uppercase">Borrar</button>
+                </div>
+                <p class="text-base text-white leading-relaxed mb-3">${q.texto}</p>
+                <p class="text-[10px] text-slate-500 font-bold uppercase">${fechaStr}</p>
+            </div>
+        `;
+    });
+}
+
+function borrarQueja(key) {
+    if(!confirm('¿Borrar esta queja/sugerencia?')) return;
+    db.ref('quejas_sugerencias/' + key).remove();
+}
+
+// Continúa con switchForoTab()...
+function switchForoTab(tab) {
+    currentForoTab = tab;
+    document.querySelectorAll('.tab-pen').forEach(t => t.classList.remove('active'));
+    
+    if(tab === 'avisos') {
+        document.getElementById('tab-avisos').classList.add('active');
+        document.getElementById('foro-avisos').classList.remove('hidden');
+        document.getElementById('foro-grupo').classList.add('hidden');
+        document.getElementById('foro-quejas').classList.add('hidden');
+    } else if(tab === 'grupo') {
+        document.getElementById('tab-grupo').classList.add('active');
+        document.getElementById('foro-avisos').classList.add('hidden');
+        document.getElementById('foro-grupo').classList.remove('hidden');
+        document.getElementById('foro-quejas').classList.add('hidden');
+    } else if(tab === 'quejas') {
+        document.getElementById('tab-quejas').classList.add('active');
+        document.getElementById('foro-avisos').classList.add('hidden');
+        document.getElementById('foro-grupo').classList.add('hidden');
+        document.getElementById('foro-quejas').classList.remove('hidden');
+    }
+}
+
+function publicarAviso() {
+    const texto = document.getElementById('aviso-texto').value.trim();
+    if(!texto) return alert("Escribe algo");
+    
+    db.ref('usuarios/' + auth.currentUser.uid + '/perfil').once('value', snap => {
+        const perfil = snap.val();
+        const data = {
+            texto: texto,
+            autor: perfil.nombre + " " + perfil.apellido,
+            grupo: perfil.grupo,
+            timestamp: Date.now(),
+            uid: auth.currentUser.uid
+        };
+        
+        db.ref('foro/avisos').push(data);
+        document.getElementById('aviso-texto').value = "";
+    });
+}
+
+function publicarMensajeGrupo() {
+    const texto = document.getElementById('grupo-texto').value.trim();
+    if(!texto) return alert("Escribe algo");
+    
+    db.ref('usuarios/' + auth.currentUser.uid + '/perfil').once('value', snap => {
+        const perfil = snap.val();
+        const data = {
+            texto: texto,
+            autor: perfil.nombre + " " + perfil.apellido,
+            timestamp: Date.now(),
+            uid: auth.currentUser.uid
+        };
+        
+        // Siempre guardar en grupo A (grupo específico)
+        db.ref('foro/grupos/A').push(data).then(() => {
+            document.getElementById('grupo-texto').value = "";
+        });
+    });
+}
+
+function renderAvisos() {
+    const container = document.getElementById('grid-avisos');
+    if(!container) return;
+    
+    container.innerHTML = "";
+    
+    if(avisosData.length === 0) {
+        container.innerHTML = `<div class="text-center py-10 opacity-50 italic">No hay avisos todavía</div>`;
+        return;
+    }
+    
+    // Ordenar por más reciente
+    avisosData.sort((a, b) => b.timestamp - a.timestamp);
+    
+    avisosData.forEach(aviso => {
+        const fecha = new Date(aviso.timestamp);
+        const fechaStr = fecha.toLocaleDateString() + " " + fecha.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        const esMio = aviso.uid === auth.currentUser.uid;
+        const deleteBtn = esMio ? `<button onclick="borrarAviso('${aviso.key}')" class="text-rose-500 hover:text-rose-400 text-[10px] font-bold uppercase">Borrar</button>` : '';
+        
+        container.innerHTML += `
+            <div class="card border-l-4 border-sky-500 bg-sky-500/5 p-5">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <p class="text-xs font-black uppercase text-sky-400">📢 Aviso General</p>
+                        <p class="text-sm font-bold text-slate-300 mt-1">${aviso.autor} • Grupo ${aviso.grupo}</p>
+                    </div>
+                    ${deleteBtn}
+                </div>
+                <p class="text-base text-white leading-relaxed mb-3">${aviso.texto}</p>
+                <p class="text-[10px] text-slate-500 font-bold uppercase">${fechaStr}</p>
+            </div>
+        `;
+    });
+    document.getElementById('stat-foro-avisos').innerText = avisosData.length + (avisosData.length === 1 ? ' Aviso' : ' Avisos');
+}
+
+// ======= NUEVAS FUNCIONES: manejo de iniciales de días y confirmación de migración =======
+function actualizarDiasMateriaEnBD(materiaId) {
+    if(!materiaId) return;
+    const uid = auth.currentUser.uid;
+    // Leer horario actual y calcular iniciales únicas
+    db.ref('usuarios/' + uid + '/horario').once('value').then(snap => {
+        const horas = snap.val() || {};
+        const dias = new Set();
+        Object.keys(horas).forEach(k => {
+            const c = horas[k];
+            if (c && c.tipo === 'clase' && c.materiaId === materiaId && c.dia) {
+                dias.add(c.dia.substring(0,1));
+            }
+        });
+        const diasStr = Array.from(dias).join(' ');
+        return db.ref('usuarios/' + uid + '/materias_config/' + materiaId).update({ diasIniciales: diasStr });
+    }).catch(err => console.error('Error actualizando dias de materia:', err));
+}
+
+function pedirConfirmacionMigracion(uid) {
+    // Calcular cuántas materias se moverían
+    db.ref('usuarios/' + uid + '/materias_config').once('value').then(snap => {
+        const materias = snap.val() || {};
+        let mover = [];
+        Object.keys(materias).forEach(id => {
+            const m = materias[id];
+            const p1 = parseFloat(m.p1) || 0; const p2 = parseFloat(m.p2) || 0; const p3 = parseFloat(m.p3) || 0;
+            const w1 = parseFloat(m.w1) || 0; const w2 = parseFloat(m.w2) || 0; const w3 = parseFloat(m.w3) || 0;
+            const prom = (p1 * (w1/100)) + (p2 * (w2/100)) + (p3 * (w3/100));
+            const tieneExtra = m.extraordinario && typeof m.extraordinario === 'object';
+            const extraCompleto = tieneExtra && m.extraordinario.promedioFinal !== undefined;
+            const debeMover = !(prom < 70 && tieneExtra && !extraCompleto);
+            if (debeMover) mover.push({ id, nombre: m.nombre || 'Sin nombre' });
+        });
+
+        // Mostrar modal de confirmación con resumen
+        const modal = document.createElement('div');
+        modal.style.cssText = `position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999; display:flex; align-items:center; justify-content:center;`;
+        const lista = mover.slice(0,8).map(x => `<li>${x.nombre}</li>`).join('');
+        modal.innerHTML = `
+            <div style="background:#0f172a;padding:28px;border-radius:12px;max-width:520px;color:white;">
+                <h3 style="color:var(--color-principal);font-weight:900;margin-bottom:8px;">Confirmar migración a kardex</h3>
+                <p style="opacity:0.9;margin-bottom:12px;">Se moverán <strong>${mover.length}</strong> materia(s) al kardex y se eliminarán del horario/pendientes. ¿Deseas continuar?</p>
+                <ul style="max-height:160px;overflow:auto;margin-bottom:12px;padding-left:18px;">${lista}${mover.length>8?'<li>...más</li>':''}</ul>
+                <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
+                    <button id="cancel-mig" style="padding:10px 14px;border-radius:8px;background:#ffffff1f;color:white;border:none">Cancelar</button>
+                    <button id="confirm-mig" style="padding:10px 14px;border-radius:8px;background:#10b981;color:#020617;border:none;font-weight:900">Confirmar y migrar</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        document.getElementById('cancel-mig').onclick = () => modal.remove();
+        document.getElementById('confirm-mig').onclick = () => { modal.remove(); moverMateriasAKardex(uid); };
+    }).catch(err => { console.error('Error preparando migración:', err); alert('Error preparando migración'); });
+}
+
+            function renderGrupo() {
+                const container = document.getElementById('grid-grupo');
+                if(!container) return;
+                
+                container.innerHTML = "";
+                
+                if(grupoData.length === 0) {
+                    container.innerHTML = `<div class="text-center py-10 opacity-50 italic">Espera el primer resumen of the day</div>`;
+                    return;
+                }
+                
+                // Ordenar por más reciente
+                grupoData.sort((a, b) => b.timestamp - a.timestamp);
+                
+                grupoData.forEach(msg => {
+                    const fecha = new Date(msg.timestamp);
+                    const fechaStr = fecha.toLocaleDateString() + " " + fecha.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    
+                    const esMio = msg.uid === auth.currentUser.uid;
+                    const deleteBtn = esMio ? `<button onclick="borrarMensajeGrupo('${msg.key}')" class="text-rose-500 hover:text-rose-400 text-[10px] font-bold uppercase">Borrar</button>` : '';
+                    
+                    container.innerHTML += `
+                        <div class="card border-l-4 border-emerald-500 bg-emerald-500/5 p-5">
+                            <div class="flex justify-between items-start mb-3">
+                                <p class="text-sm font-bold text-emerald-400">${msg.autor}</p>
+                                ${deleteBtn}
+                            </div>
+                            <p class="text-base text-white leading-relaxed mb-3">${msg.texto}</p>
+                            <p class="text-[10px] text-slate-500 font-bold uppercase">${fechaStr}</p>
+                        </div>
+                    `;
+                });
+                            }
+
+                function borrarAviso(key) {
+                    if(!confirm("¿Borrar este aviso?")) return;
+                    db.ref('foro/avisos/' + key).remove();
+                    document.getElementById('stat-foro-grupo').innerText = grupoData.length + (grupoData.length === 1 ? ' Mensaje' : ' Mensajes');
+                }
+
+function borrarMensajeGrupo(key) {
+    if(!confirm("¿Borrar este mensaje?")) return;
+    db.ref('foro/grupos/A/' + key).remove();
+}
+// ==================== CÓDIGOS ====================
+function generarCodigoSelectivo() {
+    const incluirMaterias = document.getElementById('exp-materias').checked;
+    const incluirHorario = document.getElementById('exp-horario').checked;
+    const incluirTareas = document.getElementById('exp-tareas').checked;
+    
+    if(!incluirMaterias && !incluirHorario && !incluirTareas) {
+        return alert('❌ Selecciona al menos una opción');
+    }
+    
+    // Generar código
+    const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let codigo = '';
+    for(let i = 0; i < 6; i++) {
+        codigo += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+    }
+    
+    const promises = [];
+    const paquete = { timestamp: Date.now(), creador: auth.currentUser.uid };
+    
+    if(incluirMaterias) {
+        promises.push(
+            db.ref('usuarios/' + auth.currentUser.uid + '/materias_config').once('value').then(snap => {
+                const data = {};
+                if(snap.exists()) snap.forEach(c => { data[c.key] = c.val(); });
+                paquete.materias = data;
+            })
+        );
+    }
+    
+    if(incluirHorario) {
+        promises.push(
+            db.ref('usuarios/' + auth.currentUser.uid + '/horario').once('value').then(snap => {
+                const data = [];
+                if(snap.exists()) snap.forEach(c => { data.push(c.val()); });
+                paquete.horario = data;
+            })
+        );
+    }
+    
+    if(incluirTareas) {
+        promises.push(
+            db.ref('usuarios/' + auth.currentUser.uid + '/pendientes').once('value').then(snap => {
+                const data = [];
+                if(snap.exists()) snap.forEach(c => { data.push(c.val()); });
+                paquete.pendientes = data;
+            })
+        );
+    }
+    
+    Promise.all(promises).then(() => {
+        db.ref('codigos_compartidos/' + codigo).set(paquete).then(() => {
+            document.getElementById('codigo-generado').value = codigo;
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        });
+    });
+}
+
+function copiarCodigo() {
+    const input = document.getElementById('codigo-generado');
+    input.select();
+    document.execCommand('copy');
+    alert('✅ Código copiado al portapapeles');
+}
+
+let datosImportar = null;
+
+function verificarCodigo() {
+    const codigo = document.getElementById('codigo-importar').value.trim().toUpperCase();
+    
+    if(codigo.length !== 6) {
+        alert('❌ El código debe tener 6 caracteres');
+        return;
+    }
+    
+    db.ref('codigos_compartidos/' + codigo).once('value', snap => {
+        if(!snap.exists()) {
+            alert('❌ Código no encontrado');
+            document.getElementById('preview-importar').classList.add('hidden');
+            document.getElementById('btn-importar').disabled = true;
+            document.getElementById('btn-importar').classList.add('bg-white/10', 'text-slate-500', 'cursor-not-allowed');
+            document.getElementById('btn-importar').classList.remove('bg-purple-500', 'text-white');
+            return;
+        }
+        
+        const datos = snap.val();
+        
+        // Verificar si está vencido (30 días)
+        const ahora = Date.now();
+        const diasPasados = (ahora - datos.timestamp) / (1000 * 60 * 60 * 24);
+        
+        if(diasPasados > 30) {
+            alert('❌ Este código ha expirado (válido por 30 días)');
+            return;
+        }
+        
+        datosImportar = datos;
+        
+        // Mostrar preview
+        const numMaterias = Object.keys(datos.materias || {}).length;
+        const numClases = (datos.horario || []).length;
+        
+        document.getElementById('preview-materias').innerText = `📚 ${numMaterias} materia${numMaterias !== 1 ? 's' : ''}`;
+        document.getElementById('preview-horario').innerText = `📅 ${numClases} clase${numClases !== 1 ? 's' : ''}`;
+        document.getElementById('preview-importar').classList.remove('hidden');
+        
+        // Habilitar botón de importar
+        document.getElementById('btn-importar').disabled = false;
+        document.getElementById('btn-importar').classList.remove('bg-white/10', 'text-slate-500', 'cursor-not-allowed');
+        document.getElementById('btn-importar').classList.add('bg-purple-500', 'hover:bg-purple-400', 'text-white');
+    });
+}
+
+function importarCodigo() {
+    if(!datosImportar) return alert('❌ Primero verifica el código');
+    
+    let mensaje = '⚠️ ADVERTENCIA: Esto BORRARÁ:\n';
+    if(datosImportar.materias) mensaje += '- Materias actuales\n';
+    if(datosImportar.horario) mensaje += '- Horario actual\n';
+    if(datosImportar.pendientes) mensaje += '- Tareas/Pendientes actuales\n';
+    mensaje += '\n¿Continuar?';
+    
+    if(!confirm(mensaje)) return;
+    
+    const uid = auth.currentUser.uid;
+    const promises = [];
+    const mapeoMaterias = {}; // Mapear IDs viejos a nuevos
+    
+    // PASO 1: Importar materias primero y mapear IDs
+    if(datosImportar.materias) {
+        promises.push(
+            db.ref('usuarios/' + uid + '/materias_config').remove().then(() => {
+                const subPromises = [];
+                for(let oldKey in datosImportar.materias) {
+                    const promise = db.ref('usuarios/' + uid + '/materias_config').push(datosImportar.materias[oldKey])
+                        .then(ref => {
+                            mapeoMaterias[oldKey] = ref.key; // Guardar mapeo viejo -> nuevo
+                        });
+                    subPromises.push(promise);
+                }
+                return Promise.all(subPromises);
+            })
+        );
+    }
+    
+    // PASO 2: Esperar a que se importen materias, luego importar horario con IDs actualizados
+    Promise.all(promises).then(() => {
+        const promisesHorario = [];
+        
+        if(datosImportar.horario) {
+            promisesHorario.push(
+                db.ref('usuarios/' + uid + '/horario').remove().then(() => {
+                    const subPromises = [];
+                    datosImportar.horario.forEach(clase => {
+                        // Actualizar materiaId con el nuevo ID
+                        if(clase.materiaId && mapeoMaterias[clase.materiaId]) {
+                            clase.materiaId = mapeoMaterias[clase.materiaId];
+                        }
+                        subPromises.push(db.ref('usuarios/' + uid + '/horario').push(clase));
+                    });
+                    return Promise.all(subPromises);
+                })
+            );
+        }
+        
+        if(datosImportar.pendientes) {
+            promisesHorario.push(
+                db.ref('usuarios/' + uid + '/pendientes').remove().then(() => {
+                    const subPromises = [];
+                    datosImportar.pendientes.forEach(tarea => {
+                        // Actualizar materiaId con el nuevo ID
+                        if(tarea.materiaId && mapeoMaterias[tarea.materiaId]) {
+                            tarea.materiaId = mapeoMaterias[tarea.materiaId];
+                        }
+                        subPromises.push(db.ref('usuarios/' + uid + '/pendientes').push(tarea));
+                    });
+                    return Promise.all(subPromises);
+                })
+            );
+        }
+        
+        return Promise.all(promisesHorario);
+    }).then(() => {
+        confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
+        alert('✅ Configuración importada exitosamente');
+        document.getElementById('codigo-importar').value = '';
+        document.getElementById('preview-importar').classList.add('hidden');
+        document.getElementById('btn-importar').disabled = true;
+        datosImportar = null;
+        show('mat');
+    });
+}
+
+        // 8. MODALES Y LOGICA GENERAL
+        function switchPendienteTab(tab) { currentPendienteTab = tab; document.querySelectorAll('.tab-pen').forEach(t => t.classList.remove('active')); document.getElementById('tab-' + tab).classList.add('active'); renderPendientes(); }
+function openAddModal(type) { 
+    document.getElementById('modal-add').style.display = 'flex'; 
+    if(type === 'horario') renderFormularioClase(); // ✅ Sin parámetros, comportamiento normal
+}
+        function openAddPendienteModal() { document.getElementById('modal-add').style.display = 'flex'; renderFormularioPendiente(); }
+        function closeModal() { document.getElementById('modal-add').style.display = 'none'; }
+
+        function renderFormularioPendiente() {
+            document.getElementById('modal-title').innerText = "Nuevo Pendiente"; const content = document.getElementById('form-content');
+            let opts = `<option value="" disabled selected>Selecciona materia</option>`; for(let k in materiasCache) opts += `<option value="${k}">${materiasCache[k].nombre}</option>`;
+            content.innerHTML = `<div class="flex gap-2 mb-4 bg-white/5 p-1 rounded-xl"><button onclick="setPendienteForm('tarea')" id="btn-p-tarea" class="flex-1 py-2 rounded-lg text-[10px] font-bold uppercase transition bg-sky-500 text-black">Tarea</button><button onclick="setPendienteForm('recordatorio')" id="btn-p-rec" class="flex-1 py-2 rounded-lg text-[10px] font-bold uppercase transition text-slate-400 hover:bg-white/10">Recordatorio</button><button onclick="setPendienteForm('fecha')" id="btn-p-fecha" class="flex-1 py-2 rounded-lg text-[10px] font-bold uppercase transition text-slate-400 hover:bg-white/10">Fecha Imp.</button></div><div id="dynamic-form-fields" class="space-y-5"></div><button onclick="guardarPendiente()" class="w-full bg-emerald-500 text-slate-950 font-black p-5 rounded-xl uppercase text-xs mt-6 shadow-xl hover:bg-emerald-400 transition transform active:scale-95">Guardar</button>`;
+            setPendienteForm('tarea');
+            // Inicializar datepickers si existen (por si quedan inputs previos)
+            initDatePickers();
+        }
+
+        let currentPendienteType = 'tarea'; let currentFechaType = 'proyecto';
+        function setPendienteForm(type) {
+            currentPendienteType = type;
+            ['tarea','rec','fecha'].forEach(t => { const btn = document.getElementById(`btn-p-${t}`); if(t === type.substring(0, type.length < 4 ? 3 : 5)) btn.className = "flex-1 py-2 rounded-lg text-[10px] font-bold uppercase transition bg-sky-500 text-black"; else btn.className = "flex-1 py-2 rounded-lg text-[10px] font-bold uppercase transition text-slate-400 hover:bg-white/10"; });
+            const container = document.getElementById('dynamic-form-fields');
+            let opts = `<option value="" disabled selected>Selecciona materia</option>`; for(let k in materiasCache) opts += `<option value="${k}">${materiasCache[k].nombre}</option>`;
+            if (type === 'tarea') container.innerHTML = `<input type="text" id="pen-nombre" placeholder="Nombre de la Tarea" class="mb-2"><select id="pen-materia" class="mb-5">${opts}</select><div class="mb-5"><label class="text-[8px] text-slate-500 font-bold uppercase ml-2 mb-2 block">Fecha de Entrega</label><input type="date" id="pen-fecha" class="mb-2"></div><textarea id="pen-desc" placeholder="Descripción (Opcional)" rows="2" class="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white text-xs"></textarea>`;
+            else if (type === 'recordatorio') container.innerHTML = `<select id="pen-materia" class="mb-2">${opts}</select><input type="text" id="pen-nombre" placeholder="Título del Recordatorio" class="mb-5"><textarea id="pen-desc" placeholder="Descripción (Opcional)" rows="2" class="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white text-xs"></textarea>`;
+            else if (type === 'fecha') { container.innerHTML = `<div class="flex gap-3 mb-5 bg-white/5 p-4 rounded-xl"><label class="flex items-center gap-3 cursor-pointer"><input type="radio" name="fechaSub" value="proyecto" checked onchange="toggleFechaSub('proyecto')"><span class="text-[11px] font-bold">Proyecto</span></label><label class="flex items-center gap-3 cursor-pointer"><input type="radio" name="fechaSub" value="examen" onchange="toggleFechaSub('examen')"><span class="text-[11px] font-bold">Examen</span></label></div><div id="fecha-dynamic-fields"></div>`; toggleFechaSub('proyecto'); }
+            // Inicializar flatpickr en el nuevo campo
+            setTimeout(initDatePickers, 50);
+        }
+
+        function toggleFechaSub(subType) {
+            currentFechaType = subType; const container = document.getElementById('fecha-dynamic-fields');
+            let opts = `<option value="" disabled selected>Selecciona materia</option>`; for(let k in materiasCache) opts += `<option value="${k}">${materiasCache[k].nombre}</option>`;
+            if (subType === 'proyecto') container.innerHTML = `<input type="text" id="pen-nombre" placeholder="Nombre del Proyecto" class="mb-2"><select id="pen-materia" class="mb-5">${opts}</select><div class="mb-5"><label class="text-[8px] text-slate-500 font-bold uppercase ml-2 mb-2 block">Fecha de Entrega</label><input type="date" id="pen-fecha" class="mb-2"></div><textarea id="pen-extra" placeholder="Materiales (Opcional)" rows="2" class="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white text-xs"></textarea>`;
+            else container.innerHTML = `<select id="pen-materia" class="mb-5">${opts}</select><div class="mb-5"><label class="text-[8px] text-slate-500 font-bold uppercase ml-2 mb-2 block">Fecha del Examen</label><input type="date" id="pen-fecha" class="mb-2"></div><textarea id="pen-extra" placeholder="Temario (Opcional)" rows="2" class="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white text-xs"></textarea>`;
+            // Inicializar flatpickr en el nuevo campo
+            setTimeout(initDatePickers, 50);
+        }
+
+        function guardarPendiente() {
+            const data = { type: currentPendienteType };
+            if (currentPendienteType === 'tarea') { data.nombre = document.getElementById('pen-nombre').value; data.materiaId = document.getElementById('pen-materia').value; data.fecha = document.getElementById('pen-fecha').value; data.desc = document.getElementById('pen-desc').value; if(!data.nombre || !data.materiaId || !data.fecha) return alert("Faltan datos"); } 
+            else if (currentPendienteType === 'recordatorio') { data.materiaId = document.getElementById('pen-materia').value; data.nombre = document.getElementById('pen-nombre').value; data.desc = document.getElementById('pen-desc').value; if(!data.nombre || !data.materiaId) return alert("Faltan datos"); }
+            else if (currentPendienteType === 'fecha') {
+                data.type = currentFechaType; data.materiaId = document.getElementById('pen-materia').value; data.fecha = document.getElementById('pen-fecha').value;
+                if (currentFechaType === 'proyecto') { data.nombre = document.getElementById('pen-nombre').value; data.materiales = document.getElementById('pen-extra').value; if(!data.nombre) return alert("Falta nombre"); } else { data.temario = document.getElementById('pen-extra').value; }
+                if(!data.materiaId || !data.fecha) return alert("Faltan datos");
+            }
+            db.ref('usuarios/'+auth.currentUser.uid+'/pendientes').push(data); closeModal();
+        }
+// Inicializar datepickers con restricción de semestres
+function initDatePickers() {
+    if (typeof flatpickr === 'undefined') return;
+    const el = document.getElementById('pen-fecha');
+    if (!el) return;
+    if (el._flatpickr) return;
+
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth() + 1;
+    const dayOfMonth = today.getDate();
+    
+    // Definir semestres: Feb 1 - Jul 15, Aug 1 - Dec 4
+    const sem1Start = new Date(year, 1, 1); // Feb 1
+    const sem1End = new Date(year, 6, 15); // Jul 15
+    const sem1EndMinus15 = new Date(year, 6, 1); // Jul 1 (últimos 15 días)
+    
+    const sem2Start = new Date(year, 7, 1); // Aug 1
+    const sem2End = new Date(year, 11, 4); // Dec 4
+    const sem2EndMinus15 = new Date(year, 10, 19); // Nov 19 (últimos 15 días)
+    
+    let minDate, maxDate;
+    
+    // Lógica: determinar rango permitido según época del año
+    if (today <= sem1EndMinus15) {
+        // Primer semestre, no en últimos 15 días
+        minDate = today;
+        maxDate = sem1End;
+    } else if (today > sem1EndMinus15 && today <= sem1End) {
+        // Últimos 15 días del primer semestre: permitir rest de sem1 y todo sem2
+        minDate = today;
+        maxDate = sem2End;
+    } else if (today >= sem2Start && today < sem2EndMinus15) {
+        // Segundo semestre, no en últimos 15 días
+        minDate = today;
+        maxDate = sem2End;
+    } else if (today > sem2EndMinus15 && today <= sem2End) {
+        // Últimos 15 días del segundo semestre: permitir resto de sem2 y sem1 del siguiente año
+        minDate = today;
+        maxDate = new Date(year + 1, 6, 15); // Jul 15 siguiente año
+    } else {
+        // Fuera de semestres: minDate = hoy, maxDate = próximo semestre
+        minDate = today;
+        maxDate = new Date(year + 1, 6, 15);
+    }
+
+    // Locale en español
+    const localeEspanol = {
+        months: {
+            shorthand: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+            longhand: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+        },
+        weekdays: {
+            shorthand: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+            longhand: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+        },
+        ordinal: () => '°',
+        firstDayOfWeek: 1
+    };
+
+    // Función para deshabilitar fechas fuera de los rangos de semestre
+    const disableFn = (date) => {
+        const m = date.getMonth() + 1;
+        const d = date.getDate();
+        
+        // Permitir semestre 1 (Feb-Jul 15)
+        if (m >= 2 && m <= 7 && (m < 7 || (m === 7 && d <= 15))) return false;
+        
+        // Permitir semestre 2 (Ago-Dic 4)
+        if (m >= 8 && m <= 12 && (m > 8 || (m === 8 && d >= 1)) && (m < 12 || (m === 12 && d <= 4))) return false;
+        
+        // Permitir semestre 1 del siguiente año si estamos en últimos 15 días sem2
+        if (today > sem2EndMinus15 && today <= sem2End && date.getFullYear() === year + 1) {
+            if (m >= 2 && m <= 7 && (m < 7 || (m === 7 && d <= 15))) return false;
+        }
+        
+        // Deshabilitar todo lo demás
+        return true;
+    };
+
+    flatpickr(el, {
+        altInput: true,
+        altFormat: 'd/m/Y',
+        dateFormat: 'Y-m-d',
+        allowInput: true,
+        disableMobile: true,
+        minDate: minDate,
+        maxDate: maxDate,
+        disable: [disableFn],
+        locale: localeEspanol
+    });
+}
+
+// ✅ NUEVA FUNCIÓN: Abrir modal con día y hora pre-seleccionados
+function abrirModalAgregarClase(dia, moduloIdx) {
+    document.getElementById('modal-add').style.display = 'flex';
+    renderFormularioClase(dia, moduloIdx);
+}
+        function renderFormularioClase(diaPreseleccionado = null, moduloPreseleccionado = null) {
+    document.getElementById('modal-title').innerText = "Agregar al Horario";
+    const content = document.getElementById('form-content');
+    
+    const diasSemana = ["Lunes","Martes","Miércoles","Jueves","Viernes"];
+    const hoy = new Date().getDay();
+    
+    // ✅ Usar día preseleccionado o el día actual
+    const diaDefault = diaPreseleccionado || ((hoy >= 1 && hoy <= 5) ? diasSemana[hoy-1] : "Lunes");
+    
+    const btnDia = (d) => `<button onclick="selectDay('${d}')" class="btn-dia ${d===diaDefault?'selected bg-white text-black':'bg-white/5'} px-3 py-2 rounded-lg text-[10px] font-bold border border-white/10 shrink-0 transition" id="btn-${d}">${d.substring(0,3)}</button>`;
+    
+    let selectorDias = diasSemana.map(btnDia).join('');
+    const selectorFecha = `<div class="mb-2"><label class="text-[8px] font-bold text-slate-500 uppercase ml-2 mb-2 block">Día</label><div class="flex gap-2 overflow-x-auto pb-1 mb-2 no-scrollbar">${selectorDias}</div><input type="hidden" id="add-dia" value="${diaDefault}"></div>`;
+    
+    let opts = `<option value="" disabled selected>Selecciona materia</option>`;
+    for(let k in materiasCache) opts += `<option value="${k}">${materiasCache[k].nombre}</option>`;
+    
+    // ✅ Generar selector de hora con módulo preseleccionado
+    const moduloSeleccionado = moduloPreseleccionado !== null ? moduloPreseleccionado : 0;
+    const selectorHora = `<div class="mb-2"><label class="text-[8px] font-bold text-slate-500 uppercase ml-2 mb-2 block">Hora Inicio</label><select id="add-modulo" class="w-full">${modulos.map((m,i) => `<option value="${i}" ${i === moduloSeleccionado ? 'selected' : ''}>${m.h} - ${m.end}</option>`).join('')}</select></div>`;
+    
+    const html = `${selectorFecha}<div class="mb-2"><label class="text-[8px] font-bold text-slate-500 uppercase ml-2 mb-2 block">Materia</label><select id="add-materia">${opts}</select></div><div class="grid grid-cols-2 gap-5 items-center mb-2">${selectorHora}<div class="flex items-center h-full"><input type="checkbox" id="add-doble" class="w-5 h-5 accent-sky-500 mr-2"><label for="add-doble" class="text-[10px] font-bold uppercase">Módulo Doble</label></div></div><div class="mb-2"><label class="text-[8px] font-bold text-slate-500 uppercase ml-2 mb-2 block">Aula</label><input type="text" id="add-aula" placeholder="Opcional"></div>`;
+    
+    content.innerHTML = html + `<button onclick="guardarEvento()" class="w-full bg-emerald-500 text-slate-950 font-black p-5 rounded-xl uppercase text-xs mt-6 shadow-xl hover:bg-emerald-400 transition transform active:scale-95">Guardar</button>`;
+}
+// Toggle: mover sidebar arriba/abajo
+function toggleSidebarTop(){
+    const app = document.getElementById('app-container');
+    if(app.classList.contains('sidebar-top')){
+        app.classList.remove('sidebar-top');
+        document.getElementById('btn-sidebar-top').innerText = '⬆️ Mover barra';
+    } else {
+        app.classList.add('sidebar-top');
+        document.getElementById('btn-sidebar-top').innerText = '⬇️ Volver barra';
+    }
+}
+
+// Pantalla completa para el horario (usa Fullscreen API o clase fallback)
+function toggleFullScreen(){
+    const grid = document.getElementById('main-schedule-grid');
+    if(!grid) return;
+    if(document.fullscreenElement){
+        document.exitFullscreen();
+        grid.classList.remove('horario-fullscreen');
+        document.getElementById('btn-fullscreen').innerText = '⛶ Pantalla';
+    } else {
+        if(grid.requestFullscreen){
+            grid.requestFullscreen();
+        } else {
+            grid.classList.add('horario-fullscreen');
+        }
+        document.getElementById('btn-fullscreen').innerText = '✖ Salir';
+    }
+}
+        function selectDay(d) { document.querySelectorAll('.btn-dia').forEach(b => { b.classList.remove('selected','bg-white','text-black'); b.classList.add('bg-white/5'); }); const btn = document.getElementById('btn-'+d); if(btn) { btn.classList.remove('bg-white/5'); btn.classList.add('selected','bg-white','text-black'); } document.getElementById('add-dia').value = d; }
+        
+        function guardarEvento() { 
+            const dia = document.getElementById('add-dia').value; 
+            const matId = document.getElementById('add-materia').value; 
+            const moduloInicio = parseInt(document.getElementById('add-modulo').value);
+            
+            if(!matId) return alert("Elige una materia"); 
+            
+            let data = { dia, tipo: 'clase', materiaId: matId, moduloInicio: moduloInicio, doble: document.getElementById('add-doble').checked, aula: document.getElementById('add-aula').value }; 
+            db.ref('usuarios/'+auth.currentUser.uid+'/horario').push(data); 
+            // Actualizar iniciales guardadas de la materia (añadir día si no existe)
+            actualizarDiasMateriaEnBD(matId);
+            closeModal(); 
+        }
+
+     
+    function crearMateria(){ 
+    const n = document.getElementById('mat-nombre').value; 
+    const c = document.getElementById('mat-color').value; 
+    const t = document.getElementById('mat-maestro').value;
+    const iconoFile = document.getElementById('mat-icono').files[0];
+    
+    let tipoMateria = 'materia'; 
+    const radios = document.getElementsByName('tipo_mat'); 
+    if(radios.length > 0) {
+        for (let r of radios) { if (r.checked) tipoMateria = r.value; } 
+    }
+    
+    if(n){ 
+        const guardarMateria = (iconoBase64 = null) => {
+            db.ref('usuarios/'+auth.currentUser.uid+'/materias_config').push({
+                nombre: n,
+                maestro: t,
+                emoji: iconoBase64 || '', // Guardar imagen o vacío
+                color: c,
+                tipo: tipoMateria,
+                diasIniciales: '',
+                p1: 0,
+                p2: 0,
+                p3: 0,
+                w1: 33,
+                w2: 33,
+                w3: 34
+            }); 
+            document.getElementById('mat-nombre').value = ""; 
+            document.getElementById('mat-maestro').value = ""; 
+            document.getElementById('mat-icono').value = "";
+            if(userLevel === 'tecnologo') updateTheme('materia'); 
+            if(radios.length > 0) radios[0].checked = true; 
+        };
+        
+        // Si hay archivo, convertir a base64
+        if(iconoFile) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                guardarMateria(e.target.result);
+            };
+            reader.readAsDataURL(iconoFile);
+        } else {
+            guardarMateria(); // Sin icono
+        }
+    } 
+}
+        // ==================== CONFIGURACIÓN ====================
+function cargarConfiguracion() {
+    db.ref('usuarios/' + auth.currentUser.uid + '/perfil').once('value', snap => {
+        const p = snap.val();
+        if(p) {
+            document.getElementById('cfg-nombre').value = p.nombre || '';
+            document.getElementById('cfg-apellido').value = p.apellido || '';
+            document.getElementById('cfg-nivel').value = p.nivel || 'tecnologo';
+            document.getElementById('cfg-semestre').value = p.semestre || '1';
+            document.getElementById('cfg-grupo').value = p.grupo || '';
+            // Aplicar preferencia de modo de sidebar si existe
+            const mode = p.sidebarMode || localStorage.getItem('sidebarMode') || 'fija';
+            const sel = document.getElementById('cfg-sidebar-mode');
+            if (sel) sel.value = mode;
+            changeSidebarMode(mode, /*save=*/false);
+            
+            // Cargar foto de perfil
+            if(p.fotoPerfil) {
+                document.getElementById('preview-foto-perfil').src = p.fotoPerfil;
+                document.getElementById('preview-foto-perfil').classList.remove('hidden');
+                document.getElementById('placeholder-foto').classList.add('hidden');
+              
+                // AGREGAR ESTO:
+    document.getElementById('nav-foto-perfil').src = p.fotoPerfil;
+    document.getElementById('nav-foto-perfil').classList.remove('hidden');
+    document.getElementById('nav-placeholder-foto').classList.add('hidden');
+            }
+             document.getElementById('inicio-foto-perfil').src = p.fotoPerfil;
+    document.getElementById('inicio-foto-perfil').classList.remove('hidden');
+    document.getElementById('inicio-placeholder-foto').classList.add('hidden');
+            // Cargar fondo
+if(p.fondoPersonalizado) {
+    document.body.style.backgroundImage = `url(${p.fondoPersonalizado})`;
+    document.body.style.backgroundSize = 'cover';
+    document.body.style.backgroundPosition = 'center';
+    document.body.style.backgroundAttachment = 'fixed';
+    document.body.classList.add('has-custom-bg'); // AGREGAR ESTO
+    document.getElementById('preview-fondo').innerHTML = `<img src="${p.fondoPersonalizado}" class="w-full h-full object-cover rounded-lg">`;
+}
+        }
+    });
+}
+
+function guardarDatosPersonales() {
+    const datos = {
+        nombre: document.getElementById('cfg-nombre').value,
+        apellido: document.getElementById('cfg-apellido').value,
+        nivel: document.getElementById('cfg-nivel').value,
+        semestre: document.getElementById('cfg-semestre').value,
+        grupo: document.getElementById('cfg-grupo').value.toUpperCase()
+    };
+    
+    if(!datos.nombre || !datos.apellido || !datos.grupo) {
+        return alert('❌ Completa todos los campos');
+    }
+    
+    datos.lastModified = new Date().toISOString();
+    db.ref('usuarios/' + auth.currentUser.uid + '/perfil').update(datos).then(() => {
+        alert('✅ Datos actualizados correctamente');
+        generarModulos(); // Regenerar horario si cambió el nivel
+    });
+}
+
+function cargarFotoPerfil(event) {
+    const file = event.target.files[0];
+    if(!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const base64 = e.target.result;
+        
+        db.ref('usuarios/' + auth.currentUser.uid + '/perfil').update({
+            fotoPerfil: base64
+        }).then(() => {
+            // Actualizar en configuración
+            document.getElementById('preview-foto-perfil').src = base64;
+            document.getElementById('preview-foto-perfil').classList.remove('hidden');
+            document.getElementById('placeholder-foto').classList.add('hidden');
+            
+            // ✅ AGREGAR: Actualizar en navegación
+            document.getElementById('nav-foto-perfil').src = base64;
+            document.getElementById('nav-foto-perfil').classList.remove('hidden');
+            document.getElementById('nav-placeholder-foto').classList.add('hidden');
+            
+            alert('✅ Foto actualizada');
+        });
+    };
+    reader.readAsDataURL(file);
+}
+
+function cargarFondo(event) {
+    const file = event.target.files[0];
+    if(!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const base64 = e.target.result;
+        
+        db.ref('usuarios/' + auth.currentUser.uid + '/perfil').update({
+            fondoPersonalizado: base64
+        }).then(() => {
+            document.body.style.backgroundImage = `url(${base64})`;
+            document.body.style.backgroundSize = 'cover';
+            document.body.style.backgroundPosition = 'center';
+            document.body.style.backgroundAttachment = 'fixed';
+            document.body.classList.add('has-custom-bg'); // Agregar clase
+            document.getElementById('preview-fondo').innerHTML = `<img src="${base64}" class="w-full h-full object-cover rounded-lg">`;
+            alert('✅ Fondo actualizado');
+        });
+    };
+    reader.readAsDataURL(file);
+}
+function cambiarColorPrincipal(color) {
+    // Aplicar color a todo el documento
+    document.documentElement.style.setProperty('--color-principal', color);
+    
+    // Actualizar botones activos
+    document.querySelectorAll('.nav-btn.active').forEach(btn => {
+        btn.style.background = color;
+    });
+    
+    // Guardar en Firebase
+    db.ref('usuarios/' + auth.currentUser.uid + '/perfil').update({
+        colorPrincipal: color
+    });
+    
+    // Guardar localmente
+    localStorage.setItem('colorPrincipal', color);
+    
+    showAlert('✅ Color actualizado', 'Personalización');
+}
+
+function resetearColor() {
+    cambiarColorPrincipal('#38bdf8');
+}
+
+function cargarColorPersonalizado() {
+    const color = localStorage.getItem('colorPrincipal') || '#38bdf8';
+    document.documentElement.style.setProperty('--color-principal', color);
+    const input = document.getElementById('cfg-color-principal');
+    if(input) input.value = color;
+}
+
+// Llamar al cargar
+document.addEventListener('DOMContentLoaded', cargarColorPersonalizado);
+function eliminarFondo() {
+    if(!confirm('¿Eliminar fondo personalizado?')) return;
+    
+    db.ref('usuarios/' + auth.currentUser.uid + '/perfil/fondoPersonalizado').remove().then(() => {
+        document.body.style.backgroundImage = '';
+        document.getElementById('preview-fondo').innerHTML = '<span class="text-slate-500 text-sm">Sin fondo personalizado</span>';
+        alert('✅ Fondo eliminado');
+    });
+}
+
+function enviarQueja() {
+    const texto = document.getElementById('queja-texto').value.trim();
+    if(!texto) return alert('❌ Escribe algo');
+    
+    db.ref('usuarios/' + auth.currentUser.uid + '/perfil').once('value', snap => {
+        const perfil = snap.val();
+        const data = {
+            texto: texto,
+            usuario: perfil.nombre + " " + perfil.apellido,
+            grupo: perfil.grupo,
+            semestre: perfil.semestre,
+            timestamp: Date.now(),
+            uid: auth.currentUser.uid
+        };
+        
+        db.ref('quejas_sugerencias').push(data).then(() => {
+            document.getElementById('queja-texto').value = '';
+            alert('✅ Mensaje enviado al administrador');
+        });
+    });
+}
+function eliminarFotoPerfil() {
+    if(!confirm('¿Eliminar foto de perfil?')) return;
+    
+    db.ref('usuarios/' + auth.currentUser.uid + '/perfil/fotoPerfil').remove().then(() => {
+        // Actualizar configuración
+        document.getElementById('preview-foto-perfil').src = '';
+        document.getElementById('preview-foto-perfil').classList.add('hidden');
+        document.getElementById('placeholder-foto').classList.remove('hidden');
+        
+        // Actualizar navegación
+        document.getElementById('nav-foto-perfil').src = '';
+        document.getElementById('nav-foto-perfil').classList.add('hidden');
+        document.getElementById('nav-placeholder-foto').classList.remove('hidden');
+        
+        // Actualizar inicio
+        document.getElementById('inicio-foto-perfil').src = '';
+        document.getElementById('inicio-foto-perfil').classList.add('hidden');
+        document.getElementById('inicio-placeholder-foto').classList.remove('hidden');
+        
+        alert('✅ Foto eliminada');
+    });
+}
+// ==================== EXTRAORDINARIOS ====================
+let materiaExtraActual = null;
+
+function abrirExtraordinario(id) {
+    materiaExtraActual = id;
+    document.getElementById('modal-extraordinario').style.display = 'flex';
+    actualizarPonderacionesExtra();
+}
+
+function cerrarExtraordinario() {
+    document.getElementById('modal-extraordinario').style.display = 'none';
+    materiaExtraActual = null;
+}
+
+function actualizarPonderacionesExtra() {
+    const num = parseInt(document.getElementById('extra-num').value);
+    const container = document.getElementById('extra-ponderaciones');
+    
+    const peso = Math.floor(100 / num);
+    
+    let html = '';
+    for(let i = 1; i <= num; i++) {
+        html += `
+            <div class="bg-white/5 p-4 rounded-xl border border-white/5">
+                <p class="text-[10px] font-black uppercase text-amber-500 mb-2">Evaluación ${i}</p>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[8px] font-bold text-slate-400 block">Nota (0-100)</label>
+                        <input type="number" min="0" max="100" step="1" id="extra-nota-${i}" 
+                               onchange="this.value = Math.min(100, Math.max(0, Math.floor(this.value || 0)))"
+                               class="text-sm font-bold">
+                    </div>
+                    <div>
+                        <label class="text-[8px] font-bold text-slate-400 block">Peso %</label>
+                        <input type="number" min="0" max="100" step="1" id="extra-peso-${i}" value="${peso}" 
+                               onchange="ajustarPonderacionExtra(${i}, Math.min(100, Math.max(0, Math.floor(this.value || 0))))"
+                               class="text-sm opacity-70">
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    container.innerHTML = html;
+}
+function ajustarPonderacionExtra(parcialEditado, valor) {
+    const num = parseInt(document.getElementById('extra-num').value);
+    
+    // Forzar entero y límites
+    valor = Math.min(100, Math.max(0, Math.floor(valor)));
+    document.getElementById(`extra-peso-${parcialEditado}`).value = valor;
+    
+    // Calcular cuánto falta para llegar a 100
+    let otrosPesos = 0;
+    let parcialFinal = parcialEditado === num ? num - 1 : num;
+    
+    for(let i = 1; i <= num; i++) {
+        if(i !== parcialEditado && i !== parcialFinal) {
+            otrosPesos += parseInt(document.getElementById(`extra-peso-${i}`).value) || 0;
+        }
+    }
+    
+    // Calcular el peso restante para el parcial final
+    const pesoRestante = 100 - valor - otrosPesos;
+    
+    if(pesoRestante >= 0 && pesoRestante <= 100) {
+        document.getElementById(`extra-peso-${parcialFinal}`).value = pesoRestante;
+    }
+}
+function guardarExtraordinario() {
+    if(!materiaExtraActual) return;
+    
+    const tipo = document.getElementById('extra-tipo').value;
+    const num = parseInt(document.getElementById('extra-num').value);
+    
+    const extra = {
+        tipo: tipo,
+        evaluaciones: []
+    };
+    
+    let sumaNotas = 0;
+    let sumaPesos = 0;
+    
+for(let i = 1; i <= num; i++) {
+    const nota = Math.min(100, Math.max(0, Math.floor(parseFloat(document.getElementById(`extra-nota-${i}`).value) || 0)));
+    const peso = Math.min(100, Math.max(0, Math.floor(parseFloat(document.getElementById(`extra-peso-${i}`).value) || 0)));
+        
+        extra.evaluaciones.push({ nota, peso });
+        sumaNotas += nota * (peso / 100);
+        sumaPesos += peso;
+    }
+    
+    if(sumaPesos !== 100) {
+        return alert('❌ Los pesos deben sumar 100%');
+    }
+    
+    extra.promedioFinal = sumaNotas;
+    
+    db.ref('usuarios/' + auth.currentUser.uid + '/materias_config/' + materiaExtraActual).update({
+        extraordinario: extra
+    }).then(() => {
+        alert(sumaNotas >= 70 ? '✅ ¡Materia rescatada!' : '⚠️ Extraordinario guardado (aún reprobada)');
+        cerrarExtraordinario();
+    });
+}
+function obtenerPrediccion(m) { 
+    const p1 = Math.min(100, Math.max(0, parseFloat(m.p1) || 0));
+    const p2 = Math.min(100, Math.max(0, parseFloat(m.p2) || 0));
+    const p3 = Math.min(100, Math.max(0, parseFloat(m.p3) || 0));
+    const w1 = m.w1 / 100;
+    const w2 = m.w2 / 100;
+    const w3 = m.w3 / 100;
+    const actual = (p1 * w1) + (p2 * w2) + (p3 * w3);
+    
+    if(p1 > 0 && p2 > 0 && p3 > 0) {
+        return actual >= 70 ? "✅ Aprobada" : "❌ Reprobada";
+    }
+    
+    if(p1 > 0 && p2 > 0 && p3 === 0) {
+        const falta = 70 - actual;
+        const necesario = falta / w3;
+        if(necesario <= 0) return "✅ ¡Ya pasaste!";
+        if(necesario > 100) return "❌ Matemáticamente imposible";
+        return `Necesitas <span class="text-white font-black">${necesario.toFixed(1)}</span> en el Parcial 3`;
+    }
+    
+    if(p1 > 0 && p2 === 0 && p3 === 0) {
+        const falta = 70 - actual;
+        const promedioNecesario = falta / (w2 + w3);
+        if(promedioNecesario <= 0) return "✅ Vas sobrado, mantén el ritmo";
+        if(promedioNecesario > 100) return "❌ Imposible aprobar";
+        return `Necesitas promediar <span class="text-emerald-400 font-black text-lg underline decoration-wavy decoration-emerald-500/50">${promedioNecesario.toFixed(1)}</span> en los siguientes 2 parciales`;
+    }
+    
+    return "Ingresa calificaciones...";
+}
+function ajustarPonderacion(id, pE, v) {
+    // Forzar entero y límites
+    v = Math.min(100, Math.max(0, Math.floor(v)));
+    
+    const pF = pE === 3 ? 2 : 3;
+    
+    db.ref('usuarios/' + auth.currentUser.uid + '/materias_config/' + id).once('value', s => {
+        const m = s.val();
+        let o = 0;
+        
+        [1, 2, 3].forEach(p => {
+            if(p !== pE && p !== pF) o += parseInt(m['w' + p]) || 0;
+        });
+        
+        const r = 100 - v - o;
+        const u = {['w' + pE]: v};
+        
+        if(r >= 0 && r <= 100) u['w' + pF] = r;
+        
+        db.ref('usuarios/' + auth.currentUser.uid + '/materias_config/' + id).update(u);
+    });
+}
+        function guardarDato(id,c,v){ db.ref('usuarios/'+auth.currentUser.uid+'/materias_config/'+id).update({[c]:parseFloat(v)||0}); }
+        function detectarEmoji(n){ n=n.toLowerCase(); if(n.includes('mat')) return '📐'; if(n.includes('fis')) return '🧪'; if(n.includes('pro')) return '💻'; return ''; }
+        function pedirConfirmacion(id, tipo) { idParaBorrar = id; tipoParaBorrar = tipo; document.getElementById('confirm-text').innerText = tipo==='pendiente' ? "¿Completar/Borrar?" : (tipo==='clase'?"¿Borrar actividad?":"¿Borrar materia?"); document.getElementById('custom-confirm').style.display='flex'; }
+        function cerrarModal(){ document.getElementById('custom-confirm').style.display='none'; }
+        document.getElementById('confirm-delete-btn').onclick = () => {
+            const uid = auth.currentUser.uid;
+            if (tipoParaBorrar === 'clase') {
+                const path = `/horario/${idParaBorrar}`;
+                // Leer la clase para obtener materiaId antes de borrar
+                db.ref('usuarios/' + uid + path).once('value').then(snap => {
+                    const clase = snap.val();
+                    const materiaId = clase ? clase.materiaId : null;
+                    return db.ref('usuarios/' + uid + path).remove().then(() => materiaId);
+                }).then(materiaId => {
+                    if (materiaId) actualizarDiasMateriaEnBD(materiaId);
+                    cerrarModal();
+                }).catch(err => { console.error(err); cerrarModal(); });
+            } else {
+                const p = tipoParaBorrar==='pendiente' ? `/pendientes/${idParaBorrar}` : `/materias_config/${idParaBorrar}`;
+                db.ref('usuarios/'+auth.currentUser.uid+p).remove();
+                cerrarModal();
+            }
+        };
+        function goToCalif(id) { show('cal'); setTimeout(() => { document.getElementById('cal-card-'+id)?.scrollIntoView({behavior:'smooth'}); }, 100); }
+        function show(id) {
+            document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+            const target = document.getElementById('sec-' + id);
+            if (target) target.classList.remove('hidden');
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            const navBtn = document.querySelector(`[data-id="${id}"]`);
+            if (navBtn) navBtn.classList.add('active');
+
+            // Mostrar botón de acceso a Kardex SOLO cuando estamos en Materias
+            const kardBtn = document.getElementById('kardex-hint');
+            if (kardBtn) {
+                kardBtn.style.display = (id === 'mat') ? 'flex' : 'none';
+            }
+        }
+function cargarInicio() { 
+    const h = new Date().getHours();
+    const saludo = h < 12 ? "Buenos días" : h < 19 ? "Buenas tardes" : "Buenas noches";
+    
+    db.ref('usuarios/' + auth.currentUser.uid + '/perfil').once('value', snap => {
+        const perfil = snap.val();
+        if(perfil) {
+            document.getElementById('txt-saludo').innerText = saludo;
+            document.getElementById('welcome-name').innerText = perfil.nombre;
+        }
+    });
+    
+    cargarFraseInspiracional();
+}
+
+    function cargarFraseInspiracional() {
+    const citas = [
+        {q:"El éxito depende del esfuerzo.",a:"Sófocles"},
+        {q:"Cree que puedes y ya estás a medio camino.",a:"Theodore Roosevelt"},
+        {q:"La educación es el arma más poderosa.",a:"Nelson Mandela"},
+        {q:"El único modo de hacer un gran trabajo es amar lo que haces.",a:"Steve Jobs"},
+        {q:"No cuentes los días, haz que los días cuenten.",a:"Muhammad Ali"}
+    ];
+    
+    // Mostrar una local primero
+    const sel = citas[Math.floor(Math.random() * citas.length)];
+    document.getElementById('frase-inspiradora').innerText = `"${sel.q}"`;
+    document.getElementById('frase-autor').innerText = `— ${sel.a}`;
+    
+    // Intentar API
+    fetch('https://api.quotable.io/quotes/random?tags=inspirational&limit=1')
+        .then(res => res.json())
+        .then(data => {
+            if(data && data[0]) {
+                document.getElementById('frase-inspiradora').innerText = `"${data[0].content}"`;
+                document.getElementById('frase-autor').innerText = `— ${data[0].author}`;
+            }
+        })
+        .catch(err => console.log('API no disponible, usando frase local'));
+}
+        function cerrarSesion() { auth.signOut().then(() => location.reload()); }
+        // ✅ Solo habilitar Sortable en desktop
+if (window.innerWidth > 768) {
+    new Sortable(document.getElementById('nav-wrapper'), { 
+        animation: 150, 
+        onEnd: () => { 
+            const o = Array.from(document.getElementById('nav-wrapper').children).map(e => e.dataset.id); 
+            localStorage.setItem('menu-order', JSON.stringify(o)); 
+        }
+    });
+}
+        function cargarOrdenMenu() { const s=JSON.parse(localStorage.getItem('menu-order')); if(s) s.forEach(id=>{ const e=document.querySelector(`[data-id="${id}"]`); if(e) document.getElementById('nav-wrapper').appendChild(e); }); }
+        
+        initSeasonalEffects();
     </script>
+    <div id="modal-extraordinario" style="position: fixed; inset: 0; z-index: 900; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+    <div class="glass p-8 rounded-[2rem] w-full max-w-md border border-white/10 relative">
+        <button onclick="cerrarExtraordinario()" class="absolute top-4 right-4 text-white/50 hover:text-white text-xl">✕</button>
+        <h3 class="text-amber-500 font-black uppercase text-xs mb-6 text-center tracking-[2px]">🔄 Rescatar Materia</h3>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Tipo de Recuperación</label>
+                <select id="extra-tipo" class="w-full" onchange="actualizarPonderacionesExtra()">
+                    <option value="extraordinario">Extraordinario</option>
+                    <option value="intersemestral">Intersemestral</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Número de Evaluaciones</label>
+                <select id="extra-num" class="w-full" onchange="actualizarPonderacionesExtra()">
+                    <option value="2">2 Evaluaciones</option>
+                    <option value="3">3 Evaluaciones</option>
+                    <option value="4">4 Evaluaciones</option>
+                </select>
+            </div>
+            
+            <div id="extra-ponderaciones" class="space-y-3">
+                <!-- Se llenará dinámicamente -->
+            </div>
+            
+            <button onclick="guardarExtraordinario()" class="w-full bg-amber-500 text-slate-950 font-black p-4 rounded-xl uppercase text-xs mt-4 shadow-xl hover:bg-amber-400 transition">
+                💾 Guardar Extraordinario
+            </button>
+        </div>
+    </div>
+</div>
 </body>
 </html>
-
