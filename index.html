@@ -1192,7 +1192,7 @@ body.light-mode .flatpickr-day.disabled:hover {
     <div id="auth-overlay">
         <div class="glass p-8 rounded-[2.5rem] w-full max-w-md text-center border border-white/10 relative z-50">
             <h1 class="text-4xl font-black tracking-tighter mb-2 italic">Cetistapp</h1>
-            <p id="auth-desc" class="text-sky-500 text-[10px] font-bold uppercase tracking-[3px] mb-6">Acceso Estudiantil</p>
+            <p id="auth-desc" class="text-sky-500 text-[10px] font-bold uppercase tracking-[3px] mb-6">Una plataforma de estudiantes, para estudiantes</p>
             <div id="reg-fields" class="space-y-2 mb-2 hidden">
                 <div class="flex gap-2">
                     <input type="text" id="reg-nombre" placeholder="Nombre">
@@ -1210,11 +1210,11 @@ body.light-mode .flatpickr-day.disabled:hover {
                         <option value="4">4</option><option value="5">5</option><option value="6">6</option>
                         <option value="7">7</option><option value="8">8</option>
                     </select>
-                    <input type="text" id="reg-grupo" placeholder="Gp" class="w-16">
+                    <input type="text" id="reg-grupo" placeholder="Gpo" class="w-16">
                 </div>
             </div>
             <input type="email" id="auth-email" placeholder="Correo" class="mb-2">
-            <input type="password" id="auth-pass" placeholder="Contraseña" class="mb-4">
+            <input type="password" id="auth-pass" placeholder="Nueva Contraseña" class="mb-4">
             <button onclick="manejarAuth()" id="auth-main-btn" class="w-full bg-sky-500 text-slate-950 font-black p-4 rounded-2xl uppercase tracking-widest hover:bg-sky-400 mb-4 transition">Entrar</button>
             <button onclick="toggleAuth()" class="text-[10px] font-bold text-slate-500 uppercase hover:text-white transition" id="toggle-auth-text">¿No tienes cuenta? Regístrate</button>
             <p id="auth-error" class="text-rose-500 text-[10px] mt-2 font-bold"></p>
@@ -4091,4 +4091,5 @@ if (window.innerWidth > 768) {
 </div>
 </body>
 </html>
+
 
