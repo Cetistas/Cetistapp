@@ -206,7 +206,7 @@ body.light-mode ::-webkit-scrollbar-track {
 }
 
 body.light-mode ::-webkit-scrollbar-thumb {
-    background: rgba(56, 189, 248, 0.6);
+    background: rgba(var(--color-principal-rgb), 0.6);
 }
 /* Scrollbar horizontal en móvil */
 @media (max-width: 768px) {
@@ -315,7 +315,7 @@ input, select, textarea {
             font-weight: 900; text-transform: uppercase; font-size: 10px; letter-spacing: 1px;
             transition: all 0.3s; background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid transparent;
         }
-        .tab-pen.active { background: var(--color-principal); color: #020617; box-shadow: 0 0 20px rgba(56, 189, 248, 0.4); }
+        .tab-pen.active { background: var(--color-principal); color: #020617; box-shadow: 0 0 20px rgba(var(--color-principal-rgb), 0.4); }
 
         .btn-sort {
             font-size: 9px; font-weight: bold; text-transform: uppercase; padding: 6px 12px;
@@ -473,7 +473,30 @@ body.light-mode .clase-block .mat-name {
 }
 
 .horario-cell:empty:hover {
-    background: rgba(56, 189, 248, 0.1) !important;
+    background: rgba(var(--color-principal-rgb), 0.1) !important;
+}
+/* Botón flotante de configuración en móvil */
+#floating-cfg-btn {
+    display: none;
+    position: fixed;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-principal), rgba(255,255,255,0.1));
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    z-index: 200;
+    touch-action: none;
+    cursor: grab;
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255,255,255,0.2);
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+#floating-cfg-btn:active {
+    cursor: grabbing;
+    transform: scale(1.1);
 }
 /* ===== RESPONSIVE PARA MÓVILES ===== */
 
@@ -524,7 +547,19 @@ body.light-mode .clase-block .mat-name {
         width: 100%;
         -webkit-overflow-scrolling: touch;
     }
-    
+    /* Títulos centrados */
+section header {
+    text-align: center !important;
+}
+
+section header h2 {
+    text-align: center !important;
+}
+
+section header .flex {
+    flex-direction: column !important;
+    align-items: center !important;
+}
    #nav-wrapper .nav-btn {
     cursor: pointer !important;
     /* Evita que se seleccione el texto del botón */
@@ -554,7 +589,7 @@ body.light-mode .clase-block .mat-name {
     
     .nav-btn.active {
         border-bottom-color: var(--color-principal) !important;
-        background: rgba(56, 189, 248, 0.1) !important;
+        background: rgba(var(--color-principal-rgb), 0.1) !important;
     }
     
     .nav-btn:active {
@@ -580,10 +615,15 @@ body.light-mode .clase-block .mat-name {
         display: none !important;
     }
     
-    #btn-cfg {
+  #floating-cfg-btn {
         display: flex !important;
+        bottom: 100px;
+        right: 20px;
     }
     
+    #btn-cfg {
+        display: none !important;
+    }
     /* Contenido con padding para botones del sistema */
     .content {
         width: 100% !important;
@@ -817,14 +857,14 @@ body.light-mode .clase-block .mat-name {
 }
 
 .custom-file-button.has-file {
-    background: rgba(56, 189, 248, 0.1);
+    background: rgba(var(--color-principal-rgb), 0.1);
     border-color: var(--color-principal);
     color: var(--color-principal);
     border-style: solid;
 }
 
 .custom-file-button.has-file:hover {
-    background: rgba(56, 189, 248, 0.2);
+    background: rgba(var(--color-principal-rgb), 0.2);
 }
     </style>
     <style>
@@ -891,16 +931,16 @@ body.has-custom-bg .content {
     position: relative;
     z-index: 1;
 }
-    :root {
-        --bg-primary: #020617;
-        --bg-secondary: #0f172a;
-        --text-primary: white;
-        --text-secondary: #94a3b8;
-        --border-color: rgba(255, 255, 255, 0.1);
-        --glass-bg: rgba(255, 255, 255, 0.03);
-        --color-principal: var(--color-principal); /* ✅ NUEVO */
-
-    }
+:root {
+    --bg-primary: #020617;
+    --bg-secondary: #0f172a;
+    --text-primary: white;
+    --text-secondary: #94a3b8;
+    --border-color: rgba(255, 255, 255, 0.1);
+    --glass-bg: rgba(255, 255, 255, 0.03);
+    --color-principal: #38bdf8;
+    --color-principal-rgb: 56, 189, 248; /* ✅ NUEVO para transparencias */
+}
     
    body.light-mode {
     --bg-primary: #f8fafc;
@@ -990,8 +1030,8 @@ body.light-mode .nav-btn.active {
 }
 
 body.light-mode #frase-inspiradora,
-body.light-mode #frase-autor {
-    color: #020617 !important;
+#frase-autor {
+    color: var(--color-principal);
 }
 /* ✅ Asegurar visibilidad en modo claro */
 body.light-mode .clase-block {
@@ -1166,7 +1206,7 @@ body.light-mode .flatpickr-day.disabled:hover {
     <div id="modal-add">
         <div class="glass p-10 rounded-[2rem] w-full max-w-md border border-white/10 relative">
             <button onclick="closeModal()" class="absolute top-4 right-4 text-white/50 hover:text-white text-xl">✕</button>
-            <h3 id="modal-title" class="text-sky-500 font-black uppercase text-xs mb-8 text-center tracking-[2px]">Agregar</h3>
+            <h3 id="modal-title" class="font-black uppercase text-xs mb-8 text-center tracking-[2px]" style="color: var(--color-principal)">Agregar</h3>
             <div id="form-content" class="space-y-5"></div>
         </div>
     </div>
@@ -1175,7 +1215,7 @@ body.light-mode .flatpickr-day.disabled:hover {
         <div class="glass p-8 rounded-[2rem] w-full max-w-lg border border-white/10 relative">
             <button onclick="document.getElementById('modal-view').style.display='none'" class="absolute top-4 right-4 text-white/50 hover:text-white text-xl">✕</button>
             
-            <p id="view-type" class="text-sky-500 text-[10px] font-bold uppercase tracking-[3px] mb-2">Detalle</p>
+            <p id="view-type" class="text-[10px] font-bold uppercase tracking-[3px] mb-2" style="color: var(--color-principal)">Detalle</p>
             <h2 id="view-name" class="text-3xl font-black italic mb-1 leading-tight text-white">Nombre Tarea</h2>
             <p id="view-materia" class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">Materia • Fecha</p>
             
@@ -1192,7 +1232,7 @@ body.light-mode .flatpickr-day.disabled:hover {
     <div id="auth-overlay">
         <div class="glass p-8 rounded-[2.5rem] w-full max-w-md text-center border border-white/10 relative z-50">
             <h1 class="text-4xl font-black tracking-tighter mb-2 italic">Cetistapp</h1>
-            <p id="auth-desc" class="text-sky-500 text-[10px] font-bold uppercase tracking-[3px] mb-6">Una plataforma de estudiantes, para estudiantes</p>
+           <p id="auth-desc" class="text-[10px] font-bold uppercase tracking-[3px] mb-6" style="color: var(--color-principal)">Una plataforma de estudiantes, para estudiantes</p>
             <div id="reg-fields" class="space-y-2 mb-2 hidden">
                 <div class="flex gap-2">
                     <input type="text" id="reg-nombre" placeholder="Nombre">
@@ -1214,8 +1254,8 @@ body.light-mode .flatpickr-day.disabled:hover {
                 </div>
             </div>
             <input type="email" id="auth-email" placeholder="Correo" class="mb-2">
-            <input type="password" id="auth-pass" placeholder="Nueva Contraseña" class="mb-4">
-            <button onclick="manejarAuth()" id="auth-main-btn" class="w-full bg-sky-500 text-slate-950 font-black p-4 rounded-2xl uppercase tracking-widest hover:bg-sky-400 mb-4 transition">Entrar</button>
+            <input type="password" id="auth-pass" placeholder="Contraseña" class="mb-4">
+            <button onclick="manejarAuth()" id="auth-main-btn" class="w-full text-slate-950 font-black p-4 rounded-2xl uppercase tracking-widest mb-4 transition" style="background: var(--color-principal)">Entrar</button>
             <button onclick="toggleAuth()" class="text-[10px] font-bold text-slate-500 uppercase hover:text-white transition" id="toggle-auth-text">¿No tienes cuenta? Regístrate</button>
             <p id="auth-error" class="text-rose-500 text-[10px] mt-2 font-bold"></p>
         </div>
@@ -1228,7 +1268,7 @@ body.light-mode .flatpickr-day.disabled:hover {
         ✕
     </button>
     <h1 class="text-3xl font-black tracking-tighter italic">Cetistapp</h1>
-    <p id="user-info-side" class="text-[9px] text-sky-500 font-bold tracking-[3px] uppercase mt-2">Cargando...</p>
+    <p id="user-info-side" class="text-[9px]  font-bold tracking-[3px] uppercase mt-2" style="color: var(--color-principal)">Cargando...</p>
     <p id="user-level-side" class="text-[8px] text-slate-500 font-bold uppercase tracking-widest mt-1">...</p>
     
     <!-- AGREGAR ESTO -->
@@ -1259,7 +1299,7 @@ body.light-mode .flatpickr-day.disabled:hover {
     <header class="mb-8">
         <div class="flex items-center justify-between">
             <div>
-                <p id="txt-saludo" class="text-sky-500 font-bold text-sm uppercase tracking-[2px]">Hola</p>
+                <p id="txt-saludo" class="font-bold text-sm uppercase tracking-[2px]" style="color: var(--color-principal)">Hola</p>
                 <h2 id="welcome-name" class="text-5xl font-black tracking-tighter italic">¡Bienvenido!</h2>
             </div>
         </div>
@@ -1330,7 +1370,7 @@ body.light-mode .flatpickr-day.disabled:hover {
             <section id="sec-mat" class="hidden">
                 <header class="mb-8"><h2 class="text-5xl font-black italic">Materias</h2></header>
                 <div class="card bg-white/[0.03] border-white/10 mb-8 p-6">
-                    <h3 id="mat-header-text" class="text-sky-500 font-black uppercase text-xs mb-6 transition-colors duration-300">Añadir Materia</h3>
+                    <h3 id="mat-header-text" class=" font-black uppercase text-xs mb-6 transition-colors duration-300" style="color: var(--color-principal)">Añadir Materia</h3>
 <div id="cont-tipo-materia" class="mb-6 hidden">
     <label class="text-[9px] font-bold uppercase text-slate-500 ml-1 mb-2 block">Tipo de Materia</label>
     <div class="grid grid-cols-3 gap-3">
@@ -1469,9 +1509,9 @@ body.light-mode .flatpickr-day.disabled:hover {
     </div>
     <div id="foro-avisos" class="animate-in">
         <div id="aviso-form-container" class="card bg-white/[0.03] border-white/10 mb-6 p-6" style="display: none;">
-            <h3 class="text-sky-500 font-black uppercase text-xs mb-4">📢 Publicar Aviso General (Solo Admin)</h3>
+            <h3 class=" font-black uppercase text-xs mb-4" style="color: var(--color-principal)">📢 Publicar Aviso General (Solo Admin)</h3>
             <textarea id="aviso-texto" placeholder="Escribe un aviso para todos..." rows="3" class="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm mb-4"></textarea>
-            <button onclick="publicarAviso()" class="bg-sky-500 text-slate-950 font-black px-6 py-3 rounded-xl uppercase text-xs hover:bg-sky-400 transition">📢 Publicar Aviso</button>
+<button onclick="publicarAviso()" class="text-slate-950 font-black px-6 py-3 rounded-xl uppercase text-xs transition" style="background: var(--color-principal)">📢 Publicar Aviso</button>
         </div>
         <div id="grid-avisos" class="space-y-4"></div>
     </div>
@@ -1534,9 +1574,9 @@ body.light-mode .flatpickr-day.disabled:hover {
 </div>
         <!-- IMPORTAR -->
         <div class="card bg-sky-500/5 border-sky-500/20 border-l-4">
-            <h3 class="text-sky-500 font-black uppercase text-xs mb-4 flex items-center gap-2">
-                <span>📥</span> Importar Configuración
-            </h3>
+<h3 class="font-black uppercase text-xs mb-4 flex items-center gap-2" style="color: var(--color-principal)">
+    <span>📥</span> Importar Configuración
+</h3>
             <p class="text-sm text-slate-300 mb-4">Ingresa un código de 6 caracteres para cargar horario y materias.</p>
             
             <div class="mb-4">
@@ -1550,9 +1590,9 @@ body.light-mode .flatpickr-day.disabled:hover {
                 <p id="preview-horario" class="text-xs text-slate-300">📅 0 clases</p>
             </div>
             
-            <button onclick="verificarCodigo()" class="w-full bg-sky-500 text-slate-950 font-black px-6 py-3 rounded-xl uppercase text-xs hover:bg-sky-400 transition mb-2">
-                🔍 Verificar Código
-            </button>
+<button onclick="verificarCodigo()" id="btn-verificar" class="w-full text-slate-950 font-black px-6 py-3 rounded-xl uppercase text-xs transition mb-2" style="background: var(--color-principal)">
+    🔍 Verificar Código
+</button>
             <button onclick="importarCodigo()" id="btn-importar" class="w-full bg-white/10 text-slate-500 font-black px-6 py-3 rounded-xl uppercase text-xs cursor-not-allowed" disabled>
                 📥 Importar Configuración
             </button>
@@ -1578,7 +1618,7 @@ body.light-mode .flatpickr-day.disabled:hover {
         
         <!-- DATOS PERSONALES -->
         <div class="card border-l-4 border-sky-500 bg-sky-500/5">
-            <h3 class="text-sky-500 font-black uppercase text-xs mb-6">👤 Datos Personales</h3>
+            <h3 class=" font-black uppercase text-xs mb-6" style="color: var(--color-principal)">👤 Datos Personales</h3>
             
             <div class="space-y-4">
                 <div class="grid grid-cols-2 gap-4">
@@ -1614,9 +1654,9 @@ body.light-mode .flatpickr-day.disabled:hover {
                     </div>
                 </div>
                 
-                <button onclick="guardarDatosPersonales()" class="w-full bg-sky-500 text-slate-950 font-black px-6 py-3 rounded-xl uppercase text-xs hover:bg-sky-400 transition">
-                    💾 Guardar Cambios
-                </button>
+<button onclick="guardarDatosPersonales()" class="w-full text-slate-950 font-black px-6 py-3 rounded-xl uppercase text-xs transition" style="background: var(--color-principal)">
+    💾 Guardar Cambios
+</button>
             </div>
         </div>
 <!-- PERSONALIZACIÓN DE COLOR -->
@@ -1645,20 +1685,6 @@ body.light-mode .flatpickr-day.disabled:hover {
         </button>
     </div>
 </div>
-        <!-- COMPORTAMIENTO BARRA LATERAL -->
-        <div class="card border-l-4 border-amber-500 bg-amber-500/5">
-            <h3 class="text-amber-500 font-black uppercase text-xs mb-6">🔧 Barra de Opciones</h3>
-            <div class="space-y-3">
-                <label class="text-[10px] font-bold">Modo de la barra lateral</label>
-                <select id="cfg-sidebar-mode" onchange="changeSidebarMode(this.value)" class="w-full p-3 rounded-xl">
-                    <option value="fija">Fija (ancha)</option>
-                    <option value="hover">Solo al pasar el cursor (expandible)</option>
-                    <option value="icons">Extraída (solo íconos)</option>
-                </select>
-                <p class="text-xs text-slate-400">Elige si la barra se mantiene fija, se expande al pasar el cursor o se muestra solo como tira de íconos.</p>
-            </div>
-        </div>
-
         <!-- FOTO DE PERFIL -->
         <div class="card border-l-4 border-purple-500 bg-purple-500/5">
             <h3 class="text-purple-500 font-black uppercase text-xs mb-6">📸 Foto de Perfil</h3>
@@ -1714,14 +1740,38 @@ body.light-mode .flatpickr-day.disabled:hover {
                 📨 Enviar al Admin
             </button>
         </div>
+         <!-- CAMBIAR CONTRASEÑA -->
+<div class="card border-l-4 border-rose-500 bg-rose-500/5">
+    <h3 class="text-rose-500 font-black uppercase text-xs mb-6">🔐 Cambiar Contraseña</h3>
+    
+    <div class="space-y-4">
+        <div>
+            <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Contraseña Actual</label>
+            <input type="password" id="cfg-pass-actual" placeholder="••••••••">
+        </div>
+        <div>
+            <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Nueva Contraseña</label>
+            <input type="password" id="cfg-pass-nueva" placeholder="••••••••">
+        </div>
+        <div>
+            <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Confirmar Nueva Contraseña</label>
+            <input type="password" id="cfg-pass-confirmar" placeholder="••••••••">
+        </div>
+        
+        <button onclick="cambiarContrasena()" class="w-full bg-rose-500 text-white font-black px-6 py-3 rounded-xl uppercase text-xs hover:bg-rose-400 transition">
+            🔒 Cambiar Contraseña
+        </button>
+    </div>
+</div>
     </div>
 </section>
         </main>
     </div>
+   
 <!-- MODAL PERSONALIZADO DE CONFIRMACIÓN GENÉRICO -->
 <div id="custom-alert" style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
     <div class="glass p-8 rounded-[2rem] w-full max-w-sm text-center border border-white/10">
-        <p id="alert-title" class="text-sky-500 text-[10px] font-black uppercase tracking-[3px] mb-2">Mensaje</p>
+        <p id="alert-title" class=" text-[10px] font-black uppercase tracking-[3px] mb-2" style="color: var(--color-principal)">Mensaje</p>
         <h3 id="alert-text" class="text-lg font-bold mb-6">Texto del mensaje</h3>
         <div id="alert-buttons" class="flex gap-3"></div>
     </div>
@@ -1766,12 +1816,13 @@ function showAlert(message, title = 'Mensaje') {
     const modal = document.getElementById('custom-alert');
     document.getElementById('alert-title').innerText = title;
     document.getElementById('alert-text').innerText = message;
-    document.getElementById('alert-buttons').innerHTML = `
-        <button onclick="document.getElementById('custom-alert').style.display='none'" 
-                class="flex-1 p-4 rounded-xl bg-sky-500 text-slate-950 font-black text-xs uppercase hover:bg-sky-400 transition">
-            Aceptar
-        </button>
-    `;
+document.getElementById('alert-buttons').innerHTML = `
+    <button onclick="document.getElementById('custom-alert').style.display='none'" 
+            class="flex-1 p-4 rounded-xl text-slate-950 font-black text-xs uppercase transition" 
+            style="background: var(--color-principal)">
+        Aceptar
+    </button>
+`;
     modal.style.display = 'flex';
 }
 function updateFileButton(input, labelId) {
@@ -1791,10 +1842,11 @@ function showConfirm(message, onConfirm, title = 'Confirmación') {
                 class="flex-1 p-4 rounded-xl bg-white/5 font-bold text-xs uppercase hover:bg-white/10">
             Cancelar
         </button>
-        <button onclick="document.getElementById('custom-alert').style.display='none'; (${onConfirm})();" 
-                class="flex-1 p-4 rounded-xl bg-sky-500 text-slate-950 font-black text-xs uppercase hover:bg-sky-400">
-            Confirmar
-        </button>
+<button onclick="document.getElementById('custom-alert').style.display='none'; (${onConfirm})();" 
+        class="flex-1 p-4 rounded-xl text-slate-950 font-black text-xs uppercase transition" 
+        style="background: var(--color-principal)">
+    Confirmar
+</button>
     `;
     modal.style.display = 'flex';
 }
@@ -1871,8 +1923,10 @@ function toggleAuth() {
     isLogin = !isLogin; 
     document.getElementById('reg-fields').classList.toggle('hidden', isLogin);
     document.getElementById('auth-main-btn').innerText = isLogin ? 'ENTRAR' : 'REGISTRARSE';
-    document.getElementById('auth-desc').innerText = isLogin ? 'Acceso Estudiantil' : 'Crear Cuenta';
+    document.getElementById('auth-desc').innerText = isLogin ? 'Una plataforma de estudiantes, para estudiantes' : 'Crear Cuenta';
     document.getElementById('toggle-auth-text').innerText = isLogin ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia Sesión';
+    // ✅ CAMBIAR PLACEHOLDER DINÁMICAMENTE
+    document.getElementById('auth-pass').placeholder = isLogin ? 'Contraseña' : 'Nueva Contraseña (mín. 6 caracteres)';
 }
 async function manejarAuth() {
     const email = document.getElementById('auth-email').value;
@@ -2208,14 +2262,14 @@ auth.onAuthStateChanged(user => {
                 document.getElementById('grupo-header').innerText = `Chat Grupo ${miGrupo}`;
                 
                 // CARGAR FONDO AQUÍ
-                if(p.fondoPersonalizado) {
-                    document.body.style.backgroundImage = `url(${p.fondoPersonalizado})`;
-                    document.body.style.backgroundSize = 'cover';
-                    document.body.style.backgroundPosition = 'center';
-                    document.body.style.backgroundAttachment = 'fixed';
-                    document.body.classList.add('has-custom-bg');
-                }
-                
+if(p.fondoPersonalizado) {
+    document.body.style.backgroundImage = `url(${p.fondoPersonalizado})`;
+    document.body.style.backgroundSize = 'cover';
+    document.body.style.backgroundPosition = 'center';
+    document.body.style.backgroundAttachment = 'fixed';
+    document.body.classList.add('has-custom-bg'); // AGREGAR ESTO
+    document.getElementById('preview-fondo').innerHTML = `<img src="${p.fondoPersonalizado}" class="w-full h-full object-cover rounded-lg">`;
+}
                 if(userLevel === 'tecnologo') {
                     document.getElementById('cont-tipo-materia').classList.remove('hidden');
                     updateTheme('materia'); 
@@ -2334,7 +2388,7 @@ ${m.extraordinario && m.extraordinario.promedioFinal >= 70
             ` : ''}
         </div>
         <div id="parciales-${id}" class="flex-grow grid grid-cols-1 md:grid-cols-3 gap-6">
-            ${[1,2,3].map(p => `<div class="bg-white/5 p-4 rounded-2xl border border-white/5 backdrop-blur-sm"><p class="text-[10px] font-black uppercase text-sky-500 mb-3 text-center border-b border-white/10 pb-2">Parcial ${p}</p><div class="mb-3"><label class="text-[8px] font-bold text-slate-400 block">Nota (0-100)</label>
+            ${[1,2,3].map(p => `<div class="bg-white/5 p-4 rounded-2xl border border-white/5 backdrop-blur-sm"><p class="text-[10px] font-black uppercase  style="color: var(--color-principal)" mb-3 text-center border-b border-white/10 pb-2">Parcial ${p}</p><div class="mb-3"><label class="text-[8px] font-bold text-slate-400 block">Nota (0-100)</label>
 <input type="number" min="0" max="100" step="1" value="${m['p'+p] || ''}" 
        onchange="guardarDato('${id}', 'p${p}', Math.min(100, Math.max(0, Math.floor(this.value || 0))))" 
        class="text-lg font-bold">
@@ -2529,8 +2583,8 @@ function renderHorarioGrid() {
                             <span style="
                                 color: white;
                                 font-weight: 900;
-                                font-size: 11px;
-                                line-height: 1.2;
+                                font-size: 12px;
+                                line-height: 1.5;
                                 text-shadow: 0 1px 3px rgba(0,0,0,0.9);
                                 overflow: hidden;
                                 text-overflow: ellipsis;
@@ -2544,18 +2598,18 @@ function renderHorarioGrid() {
                     </div>
                     
                     <!-- SEGUNDA LÍNEA: Profesor + Aula -->
-                    <div style="
-                        font-size: 8px; 
-                        opacity: 0.9; 
-                        line-height: 1.3; 
-                        color: white;
-                        text-shadow: 0 1px 2px rgba(0,0,0,0.6); 
-                        overflow: hidden; 
-                        text-overflow: ellipsis; 
-                        white-space: nowrap;
-                    ">
-                        ${mat.maestro || 'Sin profesor'}${clase.aula ? ' • ' + clase.aula : ''}
-                    </div>
+<div style="
+    font-size: 9px; 
+    opacity: 0.9; 
+    line-height: 1.3; 
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.6); 
+">
+    <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+        ${mat.maestro || 'Sin profesor'}
+    </div>
+    ${clase.aula ? `<div style="margin-top: 2px; font-size: 8px;">📍 ${clase.aula}</div>` : ''}
+</div>
                 </div>
             </div>
         `;
@@ -2576,7 +2630,7 @@ if(cellContent === "") {
             transition: opacity 0.2s;
             cursor: pointer;
         " onmouseover="this.style.opacity='0.5'" onmouseout="this.style.opacity='0'">
-            <span style="font-size: 24px; color: rgba(56, 189, 248, 0.6);">➕</span>
+            <span style="font-size: 24px; color: rgba(var(--color-principal-rgb), 0.6);">➕</span>
         </div>
     </div>`;
 } else {
@@ -2785,7 +2839,7 @@ function setupHorarioScrollbarSync() {
                     }
                 }
 
-                const clickAction = `onclick="openViewPendiente('${p.key}')"`;
+              const clickAction = `onclick="abrirEditorPendiente('${p.key}')"`;
                 let cardHTML = "";
 
                 if(p.type === 'tarea') {
@@ -2970,7 +3024,7 @@ function switchForoTab(tab) {
 }
 
 function publicarAviso() {
-    const texto = document.getElementById('aviso-texto').value.trim();
+    const texto = document.getElementById('aviso-texto').value;
     if(!texto) return alert("Escribe algo");
     
     db.ref('usuarios/' + auth.currentUser.uid + '/perfil').once('value', snap => {
@@ -3029,11 +3083,11 @@ function renderAvisos() {
         const esMio = aviso.uid === auth.currentUser.uid;
         const deleteBtn = esMio ? `<button onclick="borrarAviso('${aviso.key}')" class="text-rose-500 hover:text-rose-400 text-[10px] font-bold uppercase">Borrar</button>` : '';
         
-        container.innerHTML += `
-            <div class="card border-l-4 border-sky-500 bg-sky-500/5 p-5">
-                <div class="flex justify-between items-start mb-3">
-                    <div>
-                        <p class="text-xs font-black uppercase text-sky-400">📢 Aviso General</p>
+container.innerHTML += `
+    <div class="card border-l-4 p-5" style="border-color: var(--color-principal); background: rgba(var(--color-principal-rgb), 0.05)">
+        <div class="flex justify-between items-start mb-3">
+            <div>
+                <p class="text-xs font-black uppercase" style="color: var(--color-principal)">📢 Aviso General</p>
                         <p class="text-sm font-bold text-slate-300 mt-1">${aviso.autor} • Grupo ${aviso.grupo}</p>
                     </div>
                     ${deleteBtn}
@@ -3092,7 +3146,7 @@ function pedirConfirmacionMigracion(uid) {
                 <ul style="max-height:160px;overflow:auto;margin-bottom:12px;padding-left:18px;">${lista}${mover.length>8?'<li>...más</li>':''}</ul>
                 <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
                     <button id="cancel-mig" style="padding:10px 14px;border-radius:8px;background:#ffffff1f;color:white;border:none">Cancelar</button>
-                    <button id="confirm-mig" style="padding:10px 14px;border-radius:8px;background:#10b981;color:#020617;border:none;font-weight:900">Confirmar y migrar</button>
+                    <button id="confirm-mig" style="padding:10px 14px;border-radius:8px;background:var(--color-principal);color:#020617;border:none;font-weight:900">Confirmar y migrar</button>
                 </div>
             </div>
         `;
@@ -3352,6 +3406,7 @@ function openAddModal(type) {
             document.getElementById('modal-title').innerText = "Nuevo Pendiente"; const content = document.getElementById('form-content');
             let opts = `<option value="" disabled selected>Selecciona materia</option>`; for(let k in materiasCache) opts += `<option value="${k}">${materiasCache[k].nombre}</option>`;
             content.innerHTML = `<div class="flex gap-2 mb-4 bg-white/5 p-1 rounded-xl"><button onclick="setPendienteForm('tarea')" id="btn-p-tarea" class="flex-1 py-2 rounded-lg text-[10px] font-bold uppercase transition bg-sky-500 text-black">Tarea</button><button onclick="setPendienteForm('recordatorio')" id="btn-p-rec" class="flex-1 py-2 rounded-lg text-[10px] font-bold uppercase transition text-slate-400 hover:bg-white/10">Recordatorio</button><button onclick="setPendienteForm('fecha')" id="btn-p-fecha" class="flex-1 py-2 rounded-lg text-[10px] font-bold uppercase transition text-slate-400 hover:bg-white/10">Fecha Imp.</button></div><div id="dynamic-form-fields" class="space-y-5"></div><button onclick="guardarPendiente()" class="w-full bg-emerald-500 text-slate-950 font-black p-5 rounded-xl uppercase text-xs mt-6 shadow-xl hover:bg-emerald-400 transition transform active:scale-95">Guardar</button>`;
+          
             setPendienteForm('tarea');
             // Inicializar datepickers si existen (por si quedan inputs previos)
             initDatePickers();
@@ -3512,8 +3567,7 @@ function abrirModalAgregarClase(dia, moduloIdx) {
     
     const html = `${selectorFecha}<div class="mb-2"><label class="text-[8px] font-bold text-slate-500 uppercase ml-2 mb-2 block">Materia</label><select id="add-materia">${opts}</select></div><div class="grid grid-cols-2 gap-5 items-center mb-2">${selectorHora}<div class="flex items-center h-full"><input type="checkbox" id="add-doble" class="w-5 h-5 accent-sky-500 mr-2"><label for="add-doble" class="text-[10px] font-bold uppercase">Módulo Doble</label></div></div><div class="mb-2"><label class="text-[8px] font-bold text-slate-500 uppercase ml-2 mb-2 block">Aula</label><input type="text" id="add-aula" placeholder="Opcional"></div>`;
     
-    content.innerHTML = html + `<button onclick="guardarEvento()" class="w-full bg-emerald-500 text-slate-950 font-black p-5 rounded-xl uppercase text-xs mt-6 shadow-xl hover:bg-emerald-400 transition transform active:scale-95">Guardar</button>`;
-}
+content.innerHTML = html + `<button onclick="guardarEvento()" class="w-full text-slate-950 font-black p-5 rounded-xl uppercase text-xs mt-6 shadow-xl transition transform active:scale-95" style="background: var(--color-principal)">Guardar</button>`;}
 // Toggle: mover sidebar arriba/abajo
 function toggleSidebarTop(){
     const app = document.getElementById('app-container');
@@ -3545,19 +3599,51 @@ function toggleFullScreen(){
 }
         function selectDay(d) { document.querySelectorAll('.btn-dia').forEach(b => { b.classList.remove('selected','bg-white','text-black'); b.classList.add('bg-white/5'); }); const btn = document.getElementById('btn-'+d); if(btn) { btn.classList.remove('bg-white/5'); btn.classList.add('selected','bg-white','text-black'); } document.getElementById('add-dia').value = d; }
         
-        function guardarEvento() { 
-            const dia = document.getElementById('add-dia').value; 
-            const matId = document.getElementById('add-materia').value; 
-            const moduloInicio = parseInt(document.getElementById('add-modulo').value);
+function guardarEvento() { 
+    const dia = document.getElementById('add-dia').value; 
+    const matId = document.getElementById('add-materia').value; 
+    const moduloInicio = parseInt(document.getElementById('add-modulo').value);
+    const esDoble = document.getElementById('add-doble').checked;
+    
+    if(!matId) return showAlert("❌ Elige una materia", "Error"); 
+    
+    // ✅ Verificar si la materia es irregular o taller
+    const materia = materiasCache[matId];
+    const esIrregular = materia && (materia.tipo === 'irregular' || materia.tipo === 'taller');
+    
+    // ✅ Solo verificar conflictos para materias normales
+    if(!esIrregular) {
+        const conflicto = horarioData.find(h => {
+            if(h.dia !== dia) return false;
+            const hInicio = parseInt(h.moduloInicio);
+            const hFin = h.doble ? hInicio + 1 : hInicio;
+            const nFin = esDoble ? moduloInicio + 1 : moduloInicio;
             
-            if(!matId) return alert("Elige una materia"); 
-            
-            let data = { dia, tipo: 'clase', materiaId: matId, moduloInicio: moduloInicio, doble: document.getElementById('add-doble').checked, aula: document.getElementById('add-aula').value }; 
-            db.ref('usuarios/'+auth.currentUser.uid+'/horario').push(data); 
-            // Actualizar iniciales guardadas de la materia (añadir día si no existe)
-            actualizarDiasMateriaEnBD(matId);
-            closeModal(); 
+            // Verificar solapamiento
+            return (moduloInicio >= hInicio && moduloInicio <= hFin) ||
+                   (nFin >= hInicio && nFin <= hFin) ||
+                   (moduloInicio <= hInicio && nFin >= hFin);
+        });
+        
+        if(conflicto) {
+            const nombreConflicto = materiasCache[conflicto.materiaId]?.nombre || 'otra materia';
+            return showAlert(`❌ Ya tienes "${nombreConflicto}" en ese horario`, 'Conflicto de Horario');
         }
+    }
+    
+    let data = { 
+        dia, 
+        tipo: 'clase', 
+        materiaId: matId, 
+        moduloInicio: moduloInicio, 
+        doble: esDoble, 
+        aula: document.getElementById('add-aula').value 
+    }; 
+    
+    db.ref('usuarios/' + auth.currentUser.uid + '/horario').push(data); 
+    actualizarDiasMateriaEnBD(matId);
+    closeModal(); 
+}
 
      
     function crearMateria(){ 
@@ -3624,28 +3710,25 @@ function cargarConfiguracion() {
             changeSidebarMode(mode, /*save=*/false);
             
             // Cargar foto de perfil
-            if(p.fotoPerfil) {
-                document.getElementById('preview-foto-perfil').src = p.fotoPerfil;
-                document.getElementById('preview-foto-perfil').classList.remove('hidden');
-                document.getElementById('placeholder-foto').classList.add('hidden');
-              
-                // AGREGAR ESTO:
+// Cargar foto de perfil EN TODOS LOS LUGARES
+if(p.fotoPerfil) {
+    // Configuración
+    document.getElementById('preview-foto-perfil').src = p.fotoPerfil;
+    document.getElementById('preview-foto-perfil').classList.remove('hidden');
+    document.getElementById('placeholder-foto').classList.add('hidden');
+    
+    // Navegación
     document.getElementById('nav-foto-perfil').src = p.fotoPerfil;
     document.getElementById('nav-foto-perfil').classList.remove('hidden');
     document.getElementById('nav-placeholder-foto').classList.add('hidden');
-            }
-             document.getElementById('inicio-foto-perfil').src = p.fotoPerfil;
+    
+    // Inicio
+    document.getElementById('inicio-foto-perfil').src = p.fotoPerfil;
     document.getElementById('inicio-foto-perfil').classList.remove('hidden');
     document.getElementById('inicio-placeholder-foto').classList.add('hidden');
-            // Cargar fondo
-if(p.fondoPersonalizado) {
-    document.body.style.backgroundImage = `url(${p.fondoPersonalizado})`;
-    document.body.style.backgroundSize = 'cover';
-    document.body.style.backgroundPosition = 'center';
-    document.body.style.backgroundAttachment = 'fixed';
-    document.body.classList.add('has-custom-bg'); // AGREGAR ESTO
-    document.getElementById('preview-fondo').innerHTML = `<img src="${p.fondoPersonalizado}" class="w-full h-full object-cover rounded-lg">`;
 }
+            // Cargar fondo
+
         }
     });
 }
@@ -3690,6 +3773,11 @@ function cargarFotoPerfil(event) {
             document.getElementById('nav-foto-perfil').src = base64;
             document.getElementById('nav-foto-perfil').classList.remove('hidden');
             document.getElementById('nav-placeholder-foto').classList.add('hidden');
+
+             // Actualizar inicio
+        document.getElementById('inicio-foto-perfil').src = base64;
+        document.getElementById('inicio-foto-perfil').classList.remove('hidden');
+        document.getElementById('inicio-placeholder-foto').classList.add('hidden');
             
             alert('✅ Foto actualizada');
         });
@@ -3720,23 +3808,43 @@ function cargarFondo(event) {
     reader.readAsDataURL(file);
 }
 function cambiarColorPrincipal(color) {
-    // Aplicar color a todo el documento
-    document.documentElement.style.setProperty('--color-principal', color);
+    // Convertir hex a RGB
+    const hex = color.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
     
-    // Actualizar botones activos
+    // Aplicar variables CSS
+    document.documentElement.style.setProperty('--color-principal', color);
+    document.documentElement.style.setProperty('--color-principal-rgb', `${r}, ${g}, ${b}`);
+    
+    // Aplicar a elementos específicos que no usan variables
+    // Sidebar info
+    const userInfo = document.getElementById('user-info-side');
+    const userLevel = document.getElementById('user-level-side');
+    if(userInfo) userInfo.style.color = color;
+    
+    // Tabs del foro
+    document.querySelectorAll('.tab-pen.active').forEach(tab => {
+        tab.style.background = color;
+    });
+    
+    // Botones activos
     document.querySelectorAll('.nav-btn.active').forEach(btn => {
         btn.style.background = color;
     });
     
-    // Guardar en Firebase
+    // Headers "BUENAS TARDES", etc
+    const txtSaludo = document.getElementById('txt-saludo');
+    if(txtSaludo) txtSaludo.style.color = color;
+    
+    // Guardar en Firebase y localStorage
     db.ref('usuarios/' + auth.currentUser.uid + '/perfil').update({
         colorPrincipal: color
     });
-    
-    // Guardar localmente
     localStorage.setItem('colorPrincipal', color);
     
-    showAlert('✅ Color actualizado', 'Personalización');
+    showAlert('✅ Color actualizado correctamente', 'Personalización');
 }
 
 function resetearColor() {
@@ -3805,6 +3913,7 @@ function eliminarFotoPerfil() {
         alert('✅ Foto eliminada');
     });
 }
+
 // ==================== EXTRAORDINARIOS ====================
 let materiaExtraActual = null;
 
@@ -4001,6 +4110,47 @@ function ajustarPonderacion(id, pE, v) {
                 kardBtn.style.display = (id === 'mat') ? 'flex' : 'none';
             }
         }
+        async function cambiarContrasena() {
+    const actual = document.getElementById('cfg-pass-actual').value;
+    const nueva = document.getElementById('cfg-pass-nueva').value;
+    const confirmar = document.getElementById('cfg-pass-confirmar').value;
+    
+    if(!actual || !nueva || !confirmar) {
+        return showAlert('❌ Completa todos los campos', 'Error');
+    }
+    
+    if(nueva.length < 6) {
+        return showAlert('❌ La contraseña debe tener al menos 6 caracteres', 'Error');
+    }
+    
+    if(nueva !== confirmar) {
+        return showAlert('❌ Las contraseñas no coinciden', 'Error');
+    }
+    
+    try {
+        const user = auth.currentUser;
+        const credential = firebase.auth.EmailAuthProvider.credential(user.email, actual);
+        
+        // Reautenticar
+        await user.reauthenticateWithCredential(credential);
+        
+        // Cambiar contraseña
+        await user.updatePassword(nueva);
+        
+        // Limpiar campos
+        document.getElementById('cfg-pass-actual').value = '';
+        document.getElementById('cfg-pass-nueva').value = '';
+        document.getElementById('cfg-pass-confirmar').value = '';
+        
+        showAlert('✅ Contraseña cambiada exitosamente', 'Éxito');
+    } catch(error) {
+        if(error.code === 'auth/wrong-password') {
+            showAlert('❌ La contraseña actual es incorrecta', 'Error');
+        } else {
+            showAlert('❌ Error al cambiar contraseña: ' + error.message, 'Error');
+        }
+    }
+}
 function cargarInicio() { 
     const h = new Date().getHours();
     const saludo = h < 12 ? "Buenos días" : h < 19 ? "Buenas tardes" : "Buenas noches";
@@ -4022,7 +4172,22 @@ function cargarInicio() {
         {q:"Cree que puedes y ya estás a medio camino.",a:"Theodore Roosevelt"},
         {q:"La educación es el arma más poderosa.",a:"Nelson Mandela"},
         {q:"El único modo de hacer un gran trabajo es amar lo que haces.",a:"Steve Jobs"},
-        {q:"No cuentes los días, haz que los días cuenten.",a:"Muhammad Ali"}
+        {q:"No cuentes los días, haz que los días cuenten.",a:"Muhammad Ali"},
+        {q:"La disciplina es el puente entre metas y logros.",a:"Jim Rohn"},
+        {q:"El fracaso es simplemente la oportunidad de comenzar de nuevo.",a:"Henry Ford"},
+        {q:"La única manera de hacer un gran trabajo es amar lo que haces.",a:"Steve Jobs"},
+        {q:"No esperes. Nunca será el momento perfecto.",a:"Napoleon Hill"},
+        {q:"El futuro pertenece a quienes creen en la belleza de sus sueños.",a:"Eleanor Roosevelt"},
+        {q:"La lógica te llevará desde A hasta B. La imaginación te llevará a todas partes.",a:"Albert Einstein"},
+        {q:"No importa qué tan lento vayas, siempre y cuando no te detengas.",a:"Confucio"},
+        {q:"Para ser irreemplazable, uno siempre debe buscar ser diferente.",a:"Coco Chanel"},
+        {q:"Lo que haces hoy puede mejorar todos tus mañanas.",a:"Ralph Marston"},
+        {q:"Los cortocircuitos, son como la electronica te expresa su amor",a:"Omar Rodriguez"},
+        {q:"A cualquier lugar que vayas dedicate a sumar, por que gente que resta, sobra",a:"Nehemias Aguirre"},
+        {q:"Aqui ta",a:"Juanpa Hernandez"},
+        {q:"Cada que sale el sol, es una nueva oportunidad para ser mejor",a:"Luis Miguel"}
+
+  
     ];
     
     // Mostrar una local primero
@@ -4041,7 +4206,15 @@ function cargarInicio() {
         })
         .catch(err => console.log('API no disponible, usando frase local'));
 }
-        function cerrarSesion() { auth.signOut().then(() => location.reload()); }
+function cerrarSesion() {
+    showConfirm(
+        '¿Estás seguro de que deseas cerrar sesión?',
+        function() {
+            auth.signOut().then(() => location.reload());
+        },
+        'Cerrar Sesión'
+    );
+}
         // ✅ Solo habilitar Sortable en desktop
 if (window.innerWidth > 768) {
     new Sortable(document.getElementById('nav-wrapper'), { 
@@ -4055,6 +4228,127 @@ if (window.innerWidth > 768) {
         function cargarOrdenMenu() { const s=JSON.parse(localStorage.getItem('menu-order')); if(s) s.forEach(id=>{ const e=document.querySelector(`[data-id="${id}"]`); if(e) document.getElementById('nav-wrapper').appendChild(e); }); }
         
         initSeasonalEffects();
+        // Hacer el botón arrastrable
+const floatingBtn = document.getElementById('floating-cfg-btn');
+let isDragging = false;
+let currentX, currentY, initialX, initialY, xOffset = 0, yOffset = 0;
+
+floatingBtn.addEventListener('touchstart', dragStart);
+floatingBtn.addEventListener('touchend', dragEnd);
+floatingBtn.addEventListener('touchmove', drag);
+
+function dragStart(e) {
+    const touch = e.touches[0];
+    initialX = touch.clientX - xOffset;
+    initialY = touch.clientY - yOffset;
+    isDragging = true;
+}
+
+function drag(e) {
+    if (isDragging) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        currentX = touch.clientX - initialX;
+        currentY = touch.clientY - initialY;
+        xOffset = currentX;
+        yOffset = currentY;
+        
+        floatingBtn.style.right = 'auto';
+        floatingBtn.style.bottom = 'auto';
+        floatingBtn.style.transform = `translate(${currentX}px, ${currentY}px)`;
+    }
+}
+
+function dragEnd() {
+    isDragging = false;
+}
+function abrirEditorPendiente(id) {
+    const p = pendientesData.find(item => item.key === id);
+    if(!p) return;
+    
+    document.getElementById('modal-add').style.display = 'flex';
+    document.getElementById('modal-title').innerText = "Editar Pendiente";
+    
+    // Selector de materias
+    let optsMateria = `<option value="">General (sin materia)</option>`;
+    for(let k in materiasCache) {
+        const selected = p.materiaId === k ? 'selected' : '';
+        optsMateria += `<option value="${k}" ${selected}>${materiasCache[k].nombre}</option>`;
+    }
+    
+    let html = `
+        <div class="mb-4">
+            <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Nombre</label>
+            <input type="text" id="edit-nombre" value="${p.nombre || ''}" placeholder="Nombre del pendiente" class="mb-2">
+        </div>
+        
+        <div class="mb-4">
+            <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Materia</label>
+            <select id="edit-materia" class="mb-2">
+                ${optsMateria}
+            </select>
+        </div>
+        
+        ${p.type !== 'recordatorio' ? `
+        <div class="mb-4">
+            <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Fecha</label>
+            <input type="date" id="edit-fecha" value="${p.fecha || ''}" class="mb-2">
+        </div>
+        ` : ''}
+        
+        <div class="mb-4">
+            <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Descripción</label>
+            <textarea id="edit-desc" rows="4" placeholder="Descripción, materiales o temario..." class="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm">${p.desc || p.materiales || p.temario || ''}</textarea>
+        </div>
+        
+        <div class="flex gap-3">
+            <button onclick="eliminarPendiente('${id}')" class="flex-1 bg-rose-500 text-white font-black p-4 rounded-xl uppercase text-xs hover:bg-rose-400 transition">Eliminar</button>
+            <button onclick="guardarEdicionPendiente('${id}')" class="flex-1 text-slate-950 font-black p-4 rounded-xl uppercase text-xs transition" style="background: var(--color-principal)">Guardar</button>
+        </div>
+    `;
+    
+    document.getElementById('form-content').innerHTML = html;
+    setTimeout(initDatePickers, 50);
+}
+
+function guardarEdicionPendiente(id) {
+    const p = pendientesData.find(item => item.key === id);
+    if(!p) return;
+    
+    const updates = {
+        nombre: document.getElementById('edit-nombre').value,
+        materiaId: document.getElementById('edit-materia').value || null
+    };
+    
+    const fecha = document.getElementById('edit-fecha');
+    const desc = document.getElementById('edit-desc');
+    
+    if(fecha) updates.fecha = fecha.value;
+    
+    // Guardar en el campo correcto según el tipo
+    if(desc) {
+        const descValue = desc.value;
+        if(p.type === 'proyecto') {
+            updates.materiales = descValue;
+        } else if(p.type === 'examen') {
+            updates.temario = descValue;
+        } else {
+            updates.desc = descValue;
+        }
+    }
+    
+    db.ref('usuarios/' + auth.currentUser.uid + '/pendientes/' + id).update(updates).then(() => {
+        showAlert('✅ Pendiente actualizado', 'Éxito');
+        closeModal();
+    });
+}
+
+function eliminarPendiente(id) {
+    if(confirm('¿Eliminar este pendiente?')) {
+        db.ref('usuarios/' + auth.currentUser.uid + '/pendientes/' + id).remove();
+        closeModal();
+    }
+}
     </script>
     <div id="modal-extraordinario" style="position: fixed; inset: 0; z-index: 900; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
     <div class="glass p-8 rounded-[2rem] w-full max-w-md border border-white/10 relative">
@@ -4089,7 +4383,10 @@ if (window.innerWidth > 768) {
         </div>
     </div>
 </div>
+<button id="floating-cfg-btn" onclick="show('cfg')" style="display:none;">⚙️</button>
 </body>
 </html>
 
+
+  
 
