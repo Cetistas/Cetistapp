@@ -206,7 +206,7 @@ body.light-mode ::-webkit-scrollbar-track {
 }
 
 body.light-mode ::-webkit-scrollbar-thumb {
-    background: rgba(56, 189, 248, 0.6);
+    background: rgba(var(--color-principal-rgb), 0.6);
 }
 /* Scrollbar horizontal en móvil */
 @media (max-width: 768px) {
@@ -315,7 +315,7 @@ input, select, textarea {
             font-weight: 900; text-transform: uppercase; font-size: 10px; letter-spacing: 1px;
             transition: all 0.3s; background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid transparent;
         }
-        .tab-pen.active { background: var(--color-principal); color: #020617; box-shadow: 0 0 20px rgba(56, 189, 248, 0.4); }
+        .tab-pen.active { background: var(--color-principal); color: #020617; box-shadow: 0 0 20px rgba(var(--color-principal-rgb), 0.4); }
 
         .btn-sort {
             font-size: 9px; font-weight: bold; text-transform: uppercase; padding: 6px 12px;
@@ -326,21 +326,16 @@ input, select, textarea {
         /* --- HORARIO GRID (LA SECCIÓN DEL PROBLEMA) --- */
 .horario-grid { 
     display: grid; 
-    grid-template-columns: 80px repeat(5, 1fr); /* ✅ Cambio de minmax a 1fr */
+    grid-template-columns: 80px repeat(5, minmax(180px, 1fr)); /* ✅ Ancho mínimo de 180px por columna */
     gap: 0; 
     background: rgba(255,255,255,0.1); 
     border: 1px solid rgba(255,255,255,0.1); 
     border-radius: 16px; 
-    overflow-x: auto;
-    margin-top: 20px;
-    min-width: 100%; /* ✅ Agregado */
+    overflow-x: auto; /* ✅ Scroll horizontal si es necesario */
+    margin-top: 20px; 
 }
-      .horario-header { 
-    background: #0f172a; 
-    padding: 10px 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+        .horario-header { 
+            background: #0f172a; padding: 10px 2px; text-align: center; font-weight: 900; font-size: 9px; 
             text-transform: uppercase; color: #94a3b8; position: sticky; top: 0; z-index: 50; 
         }
         .horario-time { 
@@ -349,12 +344,10 @@ input, select, textarea {
             border-top: 1px solid rgba(255,255,255,0.05); 
         }
         /* CORRECCIÓN VISUAL: flex-direction: column permite apilar materias */
-
-        .horario-cell { 
+.horario-cell { 
     background: #020617; 
-    height: 100px !important; /* ✅ Altura fija */
-    min-width: 180px;
-    max-height: 100px !important; /* ✅ Evitar expansión */
+    min-height: 90px; /* ✅ Aumentado de 80px a 90px */
+    min-width: 180px; /* ✅ NUEVO: ancho mínimo fijo */
     position: relative; 
     border-top: 1px solid rgba(255,255,255,0.05); 
     border-left: 1px solid rgba(255,255,255,0.05); 
@@ -366,9 +359,10 @@ input, select, textarea {
     overflow: hidden; /* Evitar solapamientos entre celdas adyacentes */
     box-sizing: border-box;
 }
-        .clase-block { 
+        
+.clase-block { 
     width: 100%;
-    min-height: 86px;
+    height: 100%;
     border-radius: 8px; 
     padding: 8px;
     font-size: 10px; 
@@ -479,7 +473,30 @@ body.light-mode .clase-block .mat-name {
 }
 
 .horario-cell:empty:hover {
-    background: rgba(56, 189, 248, 0.1) !important;
+    background: rgba(var(--color-principal-rgb), 0.1) !important;
+}
+/* Botón flotante de configuración en móvil */
+#floating-cfg-btn {
+    display: none;
+    position: fixed;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-principal), rgba(255,255,255,0.1));
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    z-index: 200;
+    touch-action: none;
+    cursor: grab;
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255,255,255,0.2);
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+#floating-cfg-btn:active {
+    cursor: grabbing;
+    transform: scale(1.1);
 }
 /* ===== RESPONSIVE PARA MÓVILES ===== */
 
@@ -490,18 +507,6 @@ body.light-mode .clase-block .mat-name {
         overflow: hidden;
     }
     
-    /* ✅ MOSTRAR botón de configuración en navbar móvil */
-    #btn-cfg {
-        display: flex !important;
-        min-width: 65px !important;
-        max-width: 65px !important;
-    }
-    
-    /* ✅ OCULTAR sección inferior de configuración */
-    .sidebar > div:last-child {
-        display: none !important;
-    }
-
     /* Layout en columna */
     #app-container {
         flex-direction: column !important;
@@ -542,7 +547,19 @@ body.light-mode .clase-block .mat-name {
         width: 100%;
         -webkit-overflow-scrolling: touch;
     }
-    
+    /* Títulos centrados */
+section header {
+    text-align: center !important;
+}
+
+section header h2 {
+    text-align: center !important;
+}
+
+section header .flex {
+    flex-direction: column !important;
+    align-items: center !important;
+}
    #nav-wrapper .nav-btn {
     cursor: pointer !important;
     /* Evita que se seleccione el texto del botón */
@@ -572,7 +589,7 @@ body.light-mode .clase-block .mat-name {
     
     .nav-btn.active {
         border-bottom-color: var(--color-principal) !important;
-        background: rgba(56, 189, 248, 0.1) !important;
+        background: rgba(var(--color-principal-rgb), 0.1) !important;
     }
     
     .nav-btn:active {
@@ -598,10 +615,15 @@ body.light-mode .clase-block .mat-name {
         display: none !important;
     }
     
-    #btn-cfg {
+  #floating-cfg-btn {
         display: flex !important;
+        bottom: 100px;
+        right: 20px;
     }
     
+    #btn-cfg {
+        display: none !important;
+    }
     /* Contenido con padding para botones del sistema */
     .content {
         width: 100% !important;
@@ -643,17 +665,13 @@ body.light-mode .clase-block .mat-name {
     }
     
     /* ✅ HORARIO MEJORADO */
-.horario-grid { 
-    display: grid; 
-    grid-template-columns: 80px repeat(5, 1fr);
-    gap: 0; 
-    background: rgba(255,255,255,0.1); 
-    border: 1px solid rgba(255,255,255,0.1); 
-    border-radius: 16px; 
-    overflow-x: auto;
-    margin-top: 20px;
-    min-width: 100%;
-}
+    .horario-grid {
+        overflow-x: auto !important;
+        overflow-y: visible !important;
+        -webkit-overflow-scrolling: touch;
+        margin-top: 12px !important;
+        border-radius: 12px !important;
+    }
     
     .horario-cell {
         min-width: 140px !important;
@@ -800,41 +818,6 @@ body.light-mode .clase-block .mat-name {
         max-width: 100% !important;
     }
 }
-/* Botón flotante de configuración en móvil */
-#floating-cfg-btn {
-    display: none;
-    position: fixed;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--color-principal), rgba(255,255,255,0.1));
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-    z-index: 200;
-    touch-action: none;
-    cursor: grab;
-    backdrop-filter: blur(10px);
-    border: 2px solid rgba(255,255,255,0.2);
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-}
-
-#floating-cfg-btn:active {
-    cursor: grabbing;
-    transform: scale(1.1);
-}
-
-@media (max-width: 768px) {
-    #floating-cfg-btn {
-        display: flex !important;
-        bottom: 100px;
-        right: 20px;
-    }
-    
-    #btn-cfg {
-        display: none !important;
-    }
-}
 /* ===== INPUT DE ARCHIVO PERSONALIZADO ===== */
 .custom-file-input {
     position: relative;
@@ -874,27 +857,14 @@ body.light-mode .clase-block .mat-name {
 }
 
 .custom-file-button.has-file {
-    background: rgba(56, 189, 248, 0.1);
+    background: rgba(var(--color-principal-rgb), 0.1);
     border-color: var(--color-principal);
     color: var(--color-principal);
     border-style: solid;
 }
 
 .custom-file-button.has-file:hover {
-    background: rgba(56, 189, 248, 0.2);
-}
-/* Títulos centrados */
-section header {
-    text-align: center !important;
-}
-
-section header h2 {
-    text-align: center !important;
-}
-
-section header .flex {
-    flex-direction: column !important;
-    align-items: center !important;
+    background: rgba(var(--color-principal-rgb), 0.2);
 }
     </style>
     <style>
@@ -1060,8 +1030,8 @@ body.light-mode .nav-btn.active {
 }
 
 body.light-mode #frase-inspiradora,
-body.light-mode #frase-autor {
-    color: #020617 !important;
+#frase-autor {
+    color: var(--color-principal);
 }
 /* ✅ Asegurar visibilidad en modo claro */
 body.light-mode .clase-block {
@@ -1219,6 +1189,7 @@ body.light-mode .flatpickr-day.disabled:hover {
     
 </head>
 <body>
+
     <canvas id="seasonal-canvas"></canvas>
 
     <div id="custom-confirm">
@@ -1235,7 +1206,7 @@ body.light-mode .flatpickr-day.disabled:hover {
     <div id="modal-add">
         <div class="glass p-10 rounded-[2rem] w-full max-w-md border border-white/10 relative">
             <button onclick="closeModal()" class="absolute top-4 right-4 text-white/50 hover:text-white text-xl">✕</button>
-            <h3 id="modal-title" class="text-sky-500 font-black uppercase text-xs mb-8 text-center tracking-[2px]">Agregar</h3>
+            <h3 id="modal-title" class="font-black uppercase text-xs mb-8 text-center tracking-[2px]" style="color: var(--color-principal)">Agregar</h3>
             <div id="form-content" class="space-y-5"></div>
         </div>
     </div>
@@ -1244,7 +1215,7 @@ body.light-mode .flatpickr-day.disabled:hover {
         <div class="glass p-8 rounded-[2rem] w-full max-w-lg border border-white/10 relative">
             <button onclick="document.getElementById('modal-view').style.display='none'" class="absolute top-4 right-4 text-white/50 hover:text-white text-xl">✕</button>
             
-            <p id="view-type" class="text-sky-500 text-[10px] font-bold uppercase tracking-[3px] mb-2">Detalle</p>
+            <p id="view-type" class="text-[10px] font-bold uppercase tracking-[3px] mb-2" style="color: var(--color-principal)">Detalle</p>
             <h2 id="view-name" class="text-3xl font-black italic mb-1 leading-tight text-white">Nombre Tarea</h2>
             <p id="view-materia" class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">Materia • Fecha</p>
             
@@ -1261,7 +1232,7 @@ body.light-mode .flatpickr-day.disabled:hover {
     <div id="auth-overlay">
         <div class="glass p-8 rounded-[2.5rem] w-full max-w-md text-center border border-white/10 relative z-50">
             <h1 class="text-4xl font-black tracking-tighter mb-2 italic">Cetistapp</h1>
-            <p id="auth-desc" class="text-sky-500 text-[10px] font-bold uppercase tracking-[3px] mb-6">Una plataforma de estudiantes, para estudiantes</p>
+           <p id="auth-desc" class="text-[10px] font-bold uppercase tracking-[3px] mb-6" style="color: var(--color-principal)">Una plataforma de estudiantes, para estudiantes</p>
             <div id="reg-fields" class="space-y-2 mb-2 hidden">
                 <div class="flex gap-2">
                     <input type="text" id="reg-nombre" placeholder="Nombre">
@@ -1284,7 +1255,7 @@ body.light-mode .flatpickr-day.disabled:hover {
             </div>
             <input type="email" id="auth-email" placeholder="Correo" class="mb-2">
             <input type="password" id="auth-pass" placeholder="Contraseña" class="mb-4">
-            <button onclick="manejarAuth()" id="auth-main-btn" class="w-full bg-sky-500 text-slate-950 font-black p-4 rounded-2xl uppercase tracking-widest hover:bg-sky-400 mb-4 transition">Entrar</button>
+            <button onclick="manejarAuth()" id="auth-main-btn" class="w-full text-slate-950 font-black p-4 rounded-2xl uppercase tracking-widest mb-4 transition" style="background: var(--color-principal)">Entrar</button>
             <button onclick="toggleAuth()" class="text-[10px] font-bold text-slate-500 uppercase hover:text-white transition" id="toggle-auth-text">¿No tienes cuenta? Regístrate</button>
             <p id="auth-error" class="text-rose-500 text-[10px] mt-2 font-bold"></p>
         </div>
@@ -1297,8 +1268,9 @@ body.light-mode .flatpickr-day.disabled:hover {
         ✕
     </button>
     <h1 class="text-3xl font-black tracking-tighter italic">Cetistapp</h1>
-    <p id="user-info-side" class="text-[9px] text-sky-500 font-bold tracking-[3px] uppercase mt-2">Cargando...</p>
+    <p id="user-info-side" class="text-[9px]  font-bold tracking-[3px] uppercase mt-2" style="color: var(--color-principal)">Cargando...</p>
     <p id="user-level-side" class="text-[8px] text-slate-500 font-bold uppercase tracking-widest mt-1">...</p>
+    
     <!-- AGREGAR ESTO -->
 </div>
         <nav id="nav-wrapper" class="flex-grow overflow-y-auto pr-2">
@@ -1308,8 +1280,7 @@ body.light-mode .flatpickr-day.disabled:hover {
         <div data-id="cal" onclick="show('cal')" id="btn-cal" class="nav-btn"><span>📝</span> <span class="nav-label">Calificaciones</span></div>
         <div data-id="pen" onclick="show('pen')" id="btn-pen" class="nav-btn"><span>📌</span> <span class="nav-label">Pendientes</span></div>
         <div data-id="for" onclick="show('for')" id="btn-for" class="nav-btn"><span>💬</span> <span class="nav-label">Foro</span></div>
-       <div data-id="links" onclick="show('links')" id="btn-links" class="nav-btn"><span>🔗</span> <span class="nav-label">Links</span></div>
-        <div data-id="cod" onclick="show('cod')" id="btn-cod" class="nav-btn"><span>📜</span><span class="nav-label">Códigos</span></div>
+        <div data-id="cod" onclick="show('cod')" id="btn-cod" class="nav-btn"><span>🔗</span> <span class="nav-label">Códigos</span></div>
     </nav>
 <div class="mt-auto pt-6 border-t border-white/10">
    <div data-id="cfg" onclick="show('cfg')" id="btn-cfg" class="nav-btn">
@@ -1328,7 +1299,7 @@ body.light-mode .flatpickr-day.disabled:hover {
     <header class="mb-8">
         <div class="flex items-center justify-between">
             <div>
-                <p id="txt-saludo" class="text-sky-500 font-bold text-sm uppercase tracking-[2px]">Hola</p>
+                <p id="txt-saludo" class="font-bold text-sm uppercase tracking-[2px]" style="color: var(--color-principal)">Hola</p>
                 <h2 id="welcome-name" class="text-5xl font-black tracking-tighter italic">¡Bienvenido!</h2>
             </div>
         </div>
@@ -1399,7 +1370,7 @@ body.light-mode .flatpickr-day.disabled:hover {
             <section id="sec-mat" class="hidden">
                 <header class="mb-8"><h2 class="text-5xl font-black italic">Materias</h2></header>
                 <div class="card bg-white/[0.03] border-white/10 mb-8 p-6">
-                    <h3 id="mat-header-text" class="text-sky-500 font-black uppercase text-xs mb-6 transition-colors duration-300">Añadir Materia</h3>
+                    <h3 id="mat-header-text" class=" font-black uppercase text-xs mb-6 transition-colors duration-300" style="color: var(--color-principal)">Añadir Materia</h3>
 <div id="cont-tipo-materia" class="mb-6 hidden">
     <label class="text-[9px] font-bold uppercase text-slate-500 ml-1 mb-2 block">Tipo de Materia</label>
     <div class="grid grid-cols-3 gap-3">
@@ -1439,10 +1410,16 @@ body.light-mode .flatpickr-day.disabled:hover {
         <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Color</label>
         <input type="color" id="mat-color" value="var(--color-principal)" class="h-[42px] p-1 cursor-pointer w-full">
     </div>
- <div>
+<div>
     <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Icono PNG</label>
+    <div id="preview-mat-icono-add" class="mb-2 hidden">
+        <div class="flex items-center gap-2 bg-white/5 p-2 rounded-lg">
+            <img id="preview-img-add" src="" class="w-10 h-10 object-contain rounded">
+            <button onclick="eliminarPreviewIcono()" type="button" class="text-rose-400 hover:text-rose-300 text-xs font-bold">✕ Eliminar</button>
+        </div>
+    </div>
     <div class="custom-file-input">
-        <input type="file" id="mat-icono" accept=".png,.jpg,.jpeg" onchange="updateFileButton(this, 'mat-icono-label')">
+        <input type="file" id="mat-icono" accept=".png,.jpg,.jpeg" onchange="previsualizarIcono(this, 'mat-icono-label')">
         <div id="mat-icono-label" class="custom-file-button">
             <span>📁</span>
             <span>Agregar Imagen</span>
@@ -1538,31 +1515,9 @@ body.light-mode .flatpickr-day.disabled:hover {
     </div>
     <div id="foro-avisos" class="animate-in">
         <div id="aviso-form-container" class="card bg-white/[0.03] border-white/10 mb-6 p-6" style="display: none;">
-            <h3 class="text-sky-500 font-black uppercase text-xs mb-4">📢 Publicar Aviso General (Solo Admin)</h3>
-           <div class="mb-4">
-    <!-- Barra de herramientas -->
-    <div class="flex gap-2 mb-2 p-2 bg-white/5 rounded-xl border border-white/10">
-        <button onclick="aplicarEstilo('aviso-texto', 'negrita')" class="p-2 rounded hover:bg-white/10" title="Negrita">
-            <strong>B</strong>
-        </button>
-        <button onclick="aplicarEstilo('aviso-texto', 'cursiva')" class="p-2 rounded hover:bg-white/10 italic" title="Cursiva">
-            I
-        </button>
-        <button onclick="aplicarEstilo('aviso-texto', 'subrayado')" class="p-2 rounded hover:bg-white/10 underline" title="Subrayado">
-            U
-        </button>
-        <div class="border-l border-white/20 mx-2"></div>
-        <button onclick="aplicarEstilo('aviso-texto', 'titulo')" class="p-2 rounded hover:bg-white/10 text-lg font-bold" title="Título">
-            T
-        </button>
-        <button onclick="aplicarEstilo('aviso-texto', 'emoji')" class="p-2 rounded hover:bg-white/10" title="Emoji">
-            😊
-        </button>
-    </div>
-    
-    <textarea id="aviso-texto" placeholder="Escribe un aviso para todos..." rows="4" class="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm"></textarea>
-</div>
-            <button onclick="publicarAviso()" class="bg-sky-500 text-slate-950 font-black px-6 py-3 rounded-xl uppercase text-xs hover:bg-sky-400 transition">📢 Publicar Aviso</button>
+            <h3 class=" font-black uppercase text-xs mb-4" style="color: var(--color-principal)">📢 Publicar Aviso General (Solo Admin)</h3>
+            <textarea id="aviso-texto" placeholder="Escribe un aviso para todos..." rows="3" class="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm mb-4"></textarea>
+<button onclick="publicarAviso()" class="text-slate-950 font-black px-6 py-3 rounded-xl uppercase text-xs transition" style="background: var(--color-principal)">📢 Publicar Aviso</button>
         </div>
         <div id="grid-avisos" class="space-y-4"></div>
     </div>
@@ -1585,35 +1540,7 @@ body.light-mode .flatpickr-day.disabled:hover {
         <h2 class="text-5xl font-black italic tracking-tighter">Códigos de Configuración</h2>
         <p class="text-slate-400 text-xs mt-2 font-bold uppercase tracking-widest">Importa o exporta tu horario y materias</p>
     </header>
-<section id="sec-links" class="hidden">
-    <header class="mb-8">
-        <h2 class="text-5xl font-black italic tracking-tighter">Links Útiles</h2>
-        <p class="text-slate-400 text-xs mt-2 font-bold uppercase tracking-widest">Guarda enlaces importantes</p>
-    </header>
-    
-    <div class="card bg-white/[0.03] border-white/10 mb-8 p-6">
-        <h3 class="text-sky-500 font-black uppercase text-xs mb-6">Agregar Nuevo Link</h3>
-        <div class="space-y-4">
-            <div>
-                <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Título</label>
-                <input type="text" id="link-titulo" placeholder="Ej: Plataforma Ceti Virtual">
-            </div>
-            <div>
-                <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">URL</label>
-                <input type="url" id="link-url" placeholder="https://...">
-            </div>
-            <div>
-                <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Materia (Opcional)</label>
-                <select id="link-materia">
-                    <option value="">Sin materia específica</option>
-                </select>
-            </div>
-            <button onclick="guardarLink()" class="w-full bg-sky-500 text-slate-950 font-black p-4 rounded-xl uppercase text-xs">Guardar Link</button>
-        </div>
-    </div>
-    
-    <div id="grid-links" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
-</section>
+
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
  <!-- EXPORTAR -->
 <div class="card bg-emerald-500/5 border-emerald-500/20 border-l-4">
@@ -1653,9 +1580,9 @@ body.light-mode .flatpickr-day.disabled:hover {
 </div>
         <!-- IMPORTAR -->
         <div class="card bg-sky-500/5 border-sky-500/20 border-l-4">
-            <h3 class="text-sky-500 font-black uppercase text-xs mb-4 flex items-center gap-2">
-                <span>📥</span> Importar Configuración
-            </h3>
+<h3 class="font-black uppercase text-xs mb-4 flex items-center gap-2" style="color: var(--color-principal)">
+    <span>📥</span> Importar Configuración
+</h3>
             <p class="text-sm text-slate-300 mb-4">Ingresa un código de 6 caracteres para cargar horario y materias.</p>
             
             <div class="mb-4">
@@ -1669,9 +1596,9 @@ body.light-mode .flatpickr-day.disabled:hover {
                 <p id="preview-horario" class="text-xs text-slate-300">📅 0 clases</p>
             </div>
             
-            <button onclick="verificarCodigo()" class="w-full bg-sky-500 text-slate-950 font-black px-6 py-3 rounded-xl uppercase text-xs hover:bg-sky-400 transition mb-2">
-                🔍 Verificar Código
-            </button>
+<button onclick="verificarCodigo()" id="btn-verificar" class="w-full text-slate-950 font-black px-6 py-3 rounded-xl uppercase text-xs transition mb-2" style="background: var(--color-principal)">
+    🔍 Verificar Código
+</button>
             <button onclick="importarCodigo()" id="btn-importar" class="w-full bg-white/10 text-slate-500 font-black px-6 py-3 rounded-xl uppercase text-xs cursor-not-allowed" disabled>
                 📥 Importar Configuración
             </button>
@@ -1697,7 +1624,7 @@ body.light-mode .flatpickr-day.disabled:hover {
         
         <!-- DATOS PERSONALES -->
         <div class="card border-l-4 border-sky-500 bg-sky-500/5">
-            <h3 class="text-sky-500 font-black uppercase text-xs mb-6">👤 Datos Personales</h3>
+            <h3 class=" font-black uppercase text-xs mb-6" style="color: var(--color-principal)">👤 Datos Personales</h3>
             
             <div class="space-y-4">
                 <div class="grid grid-cols-2 gap-4">
@@ -1733,34 +1660,11 @@ body.light-mode .flatpickr-day.disabled:hover {
                     </div>
                 </div>
                 
-                <button onclick="guardarDatosPersonales()" class="w-full bg-sky-500 text-slate-950 font-black px-6 py-3 rounded-xl uppercase text-xs hover:bg-sky-400 transition">
-                    💾 Guardar Cambios
-                </button>
+<button onclick="guardarDatosPersonales()" class="w-full text-slate-950 font-black px-6 py-3 rounded-xl uppercase text-xs transition" style="background: var(--color-principal)">
+    💾 Guardar Cambios
+</button>
             </div>
         </div>
-        <!-- CAMBIAR CONTRASEÑA -->
-<div class="card border-l-4 border-rose-500 bg-rose-500/5">
-    <h3 class="text-rose-500 font-black uppercase text-xs mb-6">🔐 Cambiar Contraseña</h3>
-    
-    <div class="space-y-4">
-        <div>
-            <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Contraseña Actual</label>
-            <input type="password" id="cfg-pass-actual" placeholder="••••••••">
-        </div>
-        <div>
-            <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Nueva Contraseña</label>
-            <input type="password" id="cfg-pass-nueva" placeholder="••••••••">
-        </div>
-        <div>
-            <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Confirmar Nueva Contraseña</label>
-            <input type="password" id="cfg-pass-confirmar" placeholder="••••••••">
-        </div>
-        
-        <button onclick="cambiarContrasena()" class="w-full bg-rose-500 text-white font-black px-6 py-3 rounded-xl uppercase text-xs hover:bg-rose-400 transition">
-            🔒 Cambiar Contraseña
-        </button>
-    </div>
-</div>
 <!-- PERSONALIZACIÓN DE COLOR -->
 <div class="card border-l-4 border-indigo-500 bg-indigo-500/5">
     <h3 class="text-indigo-500 font-black uppercase text-xs mb-6">🎨 Color Principal</h3>
@@ -1787,20 +1691,6 @@ body.light-mode .flatpickr-day.disabled:hover {
         </button>
     </div>
 </div>
-        <!-- COMPORTAMIENTO BARRA LATERAL -->
-        <div class="card border-l-4 border-amber-500 bg-amber-500/5">
-            <h3 class="text-amber-500 font-black uppercase text-xs mb-6">🔧 Barra de Opciones</h3>
-            <div class="space-y-3">
-                <label class="text-[10px] font-bold">Modo de la barra lateral</label>
-                <select id="cfg-sidebar-mode" onchange="changeSidebarMode(this.value)" class="w-full p-3 rounded-xl">
-                    <option value="fija">Fija (ancha)</option>
-                    <option value="hover">Solo al pasar el cursor (expandible)</option>
-                    <option value="icons">Extraída (solo íconos)</option>
-                </select>
-                <p class="text-xs text-slate-400">Elige si la barra se mantiene fija, se expande al pasar el cursor o se muestra solo como tira de íconos.</p>
-            </div>
-        </div>
-
         <!-- FOTO DE PERFIL -->
         <div class="card border-l-4 border-purple-500 bg-purple-500/5">
             <h3 class="text-purple-500 font-black uppercase text-xs mb-6">📸 Foto de Perfil</h3>
@@ -1856,14 +1746,38 @@ body.light-mode .flatpickr-day.disabled:hover {
                 📨 Enviar al Admin
             </button>
         </div>
+         <!-- CAMBIAR CONTRASEÑA -->
+<div class="card border-l-4 border-rose-500 bg-rose-500/5">
+    <h3 class="text-rose-500 font-black uppercase text-xs mb-6">🔐 Cambiar Contraseña</h3>
+    
+    <div class="space-y-4">
+        <div>
+            <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Contraseña Actual</label>
+            <input type="password" id="cfg-pass-actual" placeholder="••••••••">
+        </div>
+        <div>
+            <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Nueva Contraseña</label>
+            <input type="password" id="cfg-pass-nueva" placeholder="••••••••">
+        </div>
+        <div>
+            <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Confirmar Nueva Contraseña</label>
+            <input type="password" id="cfg-pass-confirmar" placeholder="••••••••">
+        </div>
+        
+        <button onclick="cambiarContrasena()" class="w-full bg-rose-500 text-white font-black px-6 py-3 rounded-xl uppercase text-xs hover:bg-rose-400 transition">
+            🔒 Cambiar Contraseña
+        </button>
+    </div>
+</div>
     </div>
 </section>
         </main>
     </div>
+   
 <!-- MODAL PERSONALIZADO DE CONFIRMACIÓN GENÉRICO -->
 <div id="custom-alert" style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
     <div class="glass p-8 rounded-[2rem] w-full max-w-sm text-center border border-white/10">
-        <p id="alert-title" class="text-sky-500 text-[10px] font-black uppercase tracking-[3px] mb-2">Mensaje</p>
+        <p id="alert-title" class=" text-[10px] font-black uppercase tracking-[3px] mb-2" style="color: var(--color-principal)">Mensaje</p>
         <h3 id="alert-text" class="text-lg font-bold mb-6">Texto del mensaje</h3>
         <div id="alert-buttons" class="flex gap-3"></div>
     </div>
@@ -1908,12 +1822,13 @@ function showAlert(message, title = 'Mensaje') {
     const modal = document.getElementById('custom-alert');
     document.getElementById('alert-title').innerText = title;
     document.getElementById('alert-text').innerText = message;
-    document.getElementById('alert-buttons').innerHTML = `
-        <button onclick="document.getElementById('custom-alert').style.display='none'" 
-                class="flex-1 p-4 rounded-xl bg-sky-500 text-slate-950 font-black text-xs uppercase hover:bg-sky-400 transition">
-            Aceptar
-        </button>
-    `;
+document.getElementById('alert-buttons').innerHTML = `
+    <button onclick="document.getElementById('custom-alert').style.display='none'" 
+            class="flex-1 p-4 rounded-xl text-slate-950 font-black text-xs uppercase transition" 
+            style="background: var(--color-principal)">
+        Aceptar
+    </button>
+`;
     modal.style.display = 'flex';
 }
 function updateFileButton(input, labelId) {
@@ -1933,10 +1848,11 @@ function showConfirm(message, onConfirm, title = 'Confirmación') {
                 class="flex-1 p-4 rounded-xl bg-white/5 font-bold text-xs uppercase hover:bg-white/10">
             Cancelar
         </button>
-        <button onclick="document.getElementById('custom-alert').style.display='none'; (${onConfirm})();" 
-                class="flex-1 p-4 rounded-xl bg-sky-500 text-slate-950 font-black text-xs uppercase hover:bg-sky-400">
-            Confirmar
-        </button>
+<button onclick="document.getElementById('custom-alert').style.display='none'; (${onConfirm})();" 
+        class="flex-1 p-4 rounded-xl text-slate-950 font-black text-xs uppercase transition" 
+        style="background: var(--color-principal)">
+    Confirmar
+</button>
     `;
     modal.style.display = 'flex';
 }
@@ -2007,15 +1923,39 @@ window.alert = showAlert;
             function animate() { ctx.clearRect(0, 0, width, height); particles.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animate); }
             animate();
         }
+function previsualizarIcono(input, labelId) {
+    const label = document.getElementById(labelId);
+    const preview = document.getElementById('preview-mat-icono-add');
+    const img = document.getElementById('preview-img-add');
+    
+    if(input.files && input.files.length > 0) {
+        const fileName = input.files[0].name;
+        label.classList.add('has-file');
+        label.innerHTML = `<span>✓</span><span>${fileName.length > 20 ? fileName.substring(0, 20) + '...' : fileName}</span>`;
+        
+        // Mostrar preview
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            img.src = e.target.result;
+            preview.classList.remove('hidden');
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
 
+function eliminarPreviewIcono() {
+    document.getElementById('mat-icono').value = '';
+    document.getElementById('preview-mat-icono-add').classList.add('hidden');
+    document.getElementById('mat-icono-label').classList.remove('has-file');
+    document.getElementById('mat-icono-label').innerHTML = '<span>📁</span><span>Agregar Imagen</span>';
+}
         // 4. AUTENTICACIÓN
 function toggleAuth() { 
     isLogin = !isLogin; 
     document.getElementById('reg-fields').classList.toggle('hidden', isLogin);
     document.getElementById('auth-main-btn').innerText = isLogin ? 'ENTRAR' : 'REGISTRARSE';
-    document.getElementById('auth-desc').innerText = isLogin ? 'Acceso Estudiantil' : 'Crear Cuenta';
+    document.getElementById('auth-desc').innerText = isLogin ? 'Una plataforma de estudiantes, para estudiantes' : 'Crear Cuenta';
     document.getElementById('toggle-auth-text').innerText = isLogin ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia Sesión';
-    
     // ✅ CAMBIAR PLACEHOLDER DINÁMICAMENTE
     document.getElementById('auth-pass').placeholder = isLogin ? 'Contraseña' : 'Nueva Contraseña (mín. 6 caracteres)';
 }
@@ -2041,10 +1981,6 @@ async function manejarAuth() {
             }
             
             const res = await auth.createUserWithEmailAndPassword(email, pass);
-            
-            // ✅ GENERAR CÓDIGO DE 6 DÍGITOS
-            const codigo = Math.floor(100000 + Math.random() * 900000).toString();
-            
             const nowIso = new Date().toISOString();
             await db.ref('usuarios/' + res.user.uid + '/perfil').set({ 
                 nombre: nom,
@@ -2053,25 +1989,29 @@ async function manejarAuth() {
                 semestre: sem,
                 grupo: gru,
                 createdAt: nowIso,
-                lastModified: nowIso,
-                codigoVerificacion: codigo,
-                emailVerificado: false
+                lastModified: nowIso
             });
-            
-            // ✅ ENVIAR EMAIL CON EL CÓDIGO
-            await res.user.sendEmailVerification();
-            
-            showAlert(`✅ Cuenta creada. Tu código de verificación es: ${codigo}\n\nRevisa tu correo para más detalles.`, 'Registro Exitoso');
         }
     } catch (e) {
-        if(e.code === 'auth/invalid-email') err.innerText = "❌ Correo inválido";
-        else if(e.code === 'auth/user-not-found') err.innerText = "❌ Usuario no encontrado";
-        else if(e.code === 'auth/wrong-password') err.innerText = "❌ Contraseña incorrecta";
-        else if(e.code === 'auth/weak-password') err.innerText = "❌ Contraseña muy débil (mín. 6 caracteres)";
-        else if(e.code === 'auth/email-already-in-use') err.innerText = "❌ Este correo ya está registrado";
-        else err.innerText = "❌ Error: " + e.message;
+        // ✅ Mensajes amigables
+        if(e.code === 'auth/invalid-email') {
+            err.innerText = "❌ Correo inválido";
+        } else if(e.code === 'auth/user-not-found') {
+            err.innerText = "❌ Usuario no encontrado";
+        } else if(e.code === 'auth/wrong-password') {
+            err.innerText = "❌ Escriba la contraseña";
+        } else if(e.code === 'auth/weak-password') {
+            err.innerText = "❌ La contraseña debe tener al menos 6 caracteres";
+        } else if(e.code === 'auth/email-already-in-use') {
+            err.innerText = "❌ Este correo ya está registrado";
+        } else if(e.code === 'auth/invalid-credential') {
+            err.innerText = "❌ Credenciales incorrectas";
+        } else {
+            err.innerText = "❌ Su contraseña es incorrecta";
+        }
     }
 }
+
 // ✅ Verificar y preguntar si repitió antes de incrementar semestre (desde agosto 2026)
 function verificarYActualizarSemestre(uid, perfil) {
     const hoy = new Date();
@@ -2351,32 +2291,16 @@ auth.onAuthStateChanged(user => {
                 miGrupo = p.grupo;
                 document.getElementById('foro-grupo-info').innerText = `Grupo ${miGrupo}`;
                 document.getElementById('grupo-header').innerText = `Chat Grupo ${miGrupo}`;
-             
-                // ✅ CARGAR COLOR PERSONALIZADO
-// ✅ CARGAR COLOR PERSONALIZADO SIN ALERTA
-if(p.colorPrincipal) {
-    const color = p.colorPrincipal;
-    const hex = color.replace('#', '');
-    const r = parseInt(hex.substr(0, 2), 16);
-    const g = parseInt(hex.substr(2, 2), 16);
-    const b = parseInt(hex.substr(4, 2), 16);
-    
-    document.documentElement.style.setProperty('--color-principal', color);
-    document.documentElement.style.setProperty('--color-principal-rgb', `${r}, ${g}, ${b}`);
-    document.getElementById('cfg-color-principal').value = color;
-    localStorage.setItem('colorPrincipal', color);
-    
-    // Aplicar a elementos específicos
-    const txtSaludo = document.getElementById('txt-saludo');
-    const userInfo = document.getElementById('user-info-side');
-    if(txtSaludo) txtSaludo.style.color = color;
-    if(userInfo) userInfo.style.color = color;
-}
                 
-// ✅ CARGAR FONDO AQUÍ
+                // CARGAR FONDO AQUÍ
 if(p.fondoPersonalizado) {
-    aplicarFondoPersonalizado(p.fondoPersonalizado);
-}         
+    document.body.style.backgroundImage = `url(${p.fondoPersonalizado})`;
+    document.body.style.backgroundSize = 'cover';
+    document.body.style.backgroundPosition = 'center';
+    document.body.style.backgroundAttachment = 'fixed';
+    document.body.classList.add('has-custom-bg'); // AGREGAR ESTO
+    document.getElementById('preview-fondo').innerHTML = `<img src="${p.fondoPersonalizado}" class="w-full h-full object-cover rounded-lg">`;
+}
                 if(userLevel === 'tecnologo') {
                     document.getElementById('cont-tipo-materia').classList.remove('hidden');
                     updateTheme('materia'); 
@@ -2393,7 +2317,6 @@ if(p.fondoPersonalizado) {
         escucharHorario(); 
         escucharPendientes(); 
         escucharForo();
-        cargarLinks()
                 console.log("Configuración cargada");
                 cargarConfiguracion();
         cargarInicio();
@@ -2446,21 +2369,45 @@ if(p.fondoPersonalizado) {
 const emojiBackground = m.emoji && m.emoji.startsWith('data:image') 
     ? `<img src="${m.emoji}" class="w-full h-full object-contain">` 
     : '';
-                        matCont.innerHTML += `<div class="card h-48 border-l-4 relative overflow-hidden group flex flex-col justify-between" style="border-color: ${m.color}">
-                            <div class="absolute -top-4 -right-4 p-4 opacity-[0.05] text-8xl pointer-events-none select-none transition-transform group-hover:scale-110 duration-500">${emojiBackground}</div>
-                            <div class="relative z-10">
-                                <div class="flex items-center gap-2">
-                                    ${emojiDisplay}
-                                    <h3 class="text-2xl font-black italic tracking-tight line-clamp-2 break-words">${m.nombre}</h3>${tipoLabel}
-                                </div>
-                                <p class="text-[10px] font-bold text-white/50 uppercase tracking-widest mt-1">${m.maestro || 'Sin Profesor'}</p>
-                                ${diasStr}
-                            </div>
-                            <div class="relative z-10 flex justify-between items-end mt-4">
-                                <button onclick="goToCalif('${id}')" class="bg-white/10 hover:bg-white/20 w-10 h-10 rounded-xl flex items-center justify-center transition backdrop-blur-md"><span class="text-lg">📊</span></button>
-                                <button onclick="pedirConfirmacion('${id}', 'materia')" class="text-[10px] font-bold uppercase text-rose-500/60 hover:text-rose-400 bg-rose-500/10 px-3 py-2 rounded-lg transition backdrop-blur-md">BORRAR</button>
-                            </div>
-                        </div>`;
+                        matCont.innerHTML += `
+    <div onclick="abrirEditorMateria('${id}')" class="card relative group overflow-hidden p-5 flex flex-col clickable-card animate-in" style="background: linear-gradient(135deg, ${m.color}30 0%, ${m.color}10 100%); border: 1px solid ${m.color}40; min-height: 280px;">
+        
+        <!-- Imagen de fondo decorativa -->
+        ${m.emoji && m.emoji.startsWith('data:image') ? `
+            <div class="absolute inset-0 opacity-10">
+                <img src="${m.emoji}" class="w-full h-full object-cover">
+            </div>
+        ` : ''}
+        
+        <!-- Contenido superior -->
+        <div class="relative z-10 flex-1">
+            <div class="flex items-start justify-between mb-3">
+                ${m.emoji && m.emoji.startsWith('data:image') ? `
+                    <img src="${m.emoji}" class="w-16 h-16 object-contain rounded-lg bg-black/30 p-2">
+                ` : `
+                    <div class="w-16 h-16 rounded-lg flex items-center justify-center text-3xl" style="background: ${m.color}30">
+                        📚
+                    </div>
+                `}
+            </div>
+            
+            <h3 class="text-2xl font-black mb-2 leading-tight">${m.nombre}</h3>
+            <p class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-1">${m.maestro || 'Sin Profesor'}</p>
+            ${m.diasIniciales ? `<p class="text-[10px] font-bold opacity-60 tracking-widest">${m.diasIniciales}</p>` : ''}
+        </div>
+        
+        <!-- Botones fijos abajo -->
+        <div class="relative z-10 flex gap-2 mt-auto pt-4 border-t border-white/10">
+            <button onclick="event.stopPropagation(); goToCalif('${id}')" class="flex-1 bg-white/10 hover:bg-white/20 py-3 rounded-xl flex items-center justify-center gap-2 transition backdrop-blur-md" title="Ver calificaciones">
+                <span class="text-lg">📊</span>
+                <span class="text-xs font-bold uppercase">Calificaciones</span>
+            </button>
+            <button onclick="event.stopPropagation(); pedirConfirmacion('${id}', 'materia')" class="bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 px-4 py-3 rounded-xl transition backdrop-blur-md" title="Borrar">
+                <span class="text-xs font-bold uppercase">🗑️</span>
+            </button>
+        </div>
+    </div>
+`;
 
                        const calEmojiDisplay = m.emoji && m.emoji.startsWith('data:image') 
     ? `<img src="${m.emoji}" class="w-8 h-8 object-contain">` 
@@ -2496,7 +2443,7 @@ ${m.extraordinario && m.extraordinario.promedioFinal >= 70
             ` : ''}
         </div>
         <div id="parciales-${id}" class="flex-grow grid grid-cols-1 md:grid-cols-3 gap-6">
-            ${[1,2,3].map(p => `<div class="bg-white/5 p-4 rounded-2xl border border-white/5 backdrop-blur-sm"><p class="text-[10px] font-black uppercase text-sky-500 mb-3 text-center border-b border-white/10 pb-2">Parcial ${p}</p><div class="mb-3"><label class="text-[8px] font-bold text-slate-400 block">Nota (0-100)</label>
+            ${[1,2,3].map(p => `<div class="bg-white/5 p-4 rounded-2xl border border-white/5 backdrop-blur-sm"><p class="text-[10px] font-black uppercase  style="color: var(--color-principal)" mb-3 text-center border-b border-white/10 pb-2">Parcial ${p}</p><div class="mb-3"><label class="text-[8px] font-bold text-slate-400 block">Nota (0-100)</label>
 <input type="number" min="0" max="100" step="1" value="${m['p'+p] || ''}" 
        onchange="guardarDato('${id}', 'p${p}', Math.min(100, Math.max(0, Math.floor(this.value || 0))))" 
        class="text-lg font-bold">
@@ -2691,8 +2638,8 @@ function renderHorarioGrid() {
                             <span style="
                                 color: white;
                                 font-weight: 900;
-                                font-size: 11px;
-                                line-height: 1.2;
+                                font-size: 12px;
+                                line-height: 1.5;
                                 text-shadow: 0 1px 3px rgba(0,0,0,0.9);
                                 overflow: hidden;
                                 text-overflow: ellipsis;
@@ -2707,7 +2654,7 @@ function renderHorarioGrid() {
                     
                     <!-- SEGUNDA LÍNEA: Profesor + Aula -->
 <div style="
-    font-size: 8px; 
+    font-size: 9px; 
     opacity: 0.9; 
     line-height: 1.3; 
     color: white;
@@ -2716,7 +2663,7 @@ function renderHorarioGrid() {
     <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
         ${mat.maestro || 'Sin profesor'}
     </div>
-    ${clase.aula ? `<div style="margin-top: 2px; font-size: 7px; opacity: 0.8;">📍 ${clase.aula}</div>` : ''}
+    ${clase.aula ? `<div style="margin-top: 2px; font-size: 8px;">📍 ${clase.aula}</div>` : ''}
 </div>
                 </div>
             </div>
@@ -2724,7 +2671,7 @@ function renderHorarioGrid() {
                 }).join('');
             }
             
-const gridStyle = rowSpan === 2 ? 'style="grid-row: span 2; min-height: 186px;"' : '';
+const gridStyle = rowSpan === 2 ? 'style="grid-row: span 2;"' : '';
 
 // ✅ Si la celda está vacía, agregar evento de click
 if(cellContent === "") {
@@ -2738,7 +2685,7 @@ if(cellContent === "") {
             transition: opacity 0.2s;
             cursor: pointer;
         " onmouseover="this.style.opacity='0.5'" onmouseout="this.style.opacity='0'">
-            <span style="font-size: 24px; color: rgba(56, 189, 248, 0.6);">➕</span>
+            <span style="font-size: 24px; color: rgba(var(--color-principal-rgb), 0.6);">➕</span>
         </div>
     </div>`;
 } else {
@@ -2901,6 +2848,44 @@ function setupHorarioScrollbarSync() {
             document.getElementById('view-desc').innerText = content || "Sin detalles adicionales.";
             document.getElementById('modal-view').style.display = 'flex';
         }
+        function calcularDiff(fecha) {
+    if (!fecha) return null;
+    const parts = fecha.split('-');
+    const due = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    due.setHours(0, 0, 0, 0);
+    return Math.ceil((due - now) / (1000 * 60 * 60 * 24));
+}
+
+function getBadge(fecha) {
+    if (!fecha) return '';
+    const parts = fecha.split('-');
+    const due = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    due.setHours(0, 0, 0, 0);
+    const diff = Math.ceil((due - now) / (1000 * 60 * 60 * 24));
+    if (diff < 0)  return `<span class="bg-rose-500/20 text-rose-400 text-[9px] font-black px-2 py-1 rounded uppercase">⚠️ Atrasado</span>`;
+    if (diff === 0) return `<span class="bg-rose-500/20 text-rose-400 text-[9px] font-black px-2 py-1 rounded uppercase">🔴 Hoy</span>`;
+    if (diff === 1) return `<span class="bg-rose-500/20 text-rose-400 text-[9px] font-black px-2 py-1 rounded uppercase">🔴 Mañana</span>`;
+    if (diff <= 3)  return `<span class="bg-amber-500/20 text-amber-400 text-[9px] font-black px-2 py-1 rounded uppercase">🟡 ${diff} días</span>`;
+    return `<span class="bg-emerald-500/20 text-emerald-400 text-[9px] font-black px-2 py-1 rounded uppercase">🟢 ${diff} días</span>`;
+}
+
+function getUrgencyBorder(p, borderColor) {
+    if (p.type === 'recordatorio') return borderColor;
+    if (!p.fecha) return borderColor;
+    const parts = p.fecha.split('-');
+    const due = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    due.setHours(0, 0, 0, 0);
+    const diff = Math.ceil((due - now) / (1000 * 60 * 60 * 24));
+    if (diff <= 1) return '#ef4444';
+    if (diff <= 3) return '#f59e0b';
+    return '#22c55e';
+}
 
 function renderPendientes() {
     const container = document.getElementById('grid-pendientes');
@@ -2945,38 +2930,10 @@ function renderPendientes() {
         const materia = materiasCache[p.materiaId];
         const materiaNombre = materia ? materia.nombre : "General";
         let borderColor = materia ? materia.color : '#64748b';
-
-        // Calcular urgencyBorder
-        let urgencyBorder = borderColor;
-        if(p.type !== 'recordatorio' && p.fecha) {
-            const parts = p.fecha.split('-');
-            const due = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-            const now = new Date();
-            now.setHours(0,0,0,0);
-            due.setHours(0,0,0,0);
-            const diff = Math.ceil((due - now) / (1000 * 60 * 60 * 24));
-            if(diff <= 1) urgencyBorder = '#ef4444';
-            else if(diff <= 3) urgencyBorder = '#f59e0b';
-            else urgencyBorder = '#22c55e';
-        }
-
-        // Calcular badge
-        let badge = '';
-        if(p.fecha) {
-            const parts = p.fecha.split('-');
-            const due = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-            const now = new Date();
-            now.setHours(0,0,0,0);
-            due.setHours(0,0,0,0);
-            const diff = Math.ceil((due - now) / (1000 * 60 * 60 * 24));
-            if(diff < 0)   badge = `<span class="bg-rose-500/20 text-rose-400 text-[9px] font-black px-2 py-1 rounded uppercase">⚠️ Atrasado</span>`;
-            else if(diff === 0) badge = `<span class="bg-rose-500/20 text-rose-400 text-[9px] font-black px-2 py-1 rounded uppercase">🔴 Hoy</span>`;
-            else if(diff === 1) badge = `<span class="bg-rose-500/20 text-rose-400 text-[9px] font-black px-2 py-1 rounded uppercase">🔴 Mañana</span>`;
-            else if(diff <= 3) badge = `<span class="bg-amber-500/20 text-amber-400 text-[9px] font-black px-2 py-1 rounded uppercase">🟡 ${diff} días</span>`;
-            else badge = `<span class="bg-emerald-500/20 text-emerald-400 text-[9px] font-black px-2 py-1 rounded uppercase">🟢 ${diff} días</span>`;
-        }
-
+        const urgencyBorder = getUrgencyBorder(p, borderColor);
+        const badge = getBadge(p.fecha);
         const clickAction = `onclick="verDetallePendiente('${p.key}')"`;
+
         let cardHTML = "";
 
         if(p.type === 'tarea') {
@@ -3002,73 +2959,224 @@ function renderPendientes() {
                     <div class="flex justify-between items-center pt-4 border-t border-white/5 mt-4">
                         <span class="text-xs font-bold text-white">📅 ${p.fecha || 'Sin fecha'}</span>
                         <button onclick="event.stopPropagation(); pedirConfirmacion('${p.key}', 'pendiente')"
-                                class="text-slate-500 hover:text-white text-[10px] font-black uppercase">Terminar</button>
+                                class="text-rose-500 hover:text-rose-400 text-xs font-black uppercase">Terminar</button>
                     </div>
                 </div>`;
         }
         else if(p.type === 'recordatorio') {
             cardHTML = `
-                <div class="card border-l-4 p-5 flex flex-col justify-between bg-yellow-500/5 clickable-card animate-in"
-                    style="border-color: #eab308; box-shadow: -5px 0 15px -5px #eab30840"
+                <div class="card border-l-4 p-5 clickable-card animate-in"
+                     style="border-color: ${borderColor}; box-shadow: -5px 0 15px -5px ${borderColor}40"
                      ${clickAction}>
-                    <div>
-                        <span class="bg-yellow-500/20 text-yellow-400 text-[9px] font-black px-2 py-1 rounded uppercase mb-2 inline-block">Recordatorio</span>
-                        <h4 class="text-lg font-bold mb-1">${p.nombre || 'Sin Título'}</h4>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">${materiaNombre}</p>
-                        ${p.desc ? `<p class="text-sm text-slate-300 line-clamp-3">${p.desc}</p>` : ''}
+                    <div class="flex items-center flex-wrap gap-1 mb-2">
+                        <span class="bg-amber-500/20 text-amber-400 text-[9px] font-black px-2 py-1 rounded uppercase">Recordatorio</span>
                     </div>
-                    <div class="mt-4 flex justify-end">
+                    <h4 class="text-xl font-black italic leading-tight mb-1">${p.nombre || 'Sin Título'}</h4>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">${materiaNombre}</p>
+                    ${p.desc ? `<p class="text-sm text-slate-300 line-clamp-2">${p.desc}</p>` : ''}
+                    <div class="flex justify-end pt-4 border-t border-white/5 mt-4">
                         <button onclick="event.stopPropagation(); pedirConfirmacion('${p.key}', 'pendiente')"
-                                class="text-slate-500 hover:text-white text-[10px] font-black uppercase">Borrar</button>
+                                class="text-rose-500 hover:text-rose-400 text-xs font-black uppercase">Borrar</button>
                     </div>
                 </div>`;
         }
         else if(p.type === 'proyecto') {
-            const extraField = p.materiales ? `📦 Materiales: ${p.materiales}` : '';
             cardHTML = `
                 <div class="card border-l-4 p-5 flex flex-col justify-between clickable-card animate-in"
                      style="border-color: ${urgencyBorder}; box-shadow: -5px 0 15px -5px ${urgencyBorder}40"
                      ${clickAction}>
                     <div>
-                        <div class="flex items-center mb-2">
-                            <span class="bg-purple-500/20 text-purple-400 text-[9px] font-black px-2 py-1 rounded uppercase">${'Proyecto'}</span>
+                        <div class="flex items-center flex-wrap gap-1 mb-2">
+                            <span class="bg-purple-500/20 text-purple-400 text-[9px] font-black px-2 py-1 rounded uppercase">Proyecto</span>
                             ${badge}
                         </div>
-                        <h4 class="text-xl font-black italic leading-tight">${p.nombre || 'Sin Título'}</h4>
+                        <h4 class="text-xl font-black italic leading-tight mb-1">${p.nombre || 'Sin Título'}</h4>
                         <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">${materiaNombre}</p>
-                        ${extraField ? `<div class="mt-2 bg-white/5 p-3 rounded-lg text-xs text-slate-300 line-clamp-3">${extraField}</div>` : ''}
+                        ${p.materiales ? `
+                            <div class="flex items-center gap-2 text-sm text-slate-300 mb-2">
+                                <span>📦</span>
+                                <span class="line-clamp-1">Materiales: ${p.materiales}</span>
+                            </div>` : ''}
                     </div>
-                    <div class="flex justify-between items-center pt-4 mt-4 border-t border-white/5">
+                    <div class="flex justify-between items-center pt-4 border-t border-white/5 mt-4">
                         <span class="text-xs font-bold text-white">📅 ${p.fecha || 'Sin fecha'}</span>
                         <button onclick="event.stopPropagation(); pedirConfirmacion('${p.key}', 'pendiente')"
-                                class="text-slate-500 hover:text-white text-[10px] font-black uppercase">Listo</button>
+                                class="text-rose-500 hover:text-rose-400 text-xs font-black uppercase">Listo</button>
                     </div>
                 </div>`;
         }
         else if(p.type === 'examen') {
-            const extraField = p.temario ? `📚 Temario: ${p.temario}` : '';
             cardHTML = `
                 <div class="card border-l-4 p-5 flex flex-col justify-between clickable-card animate-in"
                      style="border-color: ${urgencyBorder}; box-shadow: -5px 0 15px -5px ${urgencyBorder}40"
                      ${clickAction}>
                     <div>
-                        <div class="flex items-center mb-2">
+                        <div class="flex items-center flex-wrap gap-1 mb-2">
                             <span class="bg-rose-500/20 text-rose-400 text-[9px] font-black px-2 py-1 rounded uppercase">Examen</span>
                             ${badge}
                         </div>
-                        <h4 class="text-xl font-black italic leading-tight">${materiaNombre}</h4>
-                        ${extraField ? `<div class="mt-4 bg-white/5 p-3 rounded-lg text-xs text-slate-300 line-clamp-3">${extraField}</div>` : ''}
+                        <h4 class="text-xl font-black italic leading-tight mb-1">${materiaNombre}</h4>
+                        ${p.temario ? `<p class="text-sm text-slate-300 mt-2 line-clamp-2"><strong>Temario:</strong> ${p.temario}</p>` : ''}
                     </div>
-                    <div class="flex justify-between items-center pt-4 mt-4 border-t border-white/5">
+                    <div class="flex justify-between items-center pt-4 border-t border-white/5 mt-4">
                         <span class="text-xs font-bold text-white">📅 ${p.fecha || 'Sin fecha'}</span>
                         <button onclick="event.stopPropagation(); pedirConfirmacion('${p.key}', 'pendiente')"
-                                class="text-slate-500 hover:text-white text-[10px] font-black uppercase">Listo</button>
+                                class="text-rose-500 hover:text-rose-400 text-xs font-black uppercase">Listo</button>
                     </div>
                 </div>`;
         }
 
         container.innerHTML += cardHTML;
     });
+}
+function verDetallePendiente(id) {
+    const p = pendientesData.find(item => item.key === id);
+    if(!p) return;
+    
+    const materia = materiasCache[p.materiaId];
+    const materiaNombre = materia ? materia.nombre : "General";
+    const borderColor = materia ? materia.color : "var(--color-principal)";
+    
+    document.getElementById('modal-add').style.display = 'flex';
+    document.getElementById('modal-title').innerText = getTipoLabel(p.type);
+    
+    // ✅ AGREGAR OVERFLOW Y MAX-HEIGHT
+    const contentDiv = document.getElementById('form-content');
+    contentDiv.style.maxHeight = '70vh';
+    contentDiv.style.overflowY = 'auto';
+    contentDiv.style.overflowX = 'hidden';
+    // Construir sección de archivos con imágenes grandes
+    let archivosHTML = '';
+    if(p.archivos && p.archivos.length > 0) {
+        archivosHTML = `
+            <div class="mb-4">
+                <label class="text-[9px] font-bold uppercase text-slate-500 ml-1 mb-2 block">Archivos Adjuntos</label>
+                <div class="space-y-3">
+                    ${p.archivos.map((archivo, idx) => {
+                        const esPdf = archivo.tipo === 'application/pdf';
+                        const esImagen = archivo.tipo && archivo.tipo.startsWith('image/');
+                        
+                        if(esImagen) {
+                            return `
+                                <div class="bg-white/5 rounded-xl overflow-hidden">
+                                    <img src="${archivo.base64}" class="w-full h-auto max-h-96 object-contain cursor-pointer" onclick="mostrarImagenCompleta('${archivo.base64}', '${archivo.nombre}')">
+                                    <div class="p-3 flex items-center justify-between bg-white/5">
+                                        <span class="text-xs font-bold truncate">${archivo.nombre}</span>
+                                        <a href="${archivo.base64}" download="${archivo.nombre}" class="text-xs text-sky-400 hover:text-sky-300">Descargar</a>
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            return `
+                                <div class="flex items-center gap-3 bg-white/5 p-4 rounded-xl">
+                                    <span class="text-3xl">📄</span>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-bold">${archivo.nombre}</p>
+                                        <p class="text-xs text-slate-400">Documento PDF</p>
+                                    </div>
+                                    <a href="${archivo.base64}" target="_blank" class="text-xs text-sky-400 hover:text-sky-300 font-bold uppercase">Ver PDF</a>
+                                </div>
+                            `;
+                        }
+                    }).join('')}
+                </div>
+            </div>
+        `;
+    }
+    
+    let contenidoHTML = '';
+    
+    if(p.type === 'tarea') {
+        contenidoHTML = `
+            <div class="mb-4 p-4 rounded-xl border-l-4" style="border-color: ${borderColor}; background: rgba(var(--color-principal-rgb), 0.05)">
+                <h3 class="text-2xl font-black mb-2">${p.nombre || 'Sin Título'}</h3>
+                <p class="text-sm font-bold text-slate-400 uppercase mb-1">${materiaNombre}</p>
+                <p class="text-xs font-bold text-white">📅 Entrega: ${p.fecha}</p>
+            </div>
+            
+            ${p.desc ? `
+            <div class="mb-4">
+                <label class="text-[9px] font-bold uppercase text-slate-500 ml-1 mb-2 block">Descripción</label>
+                <div class="bg-white/5 p-4 rounded-xl">
+                    <p class="text-sm text-white leading-relaxed whitespace-pre-wrap">${p.desc}</p>
+                </div>
+            </div>
+            ` : ''}
+            
+            ${archivosHTML}
+        `;
+    }
+    else if(p.type === 'recordatorio') {
+        contenidoHTML = `
+            <div class="mb-4 p-4 rounded-xl border-l-4" style="border-color: ${borderColor}; background: rgba(var(--color-principal-rgb), 0.05)">
+                <h3 class="text-2xl font-black mb-2">${p.nombre || 'Sin Título'}</h3>
+                <p class="text-sm font-bold text-slate-400 uppercase">${materiaNombre}</p>
+            </div>
+            
+            ${p.desc ? `
+            <div class="mb-4">
+                <label class="text-[9px] font-bold uppercase text-slate-500 ml-1 mb-2 block">Nota</label>
+                <div class="bg-white/5 p-4 rounded-xl">
+                    <p class="text-sm text-white leading-relaxed whitespace-pre-wrap">${p.desc}</p>
+                </div>
+            </div>
+            ` : ''}
+        `;
+    }
+    else if(p.type === 'proyecto') {
+        contenidoHTML = `
+            <div class="mb-4 p-4 rounded-xl border-l-4" style="border-color: ${borderColor}; background: rgba(var(--color-principal-rgb), 0.05)">
+                <h3 class="text-2xl font-black mb-2">${p.nombre || 'Sin Título'}</h3>
+                <p class="text-sm font-bold text-slate-400 uppercase mb-1">${materiaNombre}</p>
+                <p class="text-xs font-bold text-white">📅 Fecha: ${p.fecha}</p>
+            </div>
+            
+            ${p.materiales ? `
+            <div class="mb-4">
+                <label class="text-[9px] font-bold uppercase text-slate-500 ml-1 mb-2 block">Materiales Necesarios</label>
+                <div class="bg-white/5 p-4 rounded-xl">
+                    <p class="text-sm text-white leading-relaxed whitespace-pre-wrap">${p.materiales}</p>
+                </div>
+            </div>
+            ` : ''}
+        `;
+    }
+    else if(p.type === 'examen') {
+        contenidoHTML = `
+            <div class="mb-4 p-4 rounded-xl border-l-4" style="border-color: ${borderColor}; background: rgba(var(--color-principal-rgb), 0.05)">
+                <h3 class="text-2xl font-black mb-2">Examen - ${materiaNombre}</h3>
+                <p class="text-xs font-bold text-white">📅 Fecha: ${p.fecha}</p>
+            </div>
+            
+            ${p.temario ? `
+            <div class="mb-4">
+                <label class="text-[9px] font-bold uppercase text-slate-500 ml-1 mb-2 block">Temario</label>
+                <div class="bg-white/5 p-4 rounded-xl">
+                    <p class="text-sm text-white leading-relaxed whitespace-pre-wrap">${p.temario}</p>
+                </div>
+            </div>
+            ` : ''}
+        `;
+    }
+    
+    const botones = `
+        <div class="flex gap-3 mt-6">
+            <button onclick="closeModal()" class="flex-1 bg-white/10 text-white font-black p-4 rounded-xl uppercase text-xs hover:bg-white/20 transition">Cerrar</button>
+            <button onclick="abrirEditorPendiente('${id}')" class="flex-1 text-slate-950 font-black p-4 rounded-xl uppercase text-xs transition" style="background: var(--color-principal)">Editar</button>
+        </div>
+    `;
+    
+    document.getElementById('form-content').innerHTML = contenidoHTML + botones;
+}
+
+function getTipoLabel(tipo) {
+    const labels = {
+        'tarea': '📝 Tarea',
+        'recordatorio': '🔔 Recordatorio',
+        'proyecto': '📂 Proyecto',
+        'examen': '📋 Examen'
+    };
+    return labels[tipo] || 'Pendiente';
 }
         // ==================== FORO ====================
 function escucharForo() {
@@ -3113,64 +3221,6 @@ function escucharForo() {
         }
         renderGrupo();
     });
-    function aplicarEstilo(textareaId, estilo) {
-    const textarea = document.getElementById(textareaId);
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = textarea.value.substring(start, end);
-    
-    if(!selectedText) {
-        alert('Selecciona texto primero');
-        return;
-    }
-    
-    let wrapped = '';
-    switch(estilo) {
-        case 'negrita':
-            wrapped = `**${selectedText}**`;
-            break;
-        case 'cursiva':
-            wrapped = `*${selectedText}*`;
-            break;
-        case 'subrayado':
-            wrapped = `__${selectedText}__`;
-            break;
-        case 'titulo':
-            wrapped = `### ${selectedText}`;
-            break;
-        case 'emoji':
-            const emoji = prompt('Escribe un emoji (o cópialo):');
-            if(emoji) wrapped = selectedText + emoji;
-            break;
-        default:
-            wrapped = selectedText;
-    }
-    
-    textarea.value = textarea.value.substring(0, start) + wrapped + textarea.value.substring(end);
-    textarea.focus();
-}
-
-function renderizarTextoFormateado(texto) {
-    return texto
-        // Negritas: **texto** o *texto*
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*([^\*]+?)\*/g, '<strong>$1</strong>')
-        
-        // Cursivas: _texto_
-        .replace(/_(.+?)_/g, '<em>$1</em>')
-        
-        // Tachado: ~texto~
-        .replace(/~(.+?)~/g, '<del>$1</del>')
-        
-        // Código: `texto`
-        .replace(/`(.+?)`/g, '<code style="background:rgba(255,255,255,0.1);padding:2px 6px;border-radius:4px;font-family:monospace;">$1</code>')
-        
-        // Citas: > texto
-        .replace(/^&gt;\s*(.+)$/gm, '<blockquote style="border-left:3px solid var(--color-principal);padding-left:12px;margin:8px 0;opacity:0.8;">$1</blockquote>')
-        
-        // Saltos de línea
-        .replace(/\n/g, '<br>');
-}
 }  // ✅ CIERRE DE escucharForo()
 
 // ==================== QUEJAS (FUERA DE ESCUCHAR FORO) ====================
@@ -3250,13 +3300,13 @@ function switchForoTab(tab) {
 }
 
 function publicarAviso() {
-    let texto = document.getElementById('aviso-texto').value;
-    if(!texto.trim()) return alert("Escribe algo");
+    const texto = document.getElementById('aviso-texto').value;
+    if(!texto) return alert("Escribe algo");
     
     db.ref('usuarios/' + auth.currentUser.uid + '/perfil').once('value', snap => {
         const perfil = snap.val();
         const data = {
-            texto: texto, // SIN procesar, guardar RAW
+            texto: texto,
             autor: perfil.nombre + " " + perfil.apellido,
             grupo: perfil.grupo,
             timestamp: Date.now(),
@@ -3269,11 +3319,8 @@ function publicarAviso() {
 }
 
 function publicarMensajeGrupo() {
-    const texto = document.getElementById('grupo-texto').value
+    const texto = document.getElementById('grupo-texto').value.trim();
     if(!texto) return alert("Escribe algo");
-    
-      // ✅ Procesar formato WhatsApp
-    texto = procesarFormatoWhatsApp(texto);
     
     db.ref('usuarios/' + auth.currentUser.uid + '/perfil').once('value', snap => {
         const perfil = snap.val();
@@ -3290,12 +3337,117 @@ function publicarMensajeGrupo() {
         });
     });
 }
-function procesarFormatoWhatsApp(texto) {
-    return texto
-        .replace(/\*([^\*]+)\*/g, '<strong>$1</strong>')
-        .replace(/_([^_]+)_/g, '<em>$1</em>')
-        .replace(/~([^~]+)~/g, '<del>$1</del>')
-        .replace(/```([^`]+)```/g, '<code>$1</code>');
+function abrirEditorMateria(id) {
+    const m = materiasCache[id];
+    if(!m) return;
+    
+    document.getElementById('modal-add').style.display = 'flex';
+    document.getElementById('modal-title').innerText = "Editar Materia";
+    
+    const tipoSelector = userLevel === 'tecnologo' ? `
+        <div class="mb-4">
+            <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Tipo</label>
+            <select id="edit-mat-tipo" class="mb-2">
+                <option value="materia" ${m.tipo === 'materia' ? 'selected' : ''}>Normal</option>
+                <option value="taller" ${m.tipo === 'taller' ? 'selected' : ''}>Taller</option>
+                <option value="irregular" ${m.tipo === 'irregular' ? 'selected' : ''}>Irregular</option>
+            </select>
+        </div>
+    ` : '';
+    
+    const html = `
+        <div class="mb-4">
+            <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Nombre</label>
+            <input type="text" id="edit-mat-nombre" value="${m.nombre || ''}" placeholder="Nombre de la materia">
+        </div>
+        
+        <div class="mb-4">
+            <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Profesor</label>
+            <input type="text" id="edit-mat-maestro" value="${m.maestro || ''}" placeholder="Nombre del profesor">
+        </div>
+        
+        ${tipoSelector}
+        
+        <div class="mb-4">
+            <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Color</label>
+            <input type="color" id="edit-mat-color" value="${m.color || '#38bdf8'}" class="h-12 cursor-pointer rounded-xl w-full">
+        </div>
+        
+<div class="mb-4">
+    <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Icono (Imagen)</label>
+    ${m.emoji && m.emoji.startsWith('data:image') ? `
+        <div class="mb-2 flex items-center gap-2 bg-white/5 p-3 rounded-lg">
+            <img src="${m.emoji}" class="w-12 h-12 object-contain rounded border border-white/20">
+            <span class="text-xs text-slate-400 flex-1">Imagen actual</span>
+            <button onclick="event.preventDefault(); event.stopPropagation(); eliminarIconoMateria('${id}')" type="button" class="text-rose-400 hover:text-rose-300 text-xs font-bold">✕ Eliminar</button>
+        </div>
+    ` : ''}
+    <div class="custom-file-input w-full">
+        <input type="file" id="edit-mat-icono" accept="image/*" onchange="updateFileButton(this, 'edit-mat-icono-label')">
+        <div id="edit-mat-icono-label" class="custom-file-button">
+            <span>📁</span>
+            <span>${m.emoji && m.emoji.startsWith('data:image') ? 'Cambiar Imagen' : 'Agregar Imagen'}</span>
+        </div>
+    </div>
+</div>
+        <div class="flex gap-3">
+            <button onclick="closeModal()" class="flex-1 bg-white/10 text-white font-black p-4 rounded-xl uppercase text-xs hover:bg-white/20 transition">Cancelar</button>
+            <button onclick="guardarEdicionMateria('${id}')" class="flex-1 text-slate-950 font-black p-4 rounded-xl uppercase text-xs transition" style="background: var(--color-principal)">Guardar</button>
+        </div>
+    `;
+    
+    document.getElementById('form-content').innerHTML = html;
+}
+
+function eliminarIconoMateria(id) {
+    if(!confirm('¿Eliminar la imagen de esta materia?')) return;
+    
+    db.ref('usuarios/' + auth.currentUser.uid + '/materias_config/' + id).update({
+        emoji: ''
+    }).then(() => {
+        showAlert('✅ Imagen eliminada', 'Éxito');
+        closeModal();
+    });
+}
+
+function guardarEdicionMateria(id) {
+    const updates = {
+        nombre: document.getElementById('edit-mat-nombre').value,
+        maestro: document.getElementById('edit-mat-maestro').value,
+        color: document.getElementById('edit-mat-color').value
+    };
+    
+    const tipoSelect = document.getElementById('edit-mat-tipo');
+    if(tipoSelect) {
+        updates.tipo = tipoSelect.value;
+    }
+    
+    if(!updates.nombre) {
+        return showAlert('❌ El nombre es obligatorio', 'Error');
+    }
+    
+    const iconoFile = document.getElementById('edit-mat-icono').files[0];
+    
+    const guardar = (emojiBase64 = null) => {
+        if(emojiBase64) {
+            updates.emoji = emojiBase64;
+        }
+        
+        db.ref('usuarios/' + auth.currentUser.uid + '/materias_config/' + id).update(updates).then(() => {
+            showAlert('✅ Materia actualizada', 'Éxito');
+            closeModal();
+        });
+    };
+    
+    if(iconoFile) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            guardar(e.target.result);
+        };
+        reader.readAsDataURL(iconoFile);
+    } else {
+        guardar();
+    }
 }
 function renderAvisos() {
     const container = document.getElementById('grid-avisos');
@@ -3316,23 +3468,71 @@ function renderAvisos() {
         const fechaStr = fecha.toLocaleDateString() + " " + fecha.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
         
         const esMio = aviso.uid === auth.currentUser.uid;
-        const deleteBtn = esMio ? `<button onclick="borrarAviso('${aviso.key}')" class="text-rose-500 hover:text-rose-400 text-[10px] font-bold uppercase">Borrar</button>` : '';
+        const editadoMarca = aviso.editado ? '<span class="text-[8px] text-slate-500 ml-2">(editado)</span>' : '';
+        
+        const botones = esMio ? `
+            <div class="flex gap-2">
+                <button onclick="editarAviso('${aviso.key}')" class="text-sky-400 hover:text-sky-300 text-[10px] font-bold uppercase">Editar</button>
+                <button onclick="borrarAviso('${aviso.key}')" class="text-rose-500 hover:text-rose-400 text-[10px] font-bold uppercase">Borrar</button>
+            </div>
+        ` : '';
         
         container.innerHTML += `
-            <div class="card border-l-4 border-sky-500 bg-sky-500/5 p-5">
+            <div class="card border-l-4 p-5" style="border-color: var(--color-principal); background: rgba(var(--color-principal-rgb), 0.05)">
                 <div class="flex justify-between items-start mb-3">
                     <div>
-                        <p class="text-xs font-black uppercase text-sky-400">📢 Aviso General</p>
+                        <p class="text-xs font-black uppercase" style="color: var(--color-principal)">📢 Aviso General ${editadoMarca}</p>
                         <p class="text-sm font-bold text-slate-300 mt-1">${aviso.autor} • Grupo ${aviso.grupo}</p>
                     </div>
-                    ${deleteBtn}
+                    ${botones}
                 </div>
-                <div class="text-base text-white leading-relaxed mb-3">${renderizarTextoFormateado(aviso.texto)}</div>
+                <p class="text-base text-white leading-relaxed mb-3 whitespace-pre-wrap">${aviso.texto}</p>
                 <p class="text-[10px] text-slate-500 font-bold uppercase">${fechaStr}</p>
             </div>
         `;
     });
+    
     document.getElementById('stat-foro-avisos').innerText = avisosData.length + (avisosData.length === 1 ? ' Aviso' : ' Avisos');
+}
+
+function editarAviso(key) {
+    const aviso = avisosData.find(a => a.key === key);
+    if(!aviso) return;
+    
+    const modal = document.getElementById('custom-alert');
+    document.getElementById('alert-title').innerText = 'Editar Aviso';
+    document.getElementById('alert-text').innerHTML = `
+        <textarea id="texto-editar-aviso" rows="4" class="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm mb-4" style="text-align: left;">${aviso.texto}</textarea>
+    `;
+    document.getElementById('alert-buttons').innerHTML = `
+        <button onclick="document.getElementById('custom-alert').style.display='none'" 
+                class="flex-1 p-4 rounded-xl bg-white/5 font-bold text-xs uppercase hover:bg-white/10">
+            Cancelar
+        </button>
+        <button onclick="confirmarEdicionAviso('${key}')" 
+                class="flex-1 p-4 rounded-xl text-slate-950 font-black text-xs uppercase transition" 
+                style="background: var(--color-principal)">
+            Guardar
+        </button>
+    `;
+    modal.style.display = 'flex';
+}
+
+function confirmarEdicionAviso(key) {
+    const nuevoTexto = document.getElementById('texto-editar-aviso').value.trim();
+    
+    if(!nuevoTexto) {
+        return showAlert('❌ El aviso no puede estar vacío', 'Error');
+    }
+    
+    db.ref('foro/avisos/' + key).update({
+        texto: nuevoTexto,
+        editado: true,
+        timestampEdicion: Date.now()
+    }).then(() => {
+        document.getElementById('custom-alert').style.display = 'none';
+        showAlert('✅ Aviso actualizado', 'Éxito');
+    });
 }
 
 // ======= NUEVAS FUNCIONES: manejo de iniciales de días y confirmación de migración =======
@@ -3381,7 +3581,7 @@ function pedirConfirmacionMigracion(uid) {
                 <ul style="max-height:160px;overflow:auto;margin-bottom:12px;padding-left:18px;">${lista}${mover.length>8?'<li>...más</li>':''}</ul>
                 <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
                     <button id="cancel-mig" style="padding:10px 14px;border-radius:8px;background:#ffffff1f;color:white;border:none">Cancelar</button>
-                    <button id="confirm-mig" style="padding:10px 14px;border-radius:8px;background:#10b981;color:#020617;border:none;font-weight:900">Confirmar y migrar</button>
+                    <button id="confirm-mig" style="padding:10px 14px;border-radius:8px;background:var(--color-principal);color:#020617;border:none;font-weight:900">Confirmar y migrar</button>
                 </div>
             </div>
         `;
@@ -3391,39 +3591,86 @@ function pedirConfirmacionMigracion(uid) {
     }).catch(err => { console.error('Error preparando migración:', err); alert('Error preparando migración'); });
 }
 
-            function renderGrupo() {
-                const container = document.getElementById('grid-grupo');
-                if(!container) return;
-                
-                container.innerHTML = "";
-                
-                if(grupoData.length === 0) {
-                    container.innerHTML = `<div class="text-center py-10 opacity-50 italic">Espera el primer resumen of the day</div>`;
-                    return;
-                }
-                
-                // Ordenar por más reciente
-                grupoData.sort((a, b) => b.timestamp - a.timestamp);
-                
-                grupoData.forEach(msg => {
-                    const fecha = new Date(msg.timestamp);
-                    const fechaStr = fecha.toLocaleDateString() + " " + fecha.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                    
-                    const esMio = msg.uid === auth.currentUser.uid;
-                    const deleteBtn = esMio ? `<button onclick="borrarMensajeGrupo('${msg.key}')" class="text-rose-500 hover:text-rose-400 text-[10px] font-bold uppercase">Borrar</button>` : '';
-                    
-                    container.innerHTML += `
-                        <div class="card border-l-4 border-emerald-500 bg-emerald-500/5 p-5">
-                            <div class="flex justify-between items-start mb-3">
-                                <p class="text-sm font-bold text-emerald-400">${msg.autor}</p>
-                                ${deleteBtn}
-                            </div>
-                            <p class="text-base text-white leading-relaxed mb-3">${msg.texto}</p>
-                            <p class="text-[10px] text-slate-500 font-bold uppercase">${fechaStr}</p>
-                        </div>
-                    `;
-                });
-                            }
+function renderGrupo() {
+    const container = document.getElementById('grid-grupo');
+    if(!container) return;
+    
+    container.innerHTML = "";
+    
+    if(grupoData.length === 0) {
+        container.innerHTML = `<div class="text-center py-10 opacity-50 italic">Espera el primer resumen of the day</div>`;
+        return;
+    }
+    
+    // Ordenar por más reciente
+    grupoData.sort((a, b) => b.timestamp - a.timestamp);
+    
+    grupoData.forEach(msg => {
+        const fecha = new Date(msg.timestamp);
+        const fechaStr = fecha.toLocaleDateString() + " " + fecha.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        const esMio = msg.uid === auth.currentUser.uid;
+        const editadoMarca = msg.editado ? '<span class="text-[8px] text-slate-500 ml-2">(editado)</span>' : '';
+        
+        const botones = esMio ? `
+            <div class="flex gap-2">
+                <button onclick="editarMensajeGrupo('${msg.key}')" class="text-emerald-400 hover:text-emerald-300 text-[10px] font-bold uppercase">Editar</button>
+                <button onclick="borrarMensajeGrupo('${msg.key}')" class="text-rose-500 hover:text-rose-400 text-[10px] font-bold uppercase">Borrar</button>
+            </div>
+        ` : '';
+        
+        container.innerHTML += `
+            <div class="card border-l-4 border-emerald-500 bg-emerald-500/5 p-5">
+                <div class="flex justify-between items-start mb-3">
+                    <p class="text-sm font-bold text-emerald-400">${msg.autor} ${editadoMarca}</p>
+                    ${botones}
+                </div>
+                <p class="text-base text-white leading-relaxed mb-3 whitespace-pre-wrap">${msg.texto}</p>
+                <p class="text-[10px] text-slate-500 font-bold uppercase">${fechaStr}</p>
+            </div>
+        `;
+    });
+}
+
+function editarMensajeGrupo(key) {
+    const msg = grupoData.find(m => m.key === key);
+    if(!msg) return;
+    
+    const modal = document.getElementById('custom-alert');
+    document.getElementById('alert-title').innerText = 'Editar Mensaje';
+    document.getElementById('alert-text').innerHTML = `
+        <textarea id="texto-editar-grupo" rows="4" class="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm mb-4" style="text-align: left;">${msg.texto}</textarea>
+    `;
+    document.getElementById('alert-buttons').innerHTML = `
+        <button onclick="document.getElementById('custom-alert').style.display='none'" 
+                class="flex-1 p-4 rounded-xl bg-white/5 font-bold text-xs uppercase hover:bg-white/10">
+            Cancelar
+        </button>
+        <button onclick="confirmarEdicionMensajeGrupo('${key}')" 
+                class="flex-1 p-4 rounded-xl text-slate-950 font-black text-xs uppercase transition" 
+                style="background: var(--color-principal)">
+            Guardar
+        </button>
+    `;
+    modal.style.display = 'flex';
+}
+
+function confirmarEdicionMensajeGrupo(key) {
+    const nuevoTexto = document.getElementById('texto-editar-grupo').value.trim();
+    
+    if(!nuevoTexto) {
+        return showAlert('❌ El mensaje no puede estar vacío', 'Error');
+    }
+    
+    db.ref('foro/grupos/A/' + key).update({
+        texto: nuevoTexto,
+        editado: true,
+        timestampEdicion: Date.now()
+    }).then(() => {
+        document.getElementById('custom-alert').style.display = 'none';
+        showAlert('✅ Mensaje actualizado', 'Éxito');
+    });
+}
 
                 function borrarAviso(key) {
                     if(!confirm("¿Borrar este aviso?")) return;
@@ -3445,6 +3692,7 @@ function generarCodigoSelectivo() {
         return alert('❌ Selecciona al menos una opción');
     }
     
+    // Generar código
     const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let codigo = '';
     for(let i = 0; i < 6; i++) {
@@ -3491,6 +3739,7 @@ function generarCodigoSelectivo() {
         });
     });
 }
+
 function copiarCodigo() {
     const input = document.getElementById('codigo-generado');
     input.select();
@@ -3538,15 +3787,6 @@ function verificarCodigo() {
         document.getElementById('preview-materias').innerText = `📚 ${numMaterias} materia${numMaterias !== 1 ? 's' : ''}`;
         document.getElementById('preview-horario').innerText = `📅 ${numClases} clase${numClases !== 1 ? 's' : ''}`;
         document.getElementById('preview-importar').classList.remove('hidden');
-
-        const numPendientes = (datos.pendientes || []).length;
-if(numPendientes > 0) {
-    const preview = document.getElementById('preview-importar');
-    const newLine = document.createElement('p');
-    newLine.className = 'text-xs text-slate-300 mb-1';
-    newLine.innerText = `📝 ${numPendientes} pendiente${numPendientes !== 1 ? 's' : ''}`;
-    preview.appendChild(newLine);
-}
         
         // Habilitar botón de importar
         document.getElementById('btn-importar').disabled = false;
@@ -3558,150 +3798,72 @@ if(numPendientes > 0) {
 function importarCodigo() {
     if(!datosImportar) return alert('❌ Primero verifica el código');
     
-    // ✅ NUEVA OPCIÓN: Sobreescribir o Agregar
-    const modal = document.createElement('div');
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:9999;display:flex;align-items:center;justify-content:center;';
-    modal.innerHTML = `
-        <div style="background:#0f172a;padding:30px;border-radius:20px;max-width:400px;text-align:center;border:1px solid rgba(255,255,255,0.1);">
-            <h3 style="color:var(--color-principal);font-weight:900;margin-bottom:16px;">¿CÓMO IMPORTAR?</h3>
-            <p style="opacity:0.9;margin-bottom:20px;font-size:14px;">Elige si quieres reemplazar todo o agregar a lo existente</p>
-            <div style="display:flex;flex-direction:column;gap:12px;">
-                <button id="import-replace" style="padding:16px;border-radius:12px;background:#ef4444;color:white;border:none;font-weight:900;text-transform:uppercase;cursor:pointer;">
-                    🗑️ Reemplazar Todo
-                </button>
-                <button id="import-merge" style="padding:16px;border-radius:12px;background:#10b981;color:white;border:none;font-weight:900;text-transform:uppercase;cursor:pointer;">
-                    ➕ Agregar a lo Existente
-                </button>
-                <button id="import-cancel" style="padding:12px;border-radius:12px;background:rgba(255,255,255,0.1);color:white;border:none;font-weight:700;text-transform:uppercase;cursor:pointer;">
-                    Cancelar
-                </button>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(modal);
+    let mensaje = '⚠️ ADVERTENCIA: Esto BORRARÁ:\n';
+    if(datosImportar.materias) mensaje += '- Materias actuales\n';
+    if(datosImportar.horario) mensaje += '- Horario actual\n';
+    if(datosImportar.pendientes) mensaje += '- Tareas/Pendientes actuales\n';
+    mensaje += '\n¿Continuar?';
     
-    document.getElementById('import-cancel').onclick = () => modal.remove();
-    document.getElementById('import-replace').onclick = () => { modal.remove(); ejecutarImportacion(true); };
-    document.getElementById('import-merge').onclick = () => { modal.remove(); ejecutarImportacion(false); };
-}
-
-function ejecutarImportacion(reemplazar) {
+    if(!confirm(mensaje)) return;
+    
     const uid = auth.currentUser.uid;
     const promises = [];
-    const mapeoMaterias = {};
+    const mapeoMaterias = {}; // Mapear IDs viejos a nuevos
     
-    if(reemplazar && datosImportar.materias) {
+    // PASO 1: Importar materias primero y mapear IDs
+    if(datosImportar.materias) {
         promises.push(
             db.ref('usuarios/' + uid + '/materias_config').remove().then(() => {
                 const subPromises = [];
                 for(let oldKey in datosImportar.materias) {
                     const promise = db.ref('usuarios/' + uid + '/materias_config').push(datosImportar.materias[oldKey])
-                        .then(ref => { mapeoMaterias[oldKey] = ref.key; });
+                        .then(ref => {
+                            mapeoMaterias[oldKey] = ref.key; // Guardar mapeo viejo -> nuevo
+                        });
                     subPromises.push(promise);
                 }
                 return Promise.all(subPromises);
             })
         );
-    } else if(!reemplazar && datosImportar.materias) {
-        // ✅ AGREGAR SIN BORRAR
-        const subPromises = [];
-        for(let oldKey in datosImportar.materias) {
-            const promise = db.ref('usuarios/' + uid + '/materias_config').push(datosImportar.materias[oldKey])
-                .then(ref => { mapeoMaterias[oldKey] = ref.key; });
-            subPromises.push(promise);
-        }
-        promises.push(Promise.all(subPromises));
     }
     
+    // PASO 2: Esperar a que se importen materias, luego importar horario con IDs actualizados
     Promise.all(promises).then(() => {
         const promisesHorario = [];
         
         if(datosImportar.horario) {
-            if(reemplazar) {
-                promisesHorario.push(db.ref('usuarios/' + uid + '/horario').remove());
-            }
-            
-            const subPromises = [];
-            datosImportar.horario.forEach(clase => {
-                if(clase.materiaId && mapeoMaterias[clase.materiaId]) {
-                    clase.materiaId = mapeoMaterias[clase.materiaId];
-                }
-                subPromises.push(db.ref('usuarios/' + uid + '/horario').push(clase));
-            });
-            promisesHorario.push(Promise.all(subPromises));
+            promisesHorario.push(
+                db.ref('usuarios/' + uid + '/horario').remove().then(() => {
+                    const subPromises = [];
+                    datosImportar.horario.forEach(clase => {
+                        // Actualizar materiaId con el nuevo ID
+                        if(clase.materiaId && mapeoMaterias[clase.materiaId]) {
+                            clase.materiaId = mapeoMaterias[clase.materiaId];
+                        }
+                        subPromises.push(db.ref('usuarios/' + uid + '/horario').push(clase));
+                    });
+                    return Promise.all(subPromises);
+                })
+            );
+        }
+        
+        if(datosImportar.pendientes) {
+            promisesHorario.push(
+                db.ref('usuarios/' + uid + '/pendientes').remove().then(() => {
+                    const subPromises = [];
+                    datosImportar.pendientes.forEach(tarea => {
+                        // Actualizar materiaId con el nuevo ID
+                        if(tarea.materiaId && mapeoMaterias[tarea.materiaId]) {
+                            tarea.materiaId = mapeoMaterias[tarea.materiaId];
+                        }
+                        subPromises.push(db.ref('usuarios/' + uid + '/pendientes').push(tarea));
+                    });
+                    return Promise.all(subPromises);
+                })
+            );
         }
         
         return Promise.all(promisesHorario);
-        if(datosImportar.pendientes) {
-    // Mostrar modal de selección de pendientes
-    mostrarSelectorPendientes(datosImportar.pendientes, reemplazar, uid);
-} else {
-    finalizarImportacion();
-}
-
-function mostrarSelectorPendientes(pendientes, reemplazar, uid) {
-    const modal = document.createElement('div');
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:9999;display:flex;align-items:center;justify-content:center;overflow-y:auto;';
-    
-    let html = `
-        <div style="background:#0f172a;padding:30px;border-radius:20px;max-width:600px;max-height:80vh;overflow-y:auto;border:1px solid rgba(255,255,255,0.1);">
-            <h3 style="color:var(--color-principal);font-weight:900;margin-bottom:16px;text-align:center;">SELECCIONA PENDIENTES A IMPORTAR</h3>
-            <div style="margin-bottom:20px;">
-    `;
-    
-    pendientes.forEach((p, idx) => {
-        const tipo = p.type === 'tarea' ? '📝' : p.type === 'recordatorio' ? '🔔' : p.type === 'proyecto' ? '📦' : '📋';
-        html += `
-            <label style="display:flex;align-items:center;gap:10px;padding:12px;background:rgba(255,255,255,0.05);border-radius:12px;margin-bottom:8px;cursor:pointer;border:1px solid rgba(255,255,255,0.1);">
-                <input type="checkbox" class="pendiente-check" data-idx="${idx}" checked style="width:20px;height:20px;accent-color:var(--color-principal);">
-                <span style="font-size:14px;flex:1;">${tipo} ${p.nombre || 'Sin nombre'}</span>
-            </label>
-        `;
-    });
-    
-    html += `
-            </div>
-            <div style="display:flex;gap:12px;">
-                <button id="cancel-pendientes" style="flex:1;padding:14px;border-radius:12px;background:rgba(255,255,255,0.1);color:white;border:none;font-weight:700;text-transform:uppercase;cursor:pointer;">
-                    Cancelar
-                </button>
-                <button id="confirm-pendientes" style="flex:1;padding:14px;border-radius:12px;background:var(--color-principal);color:#020617;border:none;font-weight:900;text-transform:uppercase;cursor:pointer;">
-                    Importar Seleccionados
-                </button>
-            </div>
-        </div>
-    `;
-    
-    modal.innerHTML = html;
-    document.body.appendChild(modal);
-    
-    document.getElementById('cancel-pendientes').onclick = () => modal.remove();
-    document.getElementById('confirm-pendientes').onclick = () => {
-        const checks = document.querySelectorAll('.pendiente-check:checked');
-        const seleccionados = Array.from(checks).map(c => pendientes[parseInt(c.dataset.idx)]);
-        modal.remove();
-        
-        if(reemplazar) {
-            db.ref('usuarios/' + uid + '/pendientes').remove();
-        }
-        
-        seleccionados.forEach(p => {
-            db.ref('usuarios/' + uid + '/pendientes').push(p);
-        });
-        
-        finalizarImportacion();
-    };
-}
-
-function finalizarImportacion() {
-    confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
-    alert('✅ Configuración importada exitosamente');
-    document.getElementById('codigo-importar').value = '';
-    document.getElementById('preview-importar').classList.add('hidden');
-    document.getElementById('btn-importar').disabled = true;
-    datosImportar = null;
-    show('mat');
-}
     }).then(() => {
         confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
         alert('✅ Configuración importada exitosamente');
@@ -3712,9 +3874,20 @@ function finalizarImportacion() {
         show('mat');
     });
 }
+
         // 8. MODALES Y LOGICA GENERAL
-        function switchPendienteTab(tab) { currentPendienteTab = tab; document.querySelectorAll('.tab-pen').forEach(t => t.classList.remove('active')); document.getElementById('tab-' + tab).classList.add('active'); renderPendientes(); }
-function openAddModal(type) { 
+function switchPendienteTab(tab) {
+    currentPendienteTab = tab;
+    // Solo afectar tabs de pendientes, no los del foro
+    ['tareas', 'recordatorios', 'fechas'].forEach(t => {
+        const el = document.getElementById('tab-' + t);
+        if(el) el.classList.remove('active');
+    });
+    const tabActivo = document.getElementById('tab-' + tab);
+    if(tabActivo) tabActivo.classList.add('active');
+    renderPendientes();
+}
+        function openAddModal(type) { 
     document.getElementById('modal-add').style.display = 'flex'; 
     if(type === 'horario') renderFormularioClase(); // ✅ Sin parámetros, comportamiento normal
 }
@@ -3725,6 +3898,7 @@ function openAddModal(type) {
             document.getElementById('modal-title').innerText = "Nuevo Pendiente"; const content = document.getElementById('form-content');
             let opts = `<option value="" disabled selected>Selecciona materia</option>`; for(let k in materiasCache) opts += `<option value="${k}">${materiasCache[k].nombre}</option>`;
             content.innerHTML = `<div class="flex gap-2 mb-4 bg-white/5 p-1 rounded-xl"><button onclick="setPendienteForm('tarea')" id="btn-p-tarea" class="flex-1 py-2 rounded-lg text-[10px] font-bold uppercase transition bg-sky-500 text-black">Tarea</button><button onclick="setPendienteForm('recordatorio')" id="btn-p-rec" class="flex-1 py-2 rounded-lg text-[10px] font-bold uppercase transition text-slate-400 hover:bg-white/10">Recordatorio</button><button onclick="setPendienteForm('fecha')" id="btn-p-fecha" class="flex-1 py-2 rounded-lg text-[10px] font-bold uppercase transition text-slate-400 hover:bg-white/10">Fecha Imp.</button></div><div id="dynamic-form-fields" class="space-y-5"></div><button onclick="guardarPendiente()" class="w-full bg-emerald-500 text-slate-950 font-black p-5 rounded-xl uppercase text-xs mt-6 shadow-xl hover:bg-emerald-400 transition transform active:scale-95">Guardar</button>`;
+          
             setPendienteForm('tarea');
             // Inicializar datepickers si existen (por si quedan inputs previos)
             initDatePickers();
@@ -3736,7 +3910,27 @@ function openAddModal(type) {
             ['tarea','rec','fecha'].forEach(t => { const btn = document.getElementById(`btn-p-${t}`); if(t === type.substring(0, type.length < 4 ? 3 : 5)) btn.className = "flex-1 py-2 rounded-lg text-[10px] font-bold uppercase transition bg-sky-500 text-black"; else btn.className = "flex-1 py-2 rounded-lg text-[10px] font-bold uppercase transition text-slate-400 hover:bg-white/10"; });
             const container = document.getElementById('dynamic-form-fields');
             let opts = `<option value="" disabled selected>Selecciona materia</option>`; for(let k in materiasCache) opts += `<option value="${k}">${materiasCache[k].nombre}</option>`;
-            if (type === 'tarea') container.innerHTML = `<input type="text" id="pen-nombre" placeholder="Nombre de la Tarea" class="mb-2"><select id="pen-materia" class="mb-5">${opts}</select><div class="mb-5"><label class="text-[8px] text-slate-500 font-bold uppercase ml-2 mb-2 block">Fecha de Entrega</label><input type="date" id="pen-fecha" class="mb-2"></div><textarea id="pen-desc" placeholder="Descripción (Opcional)" rows="2" class="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white text-xs"></textarea>`;
+if (type === 'tarea') container.innerHTML = `
+    <input type="text" id="pen-nombre" placeholder="Nombre de la Tarea" class="mb-2">
+    <select id="pen-materia" class="mb-5">${opts}</select>
+    <div class="mb-5">
+        <label class="text-[8px] text-slate-500 font-bold uppercase ml-2 mb-2 block">Fecha de Entrega</label>
+        <input type="date" id="pen-fecha" class="mb-2">
+    </div>
+    <textarea id="pen-desc" placeholder="Descripción (Opcional)" rows="2" class="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white text-xs mb-4"></textarea>
+    
+    <div class="mb-4">
+        <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Archivos Adjuntos (Máx 3: PDF o Imágenes)</label>
+        <div id="preview-archivos-container" class="mb-2 space-y-2"></div>
+        <div class="custom-file-input w-full">
+            <input type="file" id="pen-archivo" accept=".pdf,image/*" multiple onchange="previsualizarArchivos(this, 'pen-archivo-label')" >
+            <div id="pen-archivo-label" class="custom-file-button">
+                <span>📎</span>
+                <span>Subir Archivos (Máx 3)</span>
+            </div>
+        </div>
+    </div>
+`;
             else if (type === 'recordatorio') container.innerHTML = `<select id="pen-materia" class="mb-2">${opts}</select><input type="text" id="pen-nombre" placeholder="Título del Recordatorio" class="mb-5"><textarea id="pen-desc" placeholder="Descripción (Opcional)" rows="2" class="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white text-xs"></textarea>`;
             else if (type === 'fecha') { container.innerHTML = `<div class="flex gap-3 mb-5 bg-white/5 p-4 rounded-xl"><label class="flex items-center gap-3 cursor-pointer"><input type="radio" name="fechaSub" value="proyecto" checked onchange="toggleFechaSub('proyecto')"><span class="text-[11px] font-bold">Proyecto</span></label><label class="flex items-center gap-3 cursor-pointer"><input type="radio" name="fechaSub" value="examen" onchange="toggleFechaSub('examen')"><span class="text-[11px] font-bold">Examen</span></label></div><div id="fecha-dynamic-fields"></div>`; toggleFechaSub('proyecto'); }
             // Inicializar flatpickr en el nuevo campo
@@ -3751,18 +3945,132 @@ function openAddModal(type) {
             // Inicializar flatpickr en el nuevo campo
             setTimeout(initDatePickers, 50);
         }
-
-        function guardarPendiente() {
-            const data = { type: currentPendienteType };
-            if (currentPendienteType === 'tarea') { data.nombre = document.getElementById('pen-nombre').value; data.materiaId = document.getElementById('pen-materia').value; data.fecha = document.getElementById('pen-fecha').value; data.desc = document.getElementById('pen-desc').value; if(!data.nombre || !data.materiaId || !data.fecha) return alert("Faltan datos"); } 
-            else if (currentPendienteType === 'recordatorio') { data.materiaId = document.getElementById('pen-materia').value; data.nombre = document.getElementById('pen-nombre').value; data.desc = document.getElementById('pen-desc').value; if(!data.nombre || !data.materiaId) return alert("Faltan datos"); }
-            else if (currentPendienteType === 'fecha') {
-                data.type = currentFechaType; data.materiaId = document.getElementById('pen-materia').value; data.fecha = document.getElementById('pen-fecha').value;
-                if (currentFechaType === 'proyecto') { data.nombre = document.getElementById('pen-nombre').value; data.materiales = document.getElementById('pen-extra').value; if(!data.nombre) return alert("Falta nombre"); } else { data.temario = document.getElementById('pen-extra').value; }
-                if(!data.materiaId || !data.fecha) return alert("Faltan datos");
-            }
-            db.ref('usuarios/'+auth.currentUser.uid+'/pendientes').push(data); closeModal();
+function previsualizarArchivos(input, labelId) {
+    const label = document.getElementById(labelId);
+    const container = document.getElementById('preview-archivos-container');
+    
+    if(input.files && input.files.length > 0) {
+        if(input.files.length > 3) {
+            showAlert('❌ Solo puedes subir máximo 3 archivos', 'Error');
+            input.value = '';
+            return;
         }
+        
+        label.classList.add('has-file');
+        label.innerHTML = `<span>✓</span><span>${input.files.length} archivo(s) seleccionado(s)</span>`;
+        
+        // Mostrar previews
+        container.innerHTML = '';
+        Array.from(input.files).forEach((file, idx) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const isPdf = file.type === 'application/pdf';
+                const preview = isPdf ? 
+                    `<div class="flex items-center gap-2 bg-white/5 p-2 rounded text-xs">
+                        <span>📄</span>
+                        <span>${file.name}</span>
+                    </div>` :
+                    `<div class="flex items-center gap-2 bg-white/5 p-2 rounded">
+                        <img src="${e.target.result}" class="w-12 h-12 object-cover rounded">
+                        <span class="text-xs">${file.name}</span>
+                    </div>`;
+                container.innerHTML += preview;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+}
+function guardarPendiente() {
+    const data = { type: currentPendienteType };
+    
+    if (currentPendienteType === 'tarea') { 
+        data.nombre = document.getElementById('pen-nombre').value; 
+        data.materiaId = document.getElementById('pen-materia').value; 
+        data.fecha = document.getElementById('pen-fecha').value; 
+        data.desc = document.getElementById('pen-desc').value; 
+        
+        if(!data.nombre || !data.materiaId || !data.fecha) return showAlert("❌ Completa todos los campos obligatorios", "Error"); 
+        
+        const inputArchivos = document.getElementById('pen-archivo');
+        const archivos = inputArchivos ? inputArchivos.files : [];
+        
+        if(archivos.length > 3) {
+            return showAlert('❌ Solo puedes subir máximo 3 archivos', 'Error');
+        }
+        
+        const guardar = (archivosData = []) => {
+            if(archivosData.length > 0) {
+                data.archivos = archivosData;
+            }
+            db.ref('usuarios/'+auth.currentUser.uid+'/pendientes').push(data).then(() => {
+                showAlert('✅ Tarea guardada correctamente', 'Éxito');
+                closeModal();
+            });
+        };
+        
+        if(archivos.length > 0) {
+            const archivosArray = [];
+            let processedCount = 0;
+            
+            Array.from(archivos).forEach((archivo) => {
+                // Validar tamaño (máx 5MB por archivo)
+                if(archivo.size > 5 * 1024 * 1024) {
+                    showAlert(`❌ ${archivo.name} pesa más de 5MB`, 'Error');
+                    return;
+                }
+                
+                const tiposPermitidos = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
+                if(!tiposPermitidos.includes(archivo.type)) {
+                    showAlert(`❌ ${archivo.name} no es un tipo válido`, 'Error');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    archivosArray.push({
+                        base64: e.target.result,
+                        nombre: archivo.name,
+                        tipo: archivo.type
+                    });
+                    
+                    processedCount++;
+                    if(processedCount === archivos.length) {
+                        guardar(archivosArray);
+                    }
+                };
+                reader.readAsDataURL(archivo);
+            });
+        } else {
+            guardar();
+        }
+    } 
+    else if (currentPendienteType === 'recordatorio') { 
+        data.materiaId = document.getElementById('pen-materia').value; 
+        data.nombre = document.getElementById('pen-nombre').value; 
+        data.desc = document.getElementById('pen-desc').value; 
+        if(!data.nombre || !data.materiaId) return showAlert("❌ Completa todos los campos", "Error");
+        db.ref('usuarios/'+auth.currentUser.uid+'/pendientes').push(data);
+        closeModal();
+    }
+    else if (currentPendienteType === 'fecha') {
+        data.type = currentFechaType; 
+        data.materiaId = document.getElementById('pen-materia').value; 
+        data.fecha = document.getElementById('pen-fecha').value;
+        
+        if (currentFechaType === 'proyecto') { 
+            data.nombre = document.getElementById('pen-nombre').value; 
+            data.materiales = document.getElementById('pen-extra').value; 
+            if(!data.nombre) return showAlert("❌ Falta el nombre del proyecto", "Error"); 
+        } else { 
+            data.temario = document.getElementById('pen-extra').value; 
+        }
+        
+        if(!data.materiaId || !data.fecha) return showAlert("❌ Completa todos los campos", "Error");
+        
+        db.ref('usuarios/'+auth.currentUser.uid+'/pendientes').push(data);
+        closeModal();
+    }
+}
 // Inicializar datepickers con restricción de semestres
 function initDatePickers() {
     if (typeof flatpickr === 'undefined') return;
@@ -3861,14 +4169,13 @@ function abrirModalAgregarClase(dia, moduloIdx) {
     document.getElementById('modal-add').style.display = 'flex';
     renderFormularioClase(dia, moduloIdx);
 }
-        function renderFormularioClase(diaPreseleccionado = null, moduloPreseleccionado = null) {
+function renderFormularioClase(diaPreseleccionado = null, moduloPreseleccionado = null) {
     document.getElementById('modal-title').innerText = "Agregar al Horario";
     const content = document.getElementById('form-content');
     
     const diasSemana = ["Lunes","Martes","Miércoles","Jueves","Viernes"];
     const hoy = new Date().getDay();
     
-    // ✅ Usar día preseleccionado o el día actual
     const diaDefault = diaPreseleccionado || ((hoy >= 1 && hoy <= 5) ? diasSemana[hoy-1] : "Lunes");
     
     const btnDia = (d) => `<button onclick="selectDay('${d}')" class="btn-dia ${d===diaDefault?'selected bg-white text-black':'bg-white/5'} px-3 py-2 rounded-lg text-[10px] font-bold border border-white/10 shrink-0 transition" id="btn-${d}">${d.substring(0,3)}</button>`;
@@ -3876,16 +4183,37 @@ function abrirModalAgregarClase(dia, moduloIdx) {
     let selectorDias = diasSemana.map(btnDia).join('');
     const selectorFecha = `<div class="mb-2"><label class="text-[8px] font-bold text-slate-500 uppercase ml-2 mb-2 block">Día</label><div class="flex gap-2 overflow-x-auto pb-1 mb-2 no-scrollbar">${selectorDias}</div><input type="hidden" id="add-dia" value="${diaDefault}"></div>`;
     
-    let opts = `<option value="" disabled selected>Selecciona materia</option>`;
-    for(let k in materiasCache) opts += `<option value="${k}">${materiasCache[k].nombre}</option>`;
+    // ✅ ORDEN CORRECTO: value ANTES de todo
+    let opts = `<option value="">-- Selecciona una materia --</option>`;
+    for(let k in materiasCache) {
+        opts += `<option value="${k}">${materiasCache[k].nombre}</option>`;
+    }
     
-    // ✅ Generar selector de hora con módulo preseleccionado
     const moduloSeleccionado = moduloPreseleccionado !== null ? moduloPreseleccionado : 0;
     const selectorHora = `<div class="mb-2"><label class="text-[8px] font-bold text-slate-500 uppercase ml-2 mb-2 block">Hora Inicio</label><select id="add-modulo" class="w-full">${modulos.map((m,i) => `<option value="${i}" ${i === moduloSeleccionado ? 'selected' : ''}>${m.h} - ${m.end}</option>`).join('')}</select></div>`;
     
-    const html = `${selectorFecha}<div class="mb-2"><label class="text-[8px] font-bold text-slate-500 uppercase ml-2 mb-2 block">Materia</label><select id="add-materia">${opts}</select></div><div class="grid grid-cols-2 gap-5 items-center mb-2">${selectorHora}<div class="flex items-center h-full"><input type="checkbox" id="add-doble" class="w-5 h-5 accent-sky-500 mr-2"><label for="add-doble" class="text-[10px] font-bold uppercase">Módulo Doble</label></div></div><div class="mb-2"><label class="text-[8px] font-bold text-slate-500 uppercase ml-2 mb-2 block">Aula</label><input type="text" id="add-aula" placeholder="Opcional"></div>`;
+    const html = `
+        ${selectorFecha}
+        <div class="mb-2">
+            <label class="text-[8px] font-bold text-slate-500 uppercase ml-2 mb-2 block">Materia</label>
+            <select id="add-materia" class="w-full">
+                ${opts}
+            </select>
+        </div>
+        <div class="grid grid-cols-2 gap-5 items-center mb-2">
+            ${selectorHora}
+            <div class="flex items-center h-full">
+                <input type="checkbox" id="add-doble" class="w-5 h-5 accent-sky-500 mr-2">
+                <label for="add-doble" class="text-[10px] font-bold uppercase">Módulo Doble</label>
+            </div>
+        </div>
+        <div class="mb-2">
+            <label class="text-[8px] font-bold text-slate-500 uppercase ml-2 mb-2 block">Aula</label>
+            <input type="text" id="add-aula" placeholder="Opcional">
+        </div>
+    `;
     
-    content.innerHTML = html + `<button onclick="guardarEvento()" class="w-full bg-emerald-500 text-slate-950 font-black p-5 rounded-xl uppercase text-xs mt-6 shadow-xl hover:bg-emerald-400 transition transform active:scale-95">Guardar</button>`;
+    content.innerHTML = html + `<button onclick="guardarEvento()" class="w-full text-slate-950 font-black p-5 rounded-xl uppercase text-xs mt-6 shadow-xl transition transform active:scale-95" style="background: var(--color-principal)">Guardar</button>`;
 }
 // Toggle: mover sidebar arriba/abajo
 function toggleSidebarTop(){
@@ -3918,13 +4246,21 @@ function toggleFullScreen(){
 }
         function selectDay(d) { document.querySelectorAll('.btn-dia').forEach(b => { b.classList.remove('selected','bg-white','text-black'); b.classList.add('bg-white/5'); }); const btn = document.getElementById('btn-'+d); if(btn) { btn.classList.remove('bg-white/5'); btn.classList.add('selected','bg-white','text-black'); } document.getElementById('add-dia').value = d; }
         
-        function guardarEvento() { 
+function guardarEvento() { 
     const dia = document.getElementById('add-dia').value; 
     const matId = document.getElementById('add-materia').value; 
     const moduloInicio = parseInt(document.getElementById('add-modulo').value);
     const esDoble = document.getElementById('add-doble').checked;
     
-    if(!matId) return showAlert("❌ Elige una materia", "Error"); 
+    // ✅ VALIDACIÓN CRÍTICA
+    if(!matId || matId === '' || matId === 'undefined') {
+        return showAlert("❌ Debes seleccionar una materia válida", "Error"); 
+    }
+    
+    // ✅ VERIFICAR QUE LA MATERIA EXISTE
+    if(!materiasCache[matId]) {
+        return showAlert("❌ La materia seleccionada no existe", "Error");
+    }
     
     // ✅ Verificar si la materia es irregular o taller
     const materia = materiasCache[matId];
@@ -3950,20 +4286,23 @@ function toggleFullScreen(){
         }
     }
     
-    let data = { 
-        dia, 
+    const data = { 
+        dia: dia, 
         tipo: 'clase', 
         materiaId: matId, 
         moduloInicio: moduloInicio, 
         doble: esDoble, 
-        aula: document.getElementById('add-aula').value 
+        aula: document.getElementById('add-aula').value || ''
     }; 
     
-    db.ref('usuarios/' + auth.currentUser.uid + '/horario').push(data); 
-    actualizarDiasMateriaEnBD(matId);
-    closeModal(); 
+    db.ref('usuarios/' + auth.currentUser.uid + '/horario').push(data).then(() => {
+        actualizarDiasMateriaEnBD(matId);
+        closeModal();
+        showAlert('✅ Clase agregada correctamente', 'Éxito');
+    }).catch(err => {
+        showAlert('❌ Error al guardar: ' + err.message, 'Error');
+    });
 }
-
      
     function crearMateria(){ 
     const n = document.getElementById('mat-nombre').value; 
@@ -4022,71 +4361,13 @@ function cargarConfiguracion() {
             document.getElementById('cfg-nivel').value = p.nivel || 'tecnologo';
             document.getElementById('cfg-semestre').value = p.semestre || '1';
             document.getElementById('cfg-grupo').value = p.grupo || '';
-            // Aplicar preferencia de modo de sidebar si existe
-            const mode = p.sidebarMode || localStorage.getItem('sidebarMode') || 'fija';
-            const sel = document.getElementById('cfg-sidebar-mode');
-            if (sel) sel.value = mode;
-            changeSidebarMode(mode, /*save=*/false);
             
-           function changeSidebarMode(mode) {
-    const app = document.getElementById('app-container');
-    if (!app) return;
-    
-    // Remover todas las clases
-    app.classList.remove('sidebar-hover', 'sidebar-icons');
-    
-    // Aplicar el modo seleccionado
-    if (mode === 'hover') {
-        app.classList.add('sidebar-hover');
-    } else if (mode === 'icons') {
-        app.classList.add('sidebar-icons');
-    }
-    
-    // Persistir
-    localStorage.setItem('sidebarMode', mode);
-    
-    if (auth.currentUser) {
-        db.ref('usuarios/' + auth.currentUser.uid + '/perfil').update({ 
-            sidebarMode: mode 
-        });
-    }
-}
-// Cargar foto de perfil EN TODOS LOS LUGARES
-if(p.fotoPerfil) {
-    // Configuración
-    document.getElementById('preview-foto-perfil').src = p.fotoPerfil;
-    document.getElementById('preview-foto-perfil').classList.remove('hidden');
-    document.getElementById('placeholder-foto').classList.add('hidden');
-    
-    // Navegación
-    document.getElementById('nav-foto-perfil').src = p.fotoPerfil;
-    document.getElementById('nav-foto-perfil').classList.remove('hidden');
-    document.getElementById('nav-placeholder-foto').classList.add('hidden');
-    
-    // Inicio
-    document.getElementById('inicio-foto-perfil').src = p.fotoPerfil;
-    document.getElementById('inicio-foto-perfil').classList.remove('hidden');
-    document.getElementById('inicio-placeholder-foto').classList.add('hidden');
-}
-            // Cargar fondo
-if(p.fondoPersonalizado) {
-    document.body.style.backgroundImage = `url(${p.fondoPersonalizado})`;
-    document.body.style.backgroundSize = 'cover';
-    document.body.style.backgroundPosition = 'center';
-    document.body.style.backgroundAttachment = 'fixed';
-    document.body.classList.add('has-custom-bg'); // AGREGAR ESTO
-    document.getElementById('preview-fondo').innerHTML = `<img src="${p.fondoPersonalizado}" class="w-full h-full object-cover rounded-lg">`;
-}
+            // ✅ CARGAR FOTO SI EXISTE
+            if(p.fotoPerfil) {
+                actualizarFotoEnUI(p.fotoPerfil);
+            }
         }
     });
-
-    // Cargar modo de sidebar
-const modeSidebar = p.sidebarMode || localStorage.getItem('sidebarMode') || 'fija';
-const selectSidebar = document.getElementById('cfg-sidebar-mode');
-if (selectSidebar) {
-    selectSidebar.value = modeSidebar;
-    changeSidebarMode(modeSidebar);
-}
 }
 
 function guardarDatosPersonales() {
@@ -4113,27 +4394,53 @@ function cargarFotoPerfil(event) {
     const file = event.target.files[0];
     if(!file) return;
     
+    // Validar tamaño (máx 2MB)
+    if(file.size > 2 * 1024 * 1024) {
+        return showAlert('❌ La imagen debe pesar menos de 2MB', 'Error');
+    }
+    
+    // Validar tipo
+    if(!file.type.startsWith('image/')) {
+        return showAlert('❌ Solo se permiten imágenes', 'Error');
+    }
+    
     const reader = new FileReader();
     reader.onload = function(e) {
         const base64 = e.target.result;
         
+        // Actualizar en Firebase PRIMERO
         db.ref('usuarios/' + auth.currentUser.uid + '/perfil').update({
             fotoPerfil: base64
         }).then(() => {
-            // Actualizar en configuración
-            document.getElementById('preview-foto-perfil').src = base64;
-            document.getElementById('preview-foto-perfil').classList.remove('hidden');
-            document.getElementById('placeholder-foto').classList.add('hidden');
-            
-            // ✅ AGREGAR: Actualizar en navegación
-            document.getElementById('nav-foto-perfil').src = base64;
-            document.getElementById('nav-foto-perfil').classList.remove('hidden');
-            document.getElementById('nav-placeholder-foto').classList.add('hidden');
-            
-            alert('✅ Foto actualizada');
+            // Luego actualizar UI en TODOS los lugares
+            actualizarFotoEnUI(base64);
+            showAlert('✅ Foto actualizada correctamente', 'Éxito');
+        }).catch(err => {
+            showAlert('❌ Error al guardar: ' + err.message, 'Error');
         });
     };
     reader.readAsDataURL(file);
+}
+
+// Nueva función para actualizar foto en todos los lugares
+function actualizarFotoEnUI(base64) {
+    // Configuración
+    const previewFoto = document.getElementById('preview-foto-perfil');
+    const placeholderFoto = document.getElementById('placeholder-foto');
+    if(previewFoto && placeholderFoto) {
+        previewFoto.src = base64;
+        previewFoto.classList.remove('hidden');
+        placeholderFoto.classList.add('hidden');
+    }
+    
+    // Navegación
+    const navFoto = document.getElementById('nav-foto-perfil');
+    const navPlaceholder = document.getElementById('nav-placeholder-foto');
+    if(navFoto && navPlaceholder) {
+        navFoto.src = base64;
+        navFoto.classList.remove('hidden');
+        navPlaceholder.classList.add('hidden');
+    }
 }
 
 function cargarFondo(event) {
@@ -4147,20 +4454,16 @@ function cargarFondo(event) {
         db.ref('usuarios/' + auth.currentUser.uid + '/perfil').update({
             fondoPersonalizado: base64
         }).then(() => {
-            // ✅ APLICAR INMEDIATAMENTE
-            aplicarFondoPersonalizado(base64);
+            document.body.style.backgroundImage = `url(${base64})`;
+            document.body.style.backgroundSize = 'cover';
+            document.body.style.backgroundPosition = 'center';
+            document.body.style.backgroundAttachment = 'fixed';
+            document.body.classList.add('has-custom-bg'); // Agregar clase
+            document.getElementById('preview-fondo').innerHTML = `<img src="${base64}" class="w-full h-full object-cover rounded-lg">`;
             alert('✅ Fondo actualizado');
         });
     };
     reader.readAsDataURL(file);
-}
-function aplicarFondoPersonalizado(base64) {
-    document.body.style.backgroundImage = `url(${base64})`;
-    document.body.style.backgroundSize = 'cover';
-    document.body.style.backgroundPosition = 'center';
-    document.body.style.backgroundAttachment = 'fixed';
-    document.body.classList.add('has-custom-bg');
-    document.getElementById('preview-fondo').innerHTML = `<img src="${base64}" class="w-full h-full object-cover rounded-lg">`;
 }
 function cambiarColorPrincipal(color) {
     // Convertir hex a RGB
@@ -4199,7 +4502,7 @@ function cambiarColorPrincipal(color) {
     });
     localStorage.setItem('colorPrincipal', color);
     
-    // NO mostrar alerta si es carga automática
+    showAlert('✅ Color actualizado correctamente', 'Personalización');
 }
 
 function resetearColor() {
@@ -4268,47 +4571,7 @@ function eliminarFotoPerfil() {
         alert('✅ Foto eliminada');
     });
 }
-async function cambiarContrasena() {
-    const actual = document.getElementById('cfg-pass-actual').value;
-    const nueva = document.getElementById('cfg-pass-nueva').value;
-    const confirmar = document.getElementById('cfg-pass-confirmar').value;
-    
-    if(!actual || !nueva || !confirmar) {
-        return showAlert('❌ Completa todos los campos', 'Error');
-    }
-    
-    if(nueva.length < 6) {
-        return showAlert('❌ La contraseña debe tener al menos 6 caracteres', 'Error');
-    }
-    
-    if(nueva !== confirmar) {
-        return showAlert('❌ Las contraseñas no coinciden', 'Error');
-    }
-    
-    try {
-        const user = auth.currentUser;
-        const credential = firebase.auth.EmailAuthProvider.credential(user.email, actual);
-        
-        // Reautenticar
-        await user.reauthenticateWithCredential(credential);
-        
-        // Cambiar contraseña
-        await user.updatePassword(nueva);
-        
-        // Limpiar campos
-        document.getElementById('cfg-pass-actual').value = '';
-        document.getElementById('cfg-pass-nueva').value = '';
-        document.getElementById('cfg-pass-confirmar').value = '';
-        
-        showAlert('✅ Contraseña cambiada exitosamente', 'Éxito');
-    } catch(error) {
-        if(error.code === 'auth/wrong-password') {
-            showAlert('❌ La contraseña actual es incorrecta', 'Error');
-        } else {
-            showAlert('❌ Error al cambiar contraseña: ' + error.message, 'Error');
-        }
-    }
-}
+
 // ==================== EXTRAORDINARIOS ====================
 let materiaExtraActual = null;
 
@@ -4491,58 +4754,77 @@ function ajustarPonderacion(id, pE, v) {
             }
         };
         function goToCalif(id) { show('cal'); setTimeout(() => { document.getElementById('cal-card-'+id)?.scrollIntoView({behavior:'smooth'}); }, 100); }
-function show(id) {
-    document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
-    const target = document.getElementById('sec-' + id);
-    if (target) target.classList.remove('hidden');
+        function show(id) {
+            document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+            const target = document.getElementById('sec-' + id);
+            if (target) target.classList.remove('hidden');
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            const navBtn = document.querySelector(`[data-id="${id}"]`);
+            if (navBtn) navBtn.classList.add('active');
+
+            // Mostrar botón de acceso a Kardex SOLO cuando estamos en Materias
+            const kardBtn = document.getElementById('kardex-hint');
+            if (kardBtn) {
+                kardBtn.style.display = (id === 'mat') ? 'flex' : 'none';
+            }
+        }
+        async function cambiarContrasena() {
+    const actual = document.getElementById('cfg-pass-actual').value;
+    const nueva = document.getElementById('cfg-pass-nueva').value;
+    const confirmar = document.getElementById('cfg-pass-confirmar').value;
     
-    // Remover active de todos los botones Y resetear sus estilos
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.classList.remove('active');
-        btn.style.background = ''; // ✅ Resetear fondo personalizado
-    });
+    if(!actual || !nueva || !confirmar) {
+        return showAlert('❌ Completa todos los campos', 'Error');
+    }
     
-    // Agregar active solo al botón actual
-    const navBtn = document.querySelector(`[data-id="${id}"]`);
-    if (navBtn) {
-        navBtn.classList.add('active');
-        // Aplicar color personalizado
-        const color = localStorage.getItem('colorPrincipal') || '#38bdf8';
-        navBtn.style.background = color;
+    if(nueva.length < 6) {
+        return showAlert('❌ La contraseña debe tener al menos 6 caracteres', 'Error');
+    }
+    
+    if(nueva !== confirmar) {
+        return showAlert('❌ Las contraseñas no coinciden', 'Error');
+    }
+    
+    try {
+        const user = auth.currentUser;
+        const credential = firebase.auth.EmailAuthProvider.credential(user.email, actual);
+        
+        // Reautenticar
+        await user.reauthenticateWithCredential(credential);
+        
+        // Cambiar contraseña
+        await user.updatePassword(nueva);
+        
+        // Limpiar campos
+        document.getElementById('cfg-pass-actual').value = '';
+        document.getElementById('cfg-pass-nueva').value = '';
+        document.getElementById('cfg-pass-confirmar').value = '';
+        
+        showAlert('✅ Contraseña cambiada exitosamente', 'Éxito');
+    } catch(error) {
+        if(error.code === 'auth/wrong-password') {
+            showAlert('❌ La contraseña actual es incorrecta', 'Error');
+        } else {
+            showAlert('❌ Error al cambiar contraseña: ' + error.message, 'Error');
+        }
     }
 }
 function cargarInicio() { 
     const h = new Date().getHours();
-    let saludo = "BUENAS NOCHES";
-    if (h >= 0 && h < 12) saludo = "BUENOS DÍAS";
-    else if (h >= 12 && h < 19) saludo = "BUENAS TARDES";
+    const saludo = h < 12 ? "Buenos días" : h < 19 ? "Buenas tardes" : "Buenas noches";
     
     db.ref('usuarios/' + auth.currentUser.uid + '/perfil').once('value', snap => {
         const perfil = snap.val();
         if(perfil) {
-            const txtSaludo = document.getElementById('txt-saludo');
-            txtSaludo.innerText = saludo;
-            
-            // ✅ Aplicar color personalizado al saludo
-            const color = perfil.colorPrincipal || localStorage.getItem('colorPrincipal') || '#38bdf8';
-            txtSaludo.style.color = color;
-            
-           document.getElementById('welcome-name').innerText = `Bienvenido de vuelta, ${perfil.nombre}`;
+            document.getElementById('txt-saludo').innerText = saludo;
+            document.getElementById('welcome-name').innerText = perfil.nombre;
         }
     });
     
-    cargarFraseInspiracional(); // ✅ ESTO ESTABA FALTANDO
+    cargarFraseInspiracional();
 }
-function cerrarSesion() {
-    showConfirm(
-        '¿Estás seguro de que deseas cerrar sesión?',
-        function() {
-            auth.signOut().then(() => location.reload());
-        },
-        'Cerrar Sesión'
-    );
-}
-function cargarFraseInspiracional() {
+
+    function cargarFraseInspiracional() {
     const citas = [
         {q:"El éxito depende del esfuerzo.",a:"Sófocles"},
         {q:"Cree que puedes y ya estás a medio camino.",a:"Theodore Roosevelt"},
@@ -4553,24 +4835,43 @@ function cargarFraseInspiracional() {
         {q:"El fracaso es simplemente la oportunidad de comenzar de nuevo.",a:"Henry Ford"},
         {q:"La única manera de hacer un gran trabajo es amar lo que haces.",a:"Steve Jobs"},
         {q:"No esperes. Nunca será el momento perfecto.",a:"Napoleon Hill"},
-        {q:"El futuro pertenece a quienes creen en la belleza de sus sueños.",a:"Eleanor Roosevelt"}
+        {q:"El futuro pertenece a quienes creen en la belleza de sus sueños.",a:"Eleanor Roosevelt"},
+        {q:"La lógica te llevará desde A hasta B. La imaginación te llevará a todas partes.",a:"Albert Einstein"},
+        {q:"No importa qué tan lento vayas, siempre y cuando no te detengas.",a:"Confucio"},
+        {q:"Para ser irreemplazable, uno siempre debe buscar ser diferente.",a:"Coco Chanel"},
+        {q:"Lo que haces hoy puede mejorar todos tus mañanas.",a:"Ralph Marston"},
+        {q:"Los cortocircuitos, son como la electronica te expresa su amor",a:"Omar Rodriguez"},
+        {q:"A cualquier lugar que vayas dedicate a sumar, por que gente que resta, sobra",a:"Nehemias Aguirre"},
+        {q:"Aqui ta",a:"Juanpa Hernandez"},
+        {q:"Cada que sale el sol, es una nueva oportunidad para ser mejor",a:"Luis Miguel"}
+
+  
     ];
     
-    const hoy = new Date().toDateString();
-    let index = 0;
-    
-    const saved = localStorage.getItem('frase-fecha');
-    if(saved !== hoy) {
-        index = Math.floor(Math.random() * citas.length);
-        localStorage.setItem('frase-fecha', hoy);
-        localStorage.setItem('frase-index', index);
-    } else {
-        index = parseInt(localStorage.getItem('frase-index')) || 0;
-    }
-    
-    const sel = citas[index];
+    // Mostrar una local primero
+    const sel = citas[Math.floor(Math.random() * citas.length)];
     document.getElementById('frase-inspiradora').innerText = `"${sel.q}"`;
     document.getElementById('frase-autor').innerText = `— ${sel.a}`;
+    
+    // Intentar API
+    fetch('https://api.quotable.io/quotes/random?tags=inspirational&limit=1')
+        .then(res => res.json())
+        .then(data => {
+            if(data && data[0]) {
+                document.getElementById('frase-inspiradora').innerText = `"${data[0].content}"`;
+                document.getElementById('frase-autor').innerText = `— ${data[0].author}`;
+            }
+        })
+        .catch(err => console.log('API no disponible, usando frase local'));
+}
+function cerrarSesion() {
+    showConfirm(
+        '¿Estás seguro de que deseas cerrar sesión?',
+        function() {
+            auth.signOut().then(() => location.reload());
+        },
+        'Cerrar Sesión'
+    );
 }
         // ✅ Solo habilitar Sortable en desktop
 if (window.innerWidth > 768) {
@@ -4585,74 +4886,20 @@ if (window.innerWidth > 768) {
         function cargarOrdenMenu() { const s=JSON.parse(localStorage.getItem('menu-order')); if(s) s.forEach(id=>{ const e=document.querySelector(`[data-id="${id}"]`); if(e) document.getElementById('nav-wrapper').appendChild(e); }); }
         
         initSeasonalEffects();
-       // Hacer el botón arrastrable SOLO EN MÓVIL
-if(window.innerWidth <= 768) {
-    const floatingBtn = document.getElementById('floating-cfg-btn');
-    if(floatingBtn) {
-        let isDragging = false;
-        let currentX = 0, currentY = 0, initialX = 0, initialY = 0;
-        
-        floatingBtn.addEventListener('touchstart', (e) => {
-            const touch = e.touches[0];
-            initialX = touch.clientX - currentX;
-            initialY = touch.clientY - currentY;
-            isDragging = true;
-        });
-        
-        floatingBtn.addEventListener('touchmove', (e) => {
-            if (isDragging) {
-                e.preventDefault();
-                const touch = e.touches[0];
-                currentX = touch.clientX - initialX;
-                currentY = touch.clientY - initialY;
-                floatingBtn.style.transform = `translate(${currentX}px, ${currentY}px)`;
-            }
-        });
-        
-        floatingBtn.addEventListener('touchend', () => {
-            isDragging = false;
-        });
-    }
-}function guardarLink() {
-    const data = {
-        titulo: document.getElementById('link-titulo').value,
-        url: document.getElementById('link-url').value,
-        materiaId: document.getElementById('link-materia').value || null
-    };
-    
-    if(!data.titulo || !data.url) return alert('Completa todos los campos');
-    
-    db.ref('usuarios/' + auth.currentUser.uid + '/links').push(data);
-    document.getElementById('link-titulo').value = '';
-    document.getElementById('link-url').value = '';
-}
+        // Hacer el botón arrastrable
+const floatingBtn = document.getElementById('floating-cfg-btn');
+let isDragging = false;
+let currentX, currentY, initialX, initialY, xOffset = 0, yOffset = 0;
 
-function cargarLinks() {
-    db.ref('usuarios/' + auth.currentUser.uid + '/links').on('value', snap => {
-        const container = document.getElementById('grid-links');
-        container.innerHTML = '';
-        
-        if(!snap.exists()) {
-            container.innerHTML = '<p class="col-span-full text-center py-10 opacity-50">No hay links guardados</p>';
-            return;
-        }
-        
-        snap.forEach(c => {
-            const link = c.val();
-            const matNombre = link.materiaId && materiasCache[link.materiaId] ? materiasCache[link.materiaId].nombre : 'General';
-            
-            container.innerHTML += `
-                <div class="card border-l-4 border-sky-500">
-                    <h4 class="text-lg font-black mb-2">${link.titulo}</h4>
-                    <p class="text-xs text-slate-400 uppercase mb-4">${matNombre}</p>
-                    <div class="flex gap-3">
-                        <a href="${link.url}" target="_blank" class="flex-1 bg-sky-500 text-slate-950 font-black p-3 rounded-xl text-xs text-center">Abrir Link</a>
-                        <button onclick="db.ref('usuarios/${auth.currentUser.uid}/links/${c.key}').remove()" class="text-rose-500 text-xs font-bold">Borrar</button>
-                    </div>
-                </div>
-            `;
-        });
-    });
+floatingBtn.addEventListener('touchstart', dragStart);
+floatingBtn.addEventListener('touchend', dragEnd);
+floatingBtn.addEventListener('touchmove', drag);
+
+function dragStart(e) {
+    const touch = e.touches[0];
+    initialX = touch.clientX - xOffset;
+    initialY = touch.clientY - yOffset;
+    isDragging = true;
 }
 
 function drag(e) {
@@ -4674,40 +4921,328 @@ function dragEnd() {
     isDragging = false;
 }
 function abrirEditorPendiente(id) {
-    const p = pendientesData.find(item => item.key === id);
+   const p = pendientesData.find(item => item.key === id);
     if(!p) return;
     
-    // Abrir modal de edición
     document.getElementById('modal-add').style.display = 'flex';
-    document.getElementById('modal-title').innerText = "Editar Pendiente";
+    document.getElementById('modal-title').innerText = "✏️ Editar " + getTipoLabel(p.type);
     
-    let html = `
-        <input type="text" id="edit-nombre" value="${p.nombre || ''}" placeholder="Nombre" class="mb-2">
-        ${p.fecha ? `<input type="date" id="edit-fecha" value="${p.fecha}" class="mb-2">` : ''}
-        ${p.desc || p.materiales || p.temario ? `<textarea id="edit-desc" rows="3" class="mb-4">${p.desc || p.materiales || p.temario || ''}</textarea>` : ''}
-        <div class="flex gap-3">
-            <button onclick="eliminarPendiente('${id}')" class="flex-1 bg-rose-500 text-white font-black p-4 rounded-xl uppercase text-xs">Eliminar</button>
-            <button onclick="guardarEdicionPendiente('${id}')" class="flex-1 bg-emerald-500 text-slate-950 font-black p-4 rounded-xl uppercase text-xs">Guardar</button>
+    // ✅ AGREGAR OVERFLOW Y MAX-HEIGHT
+    const contentDiv = document.getElementById('form-content');
+    contentDiv.style.maxHeight = '70vh';
+    contentDiv.style.overflowY = 'auto';
+    contentDiv.style.overflowX = 'hidden';
+    // Selector de materias
+    let optsMateria = `<option value="">General (sin materia)</option>`;
+    for(let k in materiasCache) {
+        const selected = p.materiaId === k ? 'selected' : '';
+        optsMateria += `<option value="${k}" ${selected}>${materiasCache[k].nombre}</option>`;
+    }
+    
+    // Mostrar archivos actuales si existen
+    let archivosActualesHTML = '';
+    if(p.archivos && p.archivos.length > 0) {
+        archivosActualesHTML = `
+            <div class="mb-3">
+                <label class="text-[9px] font-bold uppercase text-slate-500 ml-1 mb-2 block">Archivos Actuales</label>
+                <div class="space-y-2">
+                    ${p.archivos.map((archivo, idx) => {
+                        const esPdf = archivo.tipo === 'application/pdf';
+                        const esImagen = archivo.tipo && archivo.tipo.startsWith('image/');
+                        
+                        return `
+                            <div class="flex items-center justify-between gap-2 bg-white/5 p-3 rounded-lg">
+                                <div class="flex items-center gap-2 flex-1 min-w-0">
+                                    ${esImagen ? `
+                                        <img src="${archivo.base64}" class="w-10 h-10 object-cover rounded">
+                                    ` : `
+                                        <span class="text-lg">📄</span>
+                                    `}
+                                    <span class="text-xs truncate">${archivo.nombre}</span>
+                                    ${esPdf ? `
+                                        <a href="${archivo.base64}" target="_blank" onclick="event.stopPropagation()" class="text-xs text-sky-400 hover:text-sky-300">Ver</a>
+                                    ` : `
+                                        <a href="${archivo.base64}" download="${archivo.nombre}" onclick="event.stopPropagation()" class="text-xs text-sky-400 hover:text-sky-300">Descargar</a>
+                                    `}
+                                </div>
+                                <button onclick="event.stopPropagation(); eliminarArchivoIndividual('${id}', ${idx})" class="text-rose-400 hover:text-rose-300 text-xs font-bold shrink-0">✕</button>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+        `;
+    }
+    
+    let html = '';
+    
+    if(p.type === 'tarea') {
+        const numArchivosActuales = (p.archivos || []).length;
+        const puedeAgregarMas = numArchivosActuales < 3;
+        
+        html = `
+            <div class="mb-4">
+                <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Nombre</label>
+                <input type="text" id="edit-nombre" value="${p.nombre || ''}" placeholder="Nombre de la tarea">
+            </div>
+            
+            <div class="mb-4">
+                <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Materia</label>
+                <select id="edit-materia">
+                    ${optsMateria}
+                </select>
+            </div>
+            
+            <div class="mb-4">
+                <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Fecha de Entrega</label>
+                <input type="date" id="edit-fecha" value="${p.fecha || ''}">
+            </div>
+            
+            <div class="mb-4">
+                <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Descripción</label>
+                <textarea id="edit-desc" rows="4" placeholder="Descripción de la tarea..." class="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm">${p.desc || ''}</textarea>
+            </div>
+            
+            ${archivosActualesHTML}
+            
+            ${puedeAgregarMas ? `
+            <div class="mb-4">
+                <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Agregar Archivos (Máx ${3 - numArchivosActuales} más)</label>
+                <div id="preview-archivos-edit-container" class="mb-2 space-y-2"></div>
+                <div class="custom-file-input w-full">
+                    <input type="file" id="edit-archivo" accept=".pdf,image/*" multiple onchange="previsualizarArchivosEdit(this, ${numArchivosActuales})">
+                    <div id="edit-archivo-label" class="custom-file-button">
+                        <span>📎</span>
+                        <span>Agregar Archivos</span>
+                    </div>
+                </div>
+            </div>
+            ` : `
+            <div class="mb-4 bg-amber-500/10 border border-amber-500/30 p-3 rounded-xl">
+                <p class="text-xs text-amber-400">⚠️ Máximo de 3 archivos alcanzado. Elimina alguno para agregar más.</p>
+            </div>
+            `}
+        `;
+    }
+    else if(p.type === 'recordatorio') {
+        html = `
+            <div class="mb-4">
+                <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Nombre</label>
+                <input type="text" id="edit-nombre" value="${p.nombre || ''}" placeholder="Nombre del recordatorio">
+            </div>
+            
+            <div class="mb-4">
+                <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Materia</label>
+                <select id="edit-materia">
+                    ${optsMateria}
+                </select>
+            </div>
+            
+            <div class="mb-4">
+                <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Nota</label>
+                <textarea id="edit-desc" rows="4" placeholder="Nota del recordatorio..." class="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm">${p.desc || ''}</textarea>
+            </div>
+        `;
+    }
+    else if(p.type === 'proyecto') {
+        html = `
+            <div class="mb-4">
+                <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Nombre del Proyecto</label>
+                <input type="text" id="edit-nombre" value="${p.nombre || ''}" placeholder="Nombre del proyecto">
+            </div>
+            
+            <div class="mb-4">
+                <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Materia</label>
+                <select id="edit-materia">
+                    ${optsMateria}
+                </select>
+            </div>
+            
+            <div class="mb-4">
+                <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Fecha</label>
+                <input type="date" id="edit-fecha" value="${p.fecha || ''}">
+            </div>
+            
+            <div class="mb-4">
+                <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Materiales Necesarios</label>
+                <textarea id="edit-desc" rows="4" placeholder="Lista de materiales..." class="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm">${p.materiales || ''}</textarea>
+            </div>
+        `;
+    }
+    else if(p.type === 'examen') {
+        html = `
+            <div class="mb-4">
+                <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Materia</label>
+                <select id="edit-materia">
+                    ${optsMateria}
+                </select>
+            </div>
+            
+            <div class="mb-4">
+                <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Fecha del Examen</label>
+                <input type="date" id="edit-fecha" value="${p.fecha || ''}">
+            </div>
+            
+            <div class="mb-4">
+                <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Temario</label>
+                <textarea id="edit-desc" rows="4" placeholder="Temas del examen..." class="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm">${p.temario || ''}</textarea>
+            </div>
+        `;
+    }
+    
+    html += `
+        <div class="flex gap-3 mt-6">
+            <button onclick="eliminarPendiente('${id}')" class="flex-1 bg-rose-500 text-white font-black p-4 rounded-xl uppercase text-xs hover:bg-rose-400 transition">Eliminar</button>
+            <button onclick="guardarEdicionPendiente('${id}')" class="flex-1 text-slate-950 font-black p-4 rounded-xl uppercase text-xs transition" style="background: var(--color-principal)">Guardar Cambios</button>
         </div>
     `;
     
     document.getElementById('form-content').innerHTML = html;
     setTimeout(initDatePickers, 50);
 }
-
+function previsualizarArchivosEdit(input, numActuales) {
+    const container = document.getElementById('preview-archivos-edit-container');
+    const label = document.getElementById('edit-archivo-label');
+    
+    if(input.files && input.files.length > 0) {
+        const maxPermitidos = 3 - numActuales;
+        
+        if(input.files.length > maxPermitidos) {
+            showAlert(`❌ Solo puedes agregar ${maxPermitidos} archivo(s) más`, 'Error');
+            input.value = '';
+            return;
+        }
+        
+        label.classList.add('has-file');
+        label.innerHTML = `<span>✓</span><span>${input.files.length} archivo(s) seleccionado(s)</span>`;
+        
+        container.innerHTML = '';
+        Array.from(input.files).forEach((file) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const isPdf = file.type === 'application/pdf';
+                const preview = isPdf ? 
+                    `<div class="flex items-center gap-2 bg-white/5 p-2 rounded text-xs">
+                        <span>📄</span>
+                        <span class="truncate">${file.name}</span>
+                    </div>` :
+                    `<div class="flex items-center gap-2 bg-white/5 p-2 rounded">
+                        <img src="${e.target.result}" class="w-12 h-12 object-cover rounded">
+                        <span class="text-xs truncate">${file.name}</span>
+                    </div>`;
+                container.innerHTML += preview;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+}
+function eliminarArchivoIndividual(pendienteId, indiceArchivo) {
+    if(!confirm('¿Eliminar este archivo?')) return;
+    
+    const p = pendientesData.find(item => item.key === pendienteId);
+    if(!p || !p.archivos) return;
+    
+    // Remover archivo del array
+    p.archivos.splice(indiceArchivo, 1);
+    
+    // Actualizar en Firebase
+    db.ref('usuarios/' + auth.currentUser.uid + '/pendientes/' + pendienteId).update({
+        archivos: p.archivos.length > 0 ? p.archivos : null
+    }).then(() => {
+        showAlert('✅ Archivo eliminado', 'Éxito');
+        // Reabrir el editor para mostrar cambios
+        abrirEditorPendiente(pendienteId);
+    });
+}
 function guardarEdicionPendiente(id) {
+    const p = pendientesData.find(item => item.key === id);
+    if(!p) return;
+    
     const updates = {
-        nombre: document.getElementById('edit-nombre').value
+        nombre: document.getElementById('edit-nombre') ? document.getElementById('edit-nombre').value : null,
+        materiaId: document.getElementById('edit-materia').value || null
     };
     
     const fecha = document.getElementById('edit-fecha');
     const desc = document.getElementById('edit-desc');
     
     if(fecha) updates.fecha = fecha.value;
-    if(desc) updates.desc = desc.value;
     
-    db.ref('usuarios/' + auth.currentUser.uid + '/pendientes/' + id).update(updates);
-    closeModal();
+    // Guardar en el campo correcto según el tipo
+    if(desc) {
+        const descValue = desc.value;
+        if(p.type === 'proyecto') {
+            updates.materiales = descValue;
+        } else if(p.type === 'examen') {
+            updates.temario = descValue;
+        } else {
+            updates.desc = descValue;
+        }
+    }
+    
+    // Manejar archivos nuevos
+    const archivoInput = document.getElementById('edit-archivo');
+    const archivosNuevos = archivoInput ? archivoInput.files : [];
+    
+    const guardar = (nuevosArchivosData = []) => {
+        // Combinar archivos existentes con nuevos
+        if(nuevosArchivosData.length > 0) {
+            const archivosActuales = p.archivos || [];
+            updates.archivos = [...archivosActuales, ...nuevosArchivosData];
+        }
+        
+        db.ref('usuarios/' + auth.currentUser.uid + '/pendientes/' + id).update(updates).then(() => {
+            showAlert('✅ Pendiente actualizado', 'Éxito');
+            closeModal();
+        });
+    };
+    
+    if(archivosNuevos.length > 0) {
+        const archivosArray = [];
+        let processedCount = 0;
+        
+        Array.from(archivosNuevos).forEach((archivo) => {
+            if(archivo.size > 5 * 1024 * 1024) {
+                showAlert(`❌ ${archivo.name} pesa más de 5MB`, 'Error');
+                return;
+            }
+            
+            const tiposPermitidos = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
+            if(!tiposPermitidos.includes(archivo.type)) {
+                showAlert(`❌ ${archivo.name} no es un tipo válido`, 'Error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                archivosArray.push({
+                    base64: e.target.result,
+                    nombre: archivo.name,
+                    tipo: archivo.type
+                });
+                
+                processedCount++;
+                if(processedCount === archivosNuevos.length) {
+                    guardar(archivosArray);
+                }
+            };
+            reader.readAsDataURL(archivo);
+        });
+    } else {
+        guardar();
+    }
+}
+
+function eliminarArchivoAdjunto(id) {
+    if(!confirm('¿Eliminar el archivo adjunto?')) return;
+    
+    db.ref('usuarios/' + auth.currentUser.uid + '/pendientes/' + id).update({
+        archivo: null,
+        archivoNombre: null,
+        archivoTipo: null
+    }).then(() => {
+        showAlert('✅ Archivo eliminado', 'Éxito');
+    });
 }
 
 function eliminarPendiente(id) {
@@ -4753,5 +5288,6 @@ function eliminarPendiente(id) {
 <button id="floating-cfg-btn" onclick="show('cfg')" style="display:none;">⚙️</button>
 </body>
 </html>
+
 
 
