@@ -1,0 +1,15 @@
+{
+  "name": "Cetistapp",
+  "short_name": "Cetistapp",
+  "icons": [
+    {
+      "src": "favicon.png",
+      "sizes": "500x525",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/Cetistapp/",
+  "display": "standalone",
+  "background_color": "#01071f",
+  "theme_color": "#38bdf8"
+}
