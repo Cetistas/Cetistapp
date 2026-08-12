@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     <link rel="icon" href="favicon.png" type="image/png">
+     <link rel="manifest" href="/Cetistapp/manifest.json">
+<meta name="theme-color" content="#38bdf8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cetistapp">
+<link rel="apple-touch-icon" href="/Cetistapp/favicon.png">
     <title>Cetistapp</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -472,7 +477,7 @@ body.light-mode .clase-block .mat-name {
         /* MODALES */
         #auth-overlay { position: fixed; inset: 0; z-index: 999; background: #020617; display: flex; align-items: center; justify-content: center; overflow-y: auto; }
         #custom-confirm { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        #modal-add, #modal-view { position: fixed; inset: 0; z-index: 900; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        #modal-add, #modal-view { position: fixed; inset: 0; z-index: 900; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); overflow-y: auto; padding: 20px 0; }
         
         .btn-dia { transition: 0.2s; } 
         .btn-dia.selected { background: white; color: black; border-color: white; }
@@ -1220,9 +1225,10 @@ body.light-mode .flatpickr-day.disabled:hover {
         </div>
     </div>
 
-    <div id="modal-add">
-        <div class="glass p-10 rounded-[2rem] w-full max-w-md border border-white/10 relative">
-            <button onclick="closeModal()" class="absolute top-4 right-4 text-white/50 hover:text-white text-xl">✕</button>
+<div id="modal-add">
+    <div class="glass p-10 rounded-[2rem] w-full max-w-md border border-white/10 relative" 
+         style="max-height: 90vh; overflow-y: auto; overflow-x: hidden;">
+              <button onclick="closeModal()" class="absolute top-4 right-4 text-white/50 hover:text-white text-xl">✕</button>
             <h3 id="modal-title" class="font-black uppercase text-xs mb-8 text-center tracking-[2px]" style="color: var(--color-principal)">Agregar</h3>
             <div id="form-content" class="space-y-5"></div>
         </div>
@@ -1880,10 +1886,15 @@ body.light-mode .flatpickr-day.disabled:hover {
         let currentPendienteTab = 'tareas'; 
         let currentSort = 'priority';
 
-        let avisosData = [];
-        let grupoData = [];
-        let currentForoTab = 'avisos';
-        let miGrupo = "";
+let avisosData = [];
+let grupoData = [];
+let currentForoTab = 'avisos';
+let miGrupo = "";
+
+// Proyectos
+let proyectoEnEdicion = null;
+let subtareasTemp = [];
+let colaboradoresTemp = [];
 
         // ===== SISTEMA DE ALERTAS Y CONFIRMACIONES PERSONALIZADAS =====
 function showAlert(message, title = 'Mensaje') {
@@ -2050,15 +2061,16 @@ async function manejarAuth() {
             
             const res = await auth.createUserWithEmailAndPassword(email, pass);
             const nowIso = new Date().toISOString();
-            await db.ref('usuarios/' + res.user.uid + '/perfil').set({ 
-                nombre: nom,
-                apellido: ape,
-                nivel: niv,
-                semestre: sem,
-                grupo: gru,
-                createdAt: nowIso,
-                lastModified: nowIso
-            });
+await db.ref('usuarios/' + res.user.uid + '/perfil').set({ 
+    nombre: nom,
+    apellido: ape,
+    nivel: niv,
+    semestre: sem,
+    grupo: gru,
+    email: email,
+    createdAt: nowIso,
+    lastModified: nowIso
+});
         }
     } catch (e) {
         // ✅ Mensajes amigables
@@ -2345,9 +2357,13 @@ auth.onAuthStateChanged(user => {
         document.getElementById('auth-overlay').style.display = 'none';
         document.getElementById('app-container').classList.remove('hidden');
         
-        db.ref('usuarios/' + user.uid + '/perfil').on('value', snap => {
-            const p = snap.val();
-            if(p) {
+db.ref('usuarios/' + user.uid + '/perfil').on('value', snap => {
+    const p = snap.val();
+    if(p) {
+        // ✅ Guardar email si no está en perfil
+        if(!p.email && user.email) {
+            db.ref('usuarios/' + user.uid + '/perfil').update({ email: user.email });
+        }
                 // ✅ VERIFICAR Y ACTUALIZAR SEMESTRE AUTOMÁTICAMENTE
                 verificarYActualizarSemestre(user.uid, p);
                 
@@ -2380,11 +2396,12 @@ if(p.fondoPersonalizado) {
             }
         });
         
-        cargarOrdenMenu();
-        escucharDatosMaterias();
-        escucharHorario(); 
-        escucharPendientes(); 
-        escucharForo();
+cargarOrdenMenu();
+escucharDatosMaterias();
+escucharHorario(); 
+escucharPendientes(); 
+escucharForo();
+escucharSolicitudesProyecto();
                 console.log("Configuración cargada");
                 cargarConfiguracion();
         cargarInicio();
@@ -3042,9 +3059,44 @@ function renderPendientes() {
                     </div>
                 </div>`;
         });
+        // ==================== SOLICITUDES DE PROYECTO ====================
+        const solicitudes = window._solicitudesProyecto || [];
+        if(solicitudes.length > 0) {
+            container.innerHTML += `
+                <div class="col-span-full flex items-center gap-3 mt-6 mb-1">
+                    <div class="w-3 h-3 rounded-full flex-shrink-0 animate-pulse" style="background:#f59e0b; box-shadow:0 0 8px #f59e0b"></div>
+                    <span class="text-xs font-black uppercase tracking-widest" style="color:#f59e0b">Solicitudes de Proyecto</span>
+                    <div class="flex-1 h-px" style="background:#f59e0b40"></div>
+                    <span class="text-[10px] font-bold text-slate-500">${solicitudes.length} pendiente(s)</span>
+                </div>
+            `;
+            
+            solicitudes.forEach(s => {
+                container.innerHTML += `
+                    <div class="card border-l-4 border-amber-500 bg-amber-500/5 p-5 animate-in">
+                        <div class="mb-3">
+                            <span class="bg-amber-500/20 text-amber-400 text-[9px] font-black px-2 py-1 rounded uppercase">📨 Solicitud</span>
+                        </div>
+                        <h4 class="text-lg font-black italic mb-1">${s.proyectoNombre}</h4>
+                        <p class="text-xs text-slate-400 mb-1">De: <span class="text-white font-bold">${s.solicitanteNombre}</span></p>
+                        <p class="text-xs text-slate-400 mb-4">📅 Entrega: ${s.fecha}</p>
+                        <div class="flex gap-3">
+                            <button onclick="responderSolicitud('${s.key}', false)" 
+                                    class="flex-1 bg-white/10 hover:bg-white/20 text-white font-black p-3 rounded-xl uppercase text-xs transition">
+                                ✕ Rechazar
+                            </button>
+                            <button onclick="responderSolicitud('${s.key}', true)" 
+                                    class="flex-1 bg-emerald-500 hover:bg-emerald-400 text-white font-black p-3 rounded-xl uppercase text-xs transition">
+                                ✓ Aceptar
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
         return;
     }
-
     // ==================== RECORDATORIOS + EXAMENES (sin cambios) ====================
     if(currentPendienteTab === 'recordatorios') {
         const examenes = filtrados.filter(p => p.type === 'examen').sort((a,b) => {
@@ -3366,9 +3418,7 @@ function verDetallePendiente(id) {
     
     // ✅ AGREGAR OVERFLOW Y MAX-HEIGHT
     const contentDiv = document.getElementById('form-content');
-    contentDiv.style.maxHeight = '70vh';
-    contentDiv.style.overflowY = 'auto';
-    contentDiv.style.overflowX = 'hidden';
+
     // Construir sección de archivos con imágenes grandes
     let archivosHTML = '';
     if(p.archivos && p.archivos.length > 0) {
@@ -3726,9 +3776,7 @@ function abrirEditorMateria(id) {
         </div>
     `;
     const contentDiv = document.getElementById('form-content');
-contentDiv.style.maxHeight = '65vh';
-contentDiv.style.overflowY = 'auto';
-contentDiv.style.overflowX = 'hidden';
+
 document.getElementById('form-content').innerHTML = html;
 }
 
@@ -4375,28 +4423,42 @@ function setPendienteForm(type) {
         `;
         toggleRecordatorioSub('recordatorio');
     }
-    else if (type === 'proyecto') {
-        container.innerHTML = `
-            <input type="text" id="pen-nombre" placeholder="Nombre del Proyecto" class="mb-2">
-            <select id="pen-materia" class="mb-3" onchange="actualizarCheckEntregaVirtual()">${opts}</select>
+else if (type === 'proyecto') {
+    container.innerHTML = `
+        <input type="text" id="pen-nombre" placeholder="Nombre del Proyecto" class="mb-2">
+        <select id="pen-materia" class="mb-3" onchange="actualizarCheckEntregaVirtual()">${opts}</select>
 
-            <div id="label-entrega-virtual" class="mb-4 p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 opacity-50">
-                <div class="flex items-center gap-3">
-                    <input type="checkbox" id="pen-entrega-virtual" class="w-4 h-4 accent-orange-500" disabled>
-                    <div>
-                        <p class="text-xs font-bold text-orange-400">🖥️ Entrega Virtual (Ceti Virtual)</p>
-                        <p id="entrega-virtual-hint" class="text-[10px] text-slate-500 mt-1">Selecciona una materia con link configurado</p>
-                    </div>
+        <div id="label-entrega-virtual" class="mb-4 p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 opacity-50">
+            <div class="flex items-center gap-3">
+                <input type="checkbox" id="pen-entrega-virtual" class="w-4 h-4 accent-orange-500" disabled>
+                <div>
+                    <p class="text-xs font-bold text-orange-400">🖥️ Entrega Virtual (Ceti Virtual)</p>
+                    <p id="entrega-virtual-hint" class="text-[10px] text-slate-500 mt-1">Selecciona una materia con link configurado</p>
                 </div>
             </div>
+        </div>
 
-            <div class="mb-5">
-                <label class="text-[8px] text-slate-500 font-bold uppercase ml-2 mb-2 block">Fecha de Entrega</label>
-                <input type="date" id="pen-fecha" class="mb-2">
+        <div class="mb-5">
+            <label class="text-[8px] text-slate-500 font-bold uppercase ml-2 mb-2 block">Fecha de Entrega</label>
+            <input type="date" id="pen-fecha" class="mb-2">
+        </div>
+        <textarea id="pen-extra" placeholder="Materiales (Opcional)" rows="2" class="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white text-xs mb-4"></textarea>
+
+        <!-- SUBTAREAS -->
+        <div class="mb-4 p-4 bg-white/5 rounded-xl border border-white/10">
+            <div class="flex items-center justify-between mb-3">
+                <label class="text-[9px] font-bold uppercase text-slate-500">Pasos del Proyecto</label>
+                <button onclick="agregarSubtarea()" type="button" class="text-xs font-bold px-3 py-1 rounded-lg hover:bg-white/10 transition" style="color: var(--color-principal)">
+                    + Agregar Paso
+                </button>
             </div>
-            <textarea id="pen-extra" placeholder="Materiales (Opcional)" rows="2" class="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white text-xs"></textarea>
-        `;
-    }
+            <div id="lista-subtareas" class="space-y-2">
+                <p class="text-xs text-slate-500 text-center py-4">No hay pasos agregados</p>
+            </div>
+        </div>
+    `;
+    subtareasTemp = [];
+}
 
     setTimeout(() => {
         actualizarCheckEntregaVirtual();
@@ -4666,21 +4728,25 @@ function guardarPendiente() {
             closeModal();
         });
     }
-    else if (currentPendienteType === 'proyecto') {
-        data.type = 'proyecto';
-        data.nombre = document.getElementById('pen-nombre').value; 
-        data.materiaId = document.getElementById('pen-materia').value; 
-        data.fecha = document.getElementById('pen-fecha').value;
-        data.materiales = document.getElementById('pen-extra').value;
-        data.entregaVirtual = document.getElementById('pen-entrega-virtual')?.checked || false;
-        
-        if(!data.nombre || !data.materiaId || !data.fecha) return showAlert("❌ Completa todos los campos", "Error");
-        
-        db.ref('usuarios/'+auth.currentUser.uid+'/pendientes').push(data).then(() => {
-            showAlert('✅ Proyecto guardado correctamente', 'Éxito');
-            closeModal();
-        });
-    }
+else if (currentPendienteType === 'proyecto') {
+    data.type = 'proyecto';
+    data.nombre = document.getElementById('pen-nombre').value; 
+    data.materiaId = document.getElementById('pen-materia').value; 
+    data.fecha = document.getElementById('pen-fecha').value;
+    data.materiales = document.getElementById('pen-extra').value;
+    data.entregaVirtual = document.getElementById('pen-entrega-virtual')?.checked || false;
+    data.subtareas = subtareasTemp || [];
+    data.colaboradores = [];
+    data.progreso = 0;
+    
+    if(!data.nombre || !data.materiaId || !data.fecha) return showAlert("❌ Completa todos los campos", "Error");
+    
+    db.ref('usuarios/'+auth.currentUser.uid+'/pendientes').push(data).then(() => {
+        showAlert('✅ Proyecto guardado correctamente', 'Éxito');
+        closeModal();
+        subtareasTemp = [];
+    });
+}
 }
 // Inicializar datepickers con restricción de semestres
 function initDatePickers() {
@@ -5578,15 +5644,14 @@ function dragEnd() {
 function abrirEditorPendiente(id) {
    const p = pendientesData.find(item => item.key === id);
     if(!p) return;
-    
+     // Reset subtareas para proyectos
+    subtareasTemp = p.subtareas ? [...p.subtareas] : [];
     document.getElementById('modal-add').style.display = 'flex';
     document.getElementById('modal-title').innerText = "✏️ Editar " + getTipoLabel(p.type);
     
     // ✅ AGREGAR OVERFLOW Y MAX-HEIGHT
     const contentDiv = document.getElementById('form-content');
-    contentDiv.style.maxHeight = '70vh';
-    contentDiv.style.overflowY = 'auto';
-    contentDiv.style.overflowX = 'hidden';
+
     // Selector de materias
     let optsMateria = `<option value="">General (sin materia)</option>`;
     for(let k in materiasCache) {
@@ -5709,6 +5774,8 @@ function abrirEditorPendiente(id) {
         `;
     }
 else if(p.type === 'proyecto') {
+    subtareasTemp = p.subtareas ? [...p.subtareas] : [];
+    
     html = `
         <div class="mb-4">
             <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Nombre del Proyecto</label>
@@ -5731,17 +5798,28 @@ else if(p.type === 'proyecto') {
                 </div>
             </div>
         </div>
-            <div class="mb-4">
-                <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Fecha</label>
-                <input type="date" id="edit-fecha" value="${p.fecha || ''}">
+
+        <div class="mb-4">
+            <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Fecha</label>
+            <input type="date" id="edit-fecha" value="${p.fecha || ''}">
+        </div>
+        
+        <div class="mb-4">
+            <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Materiales Necesarios</label>
+            <textarea id="edit-desc" rows="3" placeholder="Lista de materiales..." class="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm">${p.materiales || ''}</textarea>
+        </div>
+
+        <div class="mb-4 p-4 bg-white/5 rounded-xl border border-white/10">
+            <div class="flex items-center justify-between mb-3">
+                <label class="text-[9px] font-bold uppercase text-slate-500">Pasos del Proyecto</label>
+                <button onclick="agregarSubtarea()" type="button" class="text-xs font-bold px-3 py-1 rounded-lg hover:bg-white/10 transition" style="color: var(--color-principal)">
+                    + Agregar Paso
+                </button>
             </div>
-            
-            <div class="mb-4">
-                <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Materiales Necesarios</label>
-                <textarea id="edit-desc" rows="4" placeholder="Lista de materiales..." class="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm">${p.materiales || ''}</textarea>
-            </div>
-        `;
-    }
+            <div id="lista-subtareas" class="space-y-2"></div>
+        </div>
+    `;
+}
     else if(p.type === 'examen') {
         html = `
             <div class="mb-4">
@@ -5772,7 +5850,10 @@ else if(p.type === 'proyecto') {
 document.getElementById('form-content').innerHTML = html;
 setTimeout(() => {
     initDatePickers();
-    actualizarCheckEntregaVirtualEdit(); // ✅ LLAMAR AQUÍ
+    actualizarCheckEntregaVirtualEdit();
+    if(p.type === 'proyecto') {
+        renderizarSubtareas();
+    }
 }, 100);
 }
 function previsualizarArchivosEdit(input, numActuales) {
@@ -5905,7 +5986,14 @@ function guardarEdicionPendiente(id) {
             updates.desc = descValue;
         }
     }
-    
+        // Guardar subtareas actualizadas si es proyecto
+    if(p.type === 'proyecto') {
+        updates.subtareas = subtareasTemp || [];
+        const completadas = updates.subtareas.filter(st => st.completada).length;
+        updates.progreso = updates.subtareas.length > 0 
+            ? Math.round((completadas / updates.subtareas.length) * 100) 
+            : 0;
+    }
     // Manejar archivos nuevos
     const archivoInput = document.getElementById('edit-archivo');
     const archivosNuevos = archivoInput ? archivoInput.files : [];
@@ -5977,16 +6065,15 @@ function eliminarPendiente(id) {
         closeModal();
     }
 }
-// Variable global para gestión de proyectos
-let proyectoEnEdicion = null;
-let subtareasTemp = [];
 
 function abrirCreadorProyecto() {
-    document.getElementById('modal-add').style.display = 'flex';
-    document.getElementById('modal-title').innerText = "🚀 Nuevo Proyecto";
-    
-    subtareasTemp = []; // Resetear subtareas
-    
+    try {
+        subtareasTemp = [];
+        colaboradoresTemp = [];
+        
+        document.getElementById('modal-add').style.display = 'flex';
+        document.getElementById('modal-title').innerText = "🚀 Nuevo Proyecto";
+
     let opts = `<option value="" disabled selected>Selecciona materia</option>`;
     for(let k in materiasCache) opts += `<option value="${k}">${materiasCache[k].nombre}</option>`;
     
@@ -5998,7 +6085,7 @@ function abrirCreadorProyecto() {
         
         <div class="mb-4">
             <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Materia</label>
-            <select id="proyecto-materia" onchange="actualizarCheckEntregaVirtual()">
+            <select id="pen-materia" onchange="actualizarCheckEntregaVirtual()">
                 ${opts}
             </select>
         </div>
@@ -6015,7 +6102,7 @@ function abrirCreadorProyecto() {
 
         <div class="mb-4">
             <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Fecha de Entrega</label>
-            <input type="date" id="proyecto-fecha">
+            <input type="date" id="pen-fecha">
         </div>
         
         <div class="mb-4">
@@ -6054,11 +6141,17 @@ function abrirCreadorProyecto() {
         </button>
     `;
     
-    document.getElementById('form-content').innerHTML = html;
-    setTimeout(() => {
-        actualizarCheckEntregaVirtual();
-        initDatePickers();
-    }, 100);
+document.getElementById('form-content').innerHTML = html;
+        setTimeout(() => {
+            actualizarCheckEntregaVirtual();
+            initDatePickers();
+        }, 100);
+    } catch(e) {
+        console.error('Error en abrirCreadorProyecto:', e);
+        document.getElementById('form-content').innerHTML = `
+            <p class="text-rose-400 text-sm font-bold text-center p-4">❌ Error: ${e.message}</p>
+        `;
+    }
 }
 
 function agregarSubtarea() {
@@ -6133,7 +6226,7 @@ function buscarColaborador() {
     const modal = document.getElementById('custom-alert');
     document.getElementById('alert-title').innerText = 'Buscar Colaborador';
     document.getElementById('alert-text').innerHTML = `
-        <input type="text" id="input-buscar-colab" placeholder="Nombre del compañero..." class="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm mb-3">
+        <input type="text" id="input-buscar-colab" placeholder="Nombre o correo (@ceti.mx)..." class="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm mb-3">
         <div id="resultados-busqueda" class="max-h-40 overflow-y-auto space-y-2"></div>
     `;
     document.getElementById('alert-buttons').innerHTML = `
@@ -6150,44 +6243,52 @@ function buscarColaborador() {
     modal.style.display = 'flex';
 }
 
-let colaboradoresTemp = [];
-
 function realizarBusqueda() {
-    const nombre = document.getElementById('input-buscar-colab').value.trim().toLowerCase();
-    if(!nombre) return showAlert('❌ Ingresa un nombre', 'Error');
+    const query = document.getElementById('input-buscar-colab').value.trim().toLowerCase();
+    if(!query) return showAlert('❌ Ingresa un nombre o correo', 'Error');
     
-    // Obtener mi grupo
-    db.ref('usuarios/' + auth.currentUser.uid + '/perfil').once('value', snapMio => {
-        const miPerfil = snapMio.val();
-        const miGrupo = miPerfil.grupo;
-        const miSemestre = miPerfil.semestre;
+    const esCorreo = query.includes('@');
+    
+    // Mostrar loading
+    document.getElementById('resultados-busqueda').innerHTML = `
+        <p class="text-xs text-slate-500 text-center py-3">🔍 Buscando...</p>
+    `;
+    
+    db.ref('usuarios').once('value', snap => {
+        const resultados = [];
         
-        // Buscar en TODOS los usuarios
-        db.ref('usuarios').once('value', snap => {
-            const resultados = [];
+        snap.forEach(child => {
+            const uid = child.key;
+            const data = child.val();
+            const perfil = data.perfil;
             
-            snap.forEach(child => {
-                const uid = child.key;
-                const perfil = child.val().perfil;
-                
-                if(!perfil || uid === auth.currentUser.uid) return; // Saltar si soy yo mismo
-                
-                const nombreCompleto = `${perfil.nombre} ${perfil.apellido}`.toLowerCase();
-                
-                // Buscar coincidencia y mismo grupo/semestre
-                if(nombreCompleto.includes(nombre) && 
-                   perfil.grupo === miGrupo && 
-                   perfil.semestre === miSemestre) {
-                    resultados.push({
-                        uid: uid,
-                        nombre: `${perfil.nombre} ${perfil.apellido}`,
-                        grupo: perfil.grupo
-                    });
-                }
-            });
+            if(!perfil || uid === auth.currentUser.uid) return;
             
-            mostrarResultadosBusqueda(resultados);
+            const nombreCompleto = `${perfil.nombre || ''} ${perfil.apellido || ''}`.toLowerCase();
+            
+            // Buscar por correo (exacto) o por nombre (parcial)
+            let coincide = false;
+            if(esCorreo) {
+                // Buscar por email — guardado en auth, no en perfil directamente
+                // Usamos el campo email si existe en perfil, o buscamos en auth
+                const emailPerfil = (perfil.email || '').toLowerCase();
+                coincide = emailPerfil.includes(query);
+            } else {
+                coincide = nombreCompleto.includes(query);
+            }
+            
+            if(coincide) {
+                resultados.push({
+                    uid: uid,
+                    nombre: `${perfil.nombre} ${perfil.apellido}`,
+                    grupo: perfil.grupo || '?',
+                    semestre: perfil.semestre || '?',
+                    nivel: perfil.nivel || ''
+                });
+            }
         });
+        
+        mostrarResultadosBusqueda(resultados);
     });
 }
 
@@ -6195,17 +6296,21 @@ function mostrarResultadosBusqueda(resultados) {
     const container = document.getElementById('resultados-busqueda');
     
     if(resultados.length === 0) {
-        container.innerHTML = '<p class="text-xs text-slate-500 text-center py-3">No se encontraron compañeros</p>';
+        container.innerHTML = '<p class="text-xs text-slate-500 text-center py-3">No se encontraron usuarios</p>';
         return;
     }
     
     container.innerHTML = resultados.map(r => `
-        <div class="flex items-center justify-between bg-white/5 p-3 rounded-lg">
+        <div class="flex items-center justify-between bg-white/5 p-3 rounded-lg border border-white/5">
             <div>
                 <p class="text-sm font-bold">${r.nombre}</p>
-                <p class="text-[10px] text-slate-400">Grupo ${r.grupo}</p>
+                <p class="text-[10px] text-slate-400">
+                    ${r.nivel ? r.nivel.charAt(0).toUpperCase() + r.nivel.slice(1) : ''} • 
+                    ${r.semestre}° Sem • Grupo ${r.grupo}
+                </p>
             </div>
-            <button onclick='agregarColaborador(${JSON.stringify(r)})' class="text-xs font-bold px-3 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400">
+            <button onclick='agregarColaborador(${JSON.stringify(r)})' 
+                    class="text-xs font-bold px-3 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 shrink-0">
                 + Agregar
             </button>
         </div>
@@ -6249,38 +6354,99 @@ function eliminarColaborador(idx) {
 }
 
 function guardarProyectoCompleto() {
-    const nombre = document.getElementById('proyecto-nombre').value.trim();
-    const materiaId = document.getElementById('proyecto-materia').value;
-    const fecha = document.getElementById('proyecto-fecha').value;
-    const materiales = document.getElementById('proyecto-materiales').value;
+const nombre = document.getElementById('proyecto-nombre').value.trim();
+const materiaId = document.getElementById('pen-materia').value;
+const fecha = document.getElementById('pen-fecha').value;
+const materiales = document.getElementById('proyecto-materiales').value;
     const entregaVirtual = document.getElementById('pen-entrega-virtual')?.checked || false;
     
     if(!nombre || !materiaId || !fecha) {
         return showAlert('❌ Completa los campos obligatorios', 'Error');
     }
     
-    if(subtareasTemp.length === 0) {
-        return showAlert('❌ Agrega al menos una subtarea', 'Error');
-    }
+const data = {
+    type: 'proyecto',
+    nombre: nombre,
+    materiaId: materiaId,
+    fecha: fecha,
+    materiales: materiales,
+    entregaVirtual: entregaVirtual,
+    subtareas: subtareasTemp,
+    colaboradores: colaboradoresTemp,
+    progreso: 0,
+    completadoEn: null
+};
+
+db.ref('usuarios/' + auth.currentUser.uid + '/pendientes').push(data).then(ref => {
+    const proyectoId = ref.key;
     
-    const data = {
-        type: 'proyecto',
-        nombre: nombre,
-        materiaId: materiaId,
-        fecha: fecha,
-        materiales: materiales,
-        entregaVirtual: entregaVirtual,
-        subtareas: subtareasTemp,
-        colaboradores: colaboradoresTemp,
-        progreso: 0,
-        completadoEn: null
-    };
+    // Enviar solicitud a cada colaborador
+    const uid = auth.currentUser.uid;
+    db.ref('usuarios/' + uid + '/perfil').once('value', snapPerfil => {
+        const miPerfil = snapPerfil.val();
+        const miNombre = `${miPerfil.nombre} ${miPerfil.apellido}`;
+        
+        colaboradoresTemp.forEach(colab => {
+            db.ref('usuarios/' + colab.uid + '/solicitudes_proyecto').push({
+                proyectoId: proyectoId,
+                proyectoNombre: nombre,
+                fecha: fecha,
+                solicitanteUid: uid,
+                solicitanteNombre: miNombre,
+                estado: 'pendiente',
+                timestamp: Date.now()
+            });
+        });
+    });
     
-    db.ref('usuarios/' + auth.currentUser.uid + '/pendientes').push(data).then(() => {
-        showAlert('✅ Proyecto creado exitosamente', 'Éxito');
-        closeModal();
-        subtareasTemp = [];
-        colaboradoresTemp = [];
+    showAlert('✅ Proyecto creado exitosamente', 'Éxito');
+    closeModal();
+    subtareasTemp = [];
+    colaboradoresTemp = [];
+});
+}
+function escucharSolicitudesProyecto() {
+    db.ref('usuarios/' + auth.currentUser.uid + '/solicitudes_proyecto').on('value', snap => {
+        const solicitudes = [];
+        if(snap.exists()) {
+            snap.forEach(c => {
+                if(c.val().estado === 'pendiente') {
+                    solicitudes.push({...c.val(), key: c.key});
+                }
+            });
+        }
+        window._solicitudesProyecto = solicitudes;
+        // Re-render si estamos en la pestaña de proyectos
+        if(currentPendienteTab === 'proyectos') renderPendientes();
+    });
+}
+
+function responderSolicitud(key, aceptar) {
+    const solicitud = (window._solicitudesProyecto || []).find(s => s.key === key);
+    if(!solicitud) return;
+    
+    const uid = auth.currentUser.uid;
+    
+    db.ref('usuarios/' + uid + '/solicitudes_proyecto/' + key).update({
+        estado: aceptar ? 'aceptada' : 'rechazada'
+    }).then(() => {
+        if(aceptar) {
+            // Copiar el proyecto al pendientes del usuario
+            db.ref('usuarios/' + solicitud.solicitanteUid + '/pendientes/' + solicitud.proyectoId)
+              .once('value', snapProyecto => {
+                const proyecto = snapProyecto.val();
+                if(proyecto) {
+                    db.ref('usuarios/' + uid + '/pendientes').push({
+                        ...proyecto,
+                        esColaborador: true,
+                        propietarioUid: solicitud.solicitanteUid
+                    });
+                }
+            });
+            showAlert('✅ Proyecto aceptado y agregado a tus pendientes', 'Éxito');
+        } else {
+            showAlert('❌ Solicitud rechazada', 'Info');
+        }
     });
 }
 function verDetalleProyecto(id) {
@@ -6326,20 +6492,28 @@ function verDetalleProyecto(id) {
         <div class="mb-4">
             <label class="text-[9px] font-bold uppercase text-slate-500 ml-1 mb-2 block">✅ Pasos del Proyecto (${completadas}/${subtareas.length})</label>
             <div class="space-y-2">
+
                 ${subtareas.map((st, idx) => `
-                    <div class="flex items-center gap-3 p-3 rounded-xl ${st.completada ? 'bg-emerald-500/10 border border-emerald-500/30' : 'bg-white/5 border border-white/10'} transition">
-                        <input type="checkbox" 
-                               ${st.completada ? 'checked' : ''} 
-                               onchange="toggleSubtarea('${id}', ${idx})"
-                               class="w-5 h-5 accent-emerald-500 cursor-pointer">
-                        <div class="flex-1">
-                            <p class="text-sm font-bold ${st.completada ? 'line-through opacity-50' : ''}">${st.nombre}</p>
-                            ${st.entregaVirtual ? '<p class="text-[10px] text-orange-400 mt-1">🖥️ Requiere entrega virtual</p>' : ''}
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
+    <div class="flex items-center gap-3 p-3 rounded-xl ${st.completada ? 'bg-emerald-500/10 border border-emerald-500/30' : 'bg-white/5 border border-white/10'} transition">
+        <input type="checkbox" 
+               ${st.completada ? 'checked' : ''} 
+               onchange="toggleSubtarea('${id}', ${idx})"
+               class="w-5 h-5 accent-emerald-500 cursor-pointer">
+        <div class="flex-1">
+            <p class="text-sm font-bold ${st.completada ? 'line-through opacity-50' : ''}">${st.nombre}</p>
+            ${st.entregaVirtual && materia && materia.linkCetiVirtual ? `
+                <a href="${materia.linkCetiVirtual}" target="_blank" 
+                   onclick="event.stopPropagation()"
+                   class="inline-flex items-center gap-1 mt-1 text-[10px] font-bold text-orange-400 hover:text-orange-300 bg-orange-500/10 hover:bg-orange-500/20 px-2 py-1 rounded-lg transition cursor-pointer">
+                    🖥️ Abrir en Ceti Virtual ↗
+                </a>
+            ` : st.entregaVirtual ? `
+                <p class="text-[10px] text-orange-400/50 mt-1">🖥️ Requiere entrega virtual (sin link configurado)</p>
+            ` : ''}
         </div>
+    </div>
+`).join('')}
+            </div>
         
         ${p.colaboradores && p.colaboradores.length > 0 ? `
         <div class="mb-4 p-3 bg-purple-500/5 rounded-xl border border-purple-500/20">
