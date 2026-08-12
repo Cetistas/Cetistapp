@@ -3,8 +3,8 @@
   "short_name": "Cetistapp",
   "icons": [
     {
-      "src": "favicon.png",
-      "sizes": "500x525",
+      "src": "icon-512.png",
+      "sizes": "512x512",
       "type": "image/png"
     }
   ],
