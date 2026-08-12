@@ -3,7 +3,7 @@
   "short_name": "Cetistapp",
   "icons": [
     {
-      "src": "icon-512.png",
+      "src": "https://cetistas.github.io/Cetistapp/favicon.png",
       "sizes": "512x512",
       "type": "image/png"
     }
