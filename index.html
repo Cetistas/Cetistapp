@@ -22,6 +22,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-messaging.js"></script>
 
     <style>
 /* ===== SIDEBAR MODES ===== */
@@ -1304,6 +1305,7 @@ body.light-mode .flatpickr-day.disabled:hover {
         <div data-id="pen" onclick="show('pen')" id="btn-pen" class="nav-btn"><span>📌</span> <span class="nav-label">Pendientes</span></div>
         <div data-id="for" onclick="show('for')" id="btn-for" class="nav-btn"><span>💬</span> <span class="nav-label">Foro</span></div>
         <div data-id="cod" onclick="show('cod')" id="btn-cod" class="nav-btn"><span>🔗</span> <span class="nav-label">Códigos</span></div>
+        <div data-id="inv" onclick="show('inv')" id="btn-inv" class="nav-btn"><span>🗃️</span> <span class="nav-label">Inventario</span></div>
     </nav>
 <div class="mt-auto pt-6 border-t border-white/10">
    <div data-id="cfg" onclick="show('cfg')" id="btn-cfg" class="nav-btn">
@@ -1662,6 +1664,18 @@ body.light-mode .flatpickr-day.disabled:hover {
         </ul>
     </div>
 </section>
+
+<section id="sec-inv" class="hidden">
+    <header class="mb-8">
+        <h2 class="text-5xl font-black italic tracking-tighter">Inventario</h2>
+        <p class="text-slate-400 text-xs mt-2 font-bold uppercase tracking-widest">Materiales y herramientas escolares</p>
+    </header>
+    <div class="card p-8 text-center">
+        <p class="text-2xl font-black italic mb-4 opacity-50">🗃️ Inventario vacío</p>
+        <p class="text-sm text-slate-400">Aquí podrás registrar tus materiales, herramientas y recursos escolares.</p>
+    </div>
+</section>
+
 <section id="sec-cfg" class="hidden">
     <header class="mb-8">
         <h2 class="text-5xl font-black italic tracking-tighter">Configuración</h2>
@@ -1739,6 +1753,18 @@ body.light-mode .flatpickr-day.disabled:hover {
         </button>
     </div>
 </div>
+        <!-- NOTIFICACIONES -->
+        <div class="card border-l-4 border-emerald-500 bg-emerald-500/5">
+            <h3 class="text-emerald-500 font-black uppercase text-xs mb-3">🔔 Notificaciones</h3>
+            <p id="notifications-status" class="text-xs text-slate-400 leading-relaxed mb-4">
+                Activa los avisos para recibir recordatorios y novedades aunque Cetistapp esté cerrada.
+            </p>
+            <button onclick="activarNotificaciones()" id="notifications-button"
+                    class="w-full bg-emerald-500 text-slate-950 font-black px-6 py-3 rounded-xl uppercase text-xs hover:bg-emerald-400 transition">
+                Activar notificaciones
+            </button>
+        </div>
+
         <!-- FOTO DE PERFIL -->
         <div class="card border-l-4 border-purple-500 bg-purple-500/5">
             <h3 class="text-purple-500 font-black uppercase text-xs mb-6">📸 Foto de Perfil</h3>
@@ -1870,6 +1896,65 @@ body.light-mode .flatpickr-day.disabled:hover {
         firebase.initializeApp(config);
         const auth = firebase.auth();
         const db = firebase.database();
+        const messaging = firebase.messaging.isSupported() ? firebase.messaging() : null;
+
+        // La clave pública VAPID se obtiene en Firebase Console > Cloud Messaging > Web Push certificates.
+        // Déjala vacía hasta configurarla: la app mostrará una indicación en lugar de pedir permisos.
+        const NOTIFICATIONS_CONFIG = {
+            vapidKey: 'BIFLfB3-aZtUqDA_8qB66Jd9Ox688tmkZPzXQVx0pOA8J7ZYSh2wSGjxZl-IiZ_F4kqHJyDofwLpMyURX9N4LIs'
+        };
+
+        async function activarNotificaciones() {
+            const status = document.getElementById('notifications-status');
+            const button = document.getElementById('notifications-button');
+
+            if (!('Notification' in window) || !('serviceWorker' in navigator) || !messaging) {
+                status.textContent = 'Este navegador no admite notificaciones web.';
+                return;
+            }
+            if (!NOTIFICATIONS_CONFIG.vapidKey) {
+                status.textContent = 'Falta configurar la clave VAPID de Firebase para activar este servicio.';
+                return;
+            }
+
+            button.disabled = true;
+            button.textContent = 'Activando...';
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') {
+                    status.textContent = 'No concediste permiso. Puedes habilitarlo después desde la configuración del navegador.';
+                    return;
+                }
+
+                const registration = await navigator.serviceWorker.register('firebase-messaging-sw.js');
+                const token = await messaging.getToken({
+                    vapidKey: NOTIFICATIONS_CONFIG.vapidKey,
+                    serviceWorkerRegistration: registration
+                });
+                if (!token || !auth.currentUser) throw new Error('No se pudo registrar este dispositivo.');
+
+                await db.ref('usuarios/' + auth.currentUser.uid + '/dispositivos/' + token.replace(/[.#$\[\]/]/g, '_')).set({
+                    token: token,
+                    plataforma: navigator.userAgent,
+                    actualizadoEn: firebase.database.ServerValue.TIMESTAMP
+                });
+
+                status.textContent = 'Notificaciones activadas en este dispositivo.';
+                button.textContent = 'Notificaciones activadas';
+            } catch (error) {
+                console.error('Error al activar notificaciones:', error);
+                status.textContent = 'No fue posible activar las notificaciones. Inténtalo nuevamente.';
+                button.disabled = false;
+                button.textContent = 'Activar notificaciones';
+            }
+        }
+
+        if (messaging) {
+            messaging.onMessage(payload => {
+                const notification = payload.notification || {};
+                if (notification.title) showAlert(notification.body || '', notification.title);
+            });
+        }
         
         // Variables Globales
         let materiaParaBorrar = null;

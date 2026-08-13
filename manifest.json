@@ -1,12 +1,13 @@
 {
   "name": "Cetistapp",
   "short_name": "Cetistapp",
+  "id": "/Cetistapp/",
   "icons": [
     {
-      "src": "https://cetistas.github.io/Cetistapp/favicon.png",
+      "src": "favicon.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     }
   ],
   "start_url": "/Cetistapp/",
