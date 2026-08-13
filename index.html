@@ -9,6 +9,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Cetistapp">
 <link rel="apple-touch-icon" href="/Cetistapp/favicon.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/Cetistapp/favicon.png">
+<link rel="shortcut icon" href="/Cetistapp/favicon.png">
     <title>Cetistapp</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -256,6 +258,21 @@ body.light-mode ::-webkit-scrollbar-thumb {
             transform: translateY(-2px);
             background: rgba(255, 255, 255, 0.05);
             cursor: pointer;
+        }
+
+        /* Inventario: cada objeto conserva su propio espacio visual. */
+        #inventario-lista {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 16px;
+            align-items: stretch;
+        }
+        #inventario-lista .inventario-card {
+            position: relative;
+            display: flex;
+            min-width: 0;
+            margin: 0;
+            isolation: isolate;
         }
 
         .animate-in { animation: fadeIn 0.3s ease-out; }
@@ -1667,12 +1684,22 @@ body.light-mode .flatpickr-day.disabled:hover {
 
 <section id="sec-inv" class="hidden">
     <header class="mb-8">
-        <h2 class="text-5xl font-black italic tracking-tighter">Inventario</h2>
-        <p class="text-slate-400 text-xs mt-2 font-bold uppercase tracking-widest">Materiales y herramientas escolares</p>
+        <div class="flex items-center justify-between gap-4">
+            <div>
+                <h2 class="text-5xl font-black italic tracking-tighter">Inventario</h2>
+                <p class="text-slate-400 text-xs mt-2 font-bold uppercase tracking-widest">Materiales y herramientas escolares</p>
+            </div>
+            <button onclick="abrirModalInventario()" class="shrink-0 text-slate-950 font-black px-5 py-3 rounded-xl uppercase text-xs transition" style="background: var(--color-principal)">
+                + Añadir objeto
+            </button>
+        </div>
     </header>
-    <div class="card p-8 text-center">
-        <p class="text-2xl font-black italic mb-4 opacity-50">🗃️ Inventario vacío</p>
-        <p class="text-sm text-slate-400">Aquí podrás registrar tus materiales, herramientas y recursos escolares.</p>
+    <div id="inventario-faltantes" class="hidden mb-6"></div>
+    <div id="inventario-lista">
+        <div class="card p-8 text-center col-span-full">
+            <p class="text-2xl font-black italic mb-4 opacity-50">🗃️ Inventario vacío</p>
+            <p class="text-sm text-slate-400">Añade los materiales que tienes para usarlos en tus proyectos.</p>
+        </div>
     </div>
 </section>
 
@@ -1956,7 +1983,21 @@ body.light-mode .flatpickr-day.disabled:hover {
         if (messaging) {
             messaging.onMessage(payload => {
                 const notification = payload.notification || {};
-                if (notification.title) showAlert(notification.body || '', notification.title);
+                if (!notification.title) return;
+
+                // FCM muestra las notificaciones automáticamente cuando Cetistapp
+                // está en segundo plano. En primer plano la mostramos también
+                // como aviso nativo, no solo dentro de la página.
+                if (Notification.permission === 'granted') {
+                    new Notification(notification.title, {
+                        body: notification.body || '',
+                        icon: 'favicon.png',
+                        badge: 'favicon.png',
+                        tag: 'cetistapp-prueba'
+                    });
+                } else {
+                    showAlert(notification.body || '', notification.title);
+                }
             });
         }
 
@@ -2009,6 +2050,11 @@ let miGrupo = "";
 let proyectoEnEdicion = null;
 let subtareasTemp = [];
 let colaboradoresTemp = [];
+let inventarioData = [];
+let materialesProyectoTemp = [];
+let imagenInventarioPegada = null;
+let adjuntosExtraNuevo = [];
+let adjuntosExtraEdicion = [];
 
         // ===== SISTEMA DE ALERTAS Y CONFIRMACIONES PERSONALIZADAS =====
 function showAlert(message, title = 'Mensaje') {
@@ -2514,6 +2560,7 @@ cargarOrdenMenu();
 escucharDatosMaterias();
 escucharHorario(); 
 escucharPendientes(); 
+escucharInventario();
 escucharForo();
 escucharSolicitudesProyecto();
                 console.log("Configuración cargada");
@@ -2996,6 +3043,7 @@ function setupHorarioScrollbarSync() {
                     });
                 }
                 renderPendientes();
+                renderizarInventario();
             });
         }
         function setSort(type) {
@@ -3541,9 +3589,13 @@ function verDetallePendiente(id) {
                 <label class="text-[9px] font-bold uppercase text-slate-500 ml-1 mb-2 block">Archivos Adjuntos</label>
                 <div class="space-y-3">
                     ${p.archivos.map((archivo, idx) => {
+                        const esEnlace = archivo.tipo === 'enlace';
                         const esPdf = archivo.tipo === 'application/pdf';
                         const esImagen = archivo.tipo && archivo.tipo.startsWith('image/');
                         
+                        if(esEnlace) {
+                            return `<div class="flex items-center gap-3 bg-sky-500/10 border border-sky-500/20 p-4 rounded-xl"><span class="text-2xl">🔗</span><div class="flex-1 min-w-0"><p class="text-sm font-bold truncate">${archivo.nombre}</p><p class="text-xs text-slate-400 truncate">${archivo.base64}</p></div><a href="${archivo.base64}" target="_blank" rel="noopener" class="text-xs text-sky-300 font-bold uppercase">Abrir</a></div>`;
+                        }
                         if(esImagen) {
                             return `
                                 <div class="bg-white/5 rounded-xl overflow-hidden">
@@ -4466,6 +4518,7 @@ function renderFormularioPendiente() {
         let currentPendienteType = 'tarea'; let currentFechaType = 'proyecto';
 function setPendienteForm(type) {
     currentPendienteType = type;
+    if (type === 'tarea') adjuntosExtraNuevo = [];
     ['tarea','rec','proyecto'].forEach(t => {
         const btn = document.getElementById(`btn-p-${t}`);
         if(!btn) return;
@@ -4518,6 +4571,7 @@ function setPendienteForm(type) {
                         <span>Subir Archivos (Máx 3)</span>
                     </div>
                 </div>
+                <div tabindex="0" onpaste="pegarAdjunto(event, 'nuevo')" class="mt-2 p-3 rounded-xl border border-dashed border-white/20 text-xs text-slate-400 text-center">Pega aquí una imagen desde el portapapeles</div>
             </div>
         `;
     }
@@ -4722,7 +4776,7 @@ function previsualizarArchivos(input, labelId) {
     const container = document.getElementById('preview-archivos-container');
     
     if(input.files && input.files.length > 0) {
-        if(input.files.length > 3) {
+        if(input.files.length + adjuntosExtraNuevo.length > 3) {
             showAlert('❌ Solo puedes subir máximo 3 archivos', 'Error');
             input.value = '';
             return;
@@ -4731,8 +4785,9 @@ function previsualizarArchivos(input, labelId) {
         label.classList.add('has-file');
         label.innerHTML = `<span>✓</span><span>${input.files.length} archivo(s) seleccionado(s)</span>`;
         
-        // Mostrar previews
-        container.innerHTML = '';
+        // La lista unificada muestra archivos locales, enlaces e imágenes pegadas.
+        renderizarAdjuntosExtra('nuevo');
+        return;
         Array.from(input.files).forEach((file, idx) => {
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -4752,6 +4807,49 @@ function previsualizarArchivos(input, labelId) {
         });
     }
 }
+
+function obtenerAdjuntosExtra(modo) {
+    return modo === 'edicion' ? adjuntosExtraEdicion : adjuntosExtraNuevo;
+}
+
+function obtenerLimiteAdjuntos(modo) {
+    if (modo === 'edicion') return 3 - ((pendientesData.find(p => p.key === window._pendienteEditandoId)?.archivos || []).length);
+    return 3;
+}
+
+function renderizarAdjuntosExtra(modo) {
+    const extras = obtenerAdjuntosExtra(modo);
+    const contenedor = document.getElementById(modo === 'edicion' ? 'preview-archivos-edit-container' : 'preview-archivos-container');
+    if (!contenedor) return;
+    const archivosInput = document.getElementById(modo === 'edicion' ? 'edit-archivo' : 'pen-archivo');
+    const archivos = Array.from(archivosInput?.files || []);
+    contenedor.innerHTML = [...archivos.map(f => ({ nombre: f.name, tipo: f.type, local: true })), ...extras].map((archivo, indice) => `
+        <div class="flex items-center gap-2 bg-white/5 p-2 rounded text-xs">
+            <span>${archivo.tipo === 'enlace' ? '🔗' : archivo.tipo?.startsWith('image/') ? '🖼️' : '📄'}</span>
+            <span class="flex-1 truncate">${escaparTexto(archivo.nombre)}</span>
+            ${archivo.local ? '' : `<button type="button" onclick="eliminarAdjuntoExtra('${modo}', ${indice - archivos.length})" class="text-rose-400 font-black">×</button>`}
+        </div>`).join('');
+}
+
+function eliminarAdjuntoExtra(modo, indice) {
+    obtenerAdjuntosExtra(modo).splice(indice, 1);
+    renderizarAdjuntosExtra(modo);
+}
+
+function pegarAdjunto(event, modo) {
+    const imagen = Array.from(event.clipboardData?.items || []).find(item => item.type.startsWith('image/'));
+    if (!imagen) return;
+    event.preventDefault();
+    const extras = obtenerAdjuntosExtra(modo);
+    const archivos = document.getElementById(modo === 'edicion' ? 'edit-archivo' : 'pen-archivo')?.files.length || 0;
+    if (archivos + extras.length >= obtenerLimiteAdjuntos(modo)) return showAlert('❌ Máximo de 3 adjuntos', 'Adjuntos');
+    const archivo = imagen.getAsFile();
+    if (!archivo || archivo.size > 5 * 1024 * 1024) return showAlert('❌ La imagen pegada pesa más de 5 MB', 'Adjuntos');
+    const lector = new FileReader();
+    lector.onload = () => { extras.push({ base64: lector.result, nombre: 'Imagen pegada', tipo: archivo.type || 'image/png' }); renderizarAdjuntosExtra(modo); };
+    lector.readAsDataURL(archivo);
+}
+
 function guardarPendiente() {
     const data = { type: currentPendienteType };
     
@@ -4772,8 +4870,9 @@ function guardarPendiente() {
         }
         
         const guardar = (archivosData = []) => {
-            if(archivosData.length > 0) {
-                data.archivos = archivosData;
+            const adjuntos = [...archivosData, ...adjuntosExtraNuevo];
+            if(adjuntos.length > 0) {
+                data.archivos = adjuntos;
             }
             db.ref('usuarios/'+auth.currentUser.uid+'/pendientes').push(data).then(() => {
                 showAlert('✅ Tarea guardada correctamente', 'Éxito');
@@ -5758,6 +5857,8 @@ function dragEnd() {
 function abrirEditorPendiente(id) {
    const p = pendientesData.find(item => item.key === id);
     if(!p) return;
+    window._pendienteEditandoId = id;
+    adjuntosExtraEdicion = [];
      // Reset subtareas para proyectos
     subtareasTemp = p.subtareas ? [...p.subtareas] : [];
     document.getElementById('modal-add').style.display = 'flex';
@@ -5859,6 +5960,7 @@ function abrirEditorPendiente(id) {
                         <span>Agregar Archivos</span>
                     </div>
                 </div>
+                <div tabindex="0" onpaste="pegarAdjunto(event, 'edicion')" class="mt-2 p-3 rounded-xl border border-dashed border-white/20 text-xs text-slate-400 text-center">Pega aquí una imagen desde el portapapeles</div>
             </div>
             ` : `
             <div class="mb-4 bg-amber-500/10 border border-amber-500/30 p-3 rounded-xl">
@@ -5975,7 +6077,7 @@ function previsualizarArchivosEdit(input, numActuales) {
     const label = document.getElementById('edit-archivo-label');
     
     if(input.files && input.files.length > 0) {
-        const maxPermitidos = 3 - numActuales;
+        const maxPermitidos = 3 - numActuales - adjuntosExtraEdicion.length;
         
         if(input.files.length > maxPermitidos) {
             showAlert(`❌ Solo puedes agregar ${maxPermitidos} archivo(s) más`, 'Error');
@@ -5986,7 +6088,8 @@ function previsualizarArchivosEdit(input, numActuales) {
         label.classList.add('has-file');
         label.innerHTML = `<span>✓</span><span>${input.files.length} archivo(s) seleccionado(s)</span>`;
         
-        container.innerHTML = '';
+        renderizarAdjuntosExtra('edicion');
+        return;
         Array.from(input.files).forEach((file) => {
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -6114,9 +6217,10 @@ function guardarEdicionPendiente(id) {
     
     const guardar = (nuevosArchivosData = []) => {
         // Combinar archivos existentes con nuevos
-        if(nuevosArchivosData.length > 0) {
+        const adjuntosNuevos = [...nuevosArchivosData, ...adjuntosExtraEdicion];
+        if(adjuntosNuevos.length > 0) {
             const archivosActuales = p.archivos || [];
-            updates.archivos = [...archivosActuales, ...nuevosArchivosData];
+            updates.archivos = [...archivosActuales, ...adjuntosNuevos];
         }
         
         db.ref('usuarios/' + auth.currentUser.uid + '/pendientes/' + id).update(updates).then(() => {
@@ -6180,10 +6284,243 @@ function eliminarPendiente(id) {
     }
 }
 
+function normalizarMaterial(valor) {
+    return (valor || '').trim().toLocaleLowerCase('es-MX');
+}
+
+function escaparTexto(valor) {
+    const nodo = document.createElement('div');
+    nodo.textContent = valor || '';
+    return nodo.innerHTML;
+}
+
+function escucharInventario() {
+    db.ref('usuarios/' + auth.currentUser.uid + '/inventario').on('value', snap => {
+        inventarioData = [];
+        snap.forEach(child => inventarioData.push({ ...child.val(), key: child.key }));
+        renderizarInventario();
+        if (document.getElementById('materiales-proyecto-seleccionados')) renderizarMaterialesProyecto();
+    });
+}
+
+function calcularFaltantesInventario() {
+    const requeridos = {};
+    pendientesData.filter(p => p.type === 'proyecto' && !p.completadoEn).forEach(proyecto => {
+        (proyecto.materialesSeleccionados || []).forEach(material => {
+            const clave = material.inventarioId || ('texto:' + normalizarMaterial(material.nombre));
+            if (!requeridos[clave]) requeridos[clave] = { ...material, cantidad: 0 };
+            requeridos[clave].cantidad += Number(material.cantidad) || 0;
+        });
+    });
+    return Object.values(requeridos).map(material => {
+        const objeto = material.inventarioId ? inventarioData.find(i => i.key === material.inventarioId) : null;
+        const disponible = objeto ? Number(objeto.cantidad) || 0 : 0;
+        return { ...material, disponible, faltante: Math.max(0, material.cantidad - disponible) };
+    }).filter(material => material.faltante > 0);
+}
+
+function renderizarInventario() {
+    const lista = document.getElementById('inventario-lista');
+    const faltantesContenedor = document.getElementById('inventario-faltantes');
+    if (!lista || !faltantesContenedor) return;
+    const faltantes = calcularFaltantesInventario();
+
+    faltantesContenedor.classList.toggle('hidden', faltantes.length === 0);
+    faltantesContenedor.innerHTML = faltantes.length ? `
+        <div class="card border-l-4 border-rose-500 bg-rose-500/5 p-5">
+            <h3 class="text-rose-400 font-black uppercase text-xs mb-3">⚠️ Materiales faltantes</h3>
+            <div class="space-y-2">${faltantes.map(m => `
+                <div class="flex items-center justify-between gap-3 text-sm">
+                    <span class="font-bold">${escaparTexto(m.nombre)}</span>
+                    <span class="text-rose-300 text-xs font-black">Faltan ${m.faltante} · Tienes ${m.disponible}</span>
+                </div>`).join('')}</div>
+        </div>` : '';
+
+    if (!inventarioData.length) {
+        lista.innerHTML = `<div class="card p-8 text-center col-span-full"><p class="text-2xl font-black italic mb-4 opacity-50">🗃️ Inventario vacío</p><p class="text-sm text-slate-400">Añade los materiales que tienes para usarlos en tus proyectos.</p></div>`;
+        return;
+    }
+    lista.innerHTML = inventarioData.map(item => `
+        <article class="inventario-card card p-4 gap-4 overflow-hidden">
+            <div class="w-16 h-16 shrink-0 rounded-xl overflow-hidden bg-white/5 flex items-center justify-center text-2xl">
+                ${item.imagen ? `<img src="${item.imagen}#inv-${item.key}-${item.imagenVersion || 0}" alt="" class="w-full h-full object-cover">` : '🧰'}
+            </div>
+            <div class="min-w-0 flex-1">
+                <div class="flex justify-between gap-2"><h3 class="font-black truncate">${escaparTexto(item.nombre)}</h3><span class="text-xs font-black px-2 py-1 rounded-lg bg-white/10">${Number(item.cantidad) || 0}</span></div>
+                ${item.descripcion ? `<p class="text-xs text-slate-400 mt-1 line-clamp-2">${escaparTexto(item.descripcion)}</p>` : '<p class="text-xs text-slate-500 mt-1">Sin descripción</p>'}
+                <div class="flex gap-3 mt-3"><button onclick="abrirEditorInventario('${item.key}')" class="text-[10px] text-sky-300 font-black uppercase hover:text-sky-200">Editar</button><button onclick="eliminarObjetoInventario('${item.key}')" class="text-[10px] text-rose-400 font-black uppercase hover:text-rose-300">Eliminar</button></div>
+            </div>
+        </article>`).join('');
+}
+
+function abrirModalInventario() {
+    imagenInventarioPegada = null;
+    window._inventarioEditandoId = null;
+    document.getElementById('modal-add').style.display = 'flex';
+    document.getElementById('modal-title').innerText = '🧰 Añadir objeto';
+    document.getElementById('form-content').innerHTML = `
+        <input id="inv-nombre" type="text" placeholder="Título del objeto" maxlength="70">
+        <input id="inv-cantidad" type="number" min="0" step="1" value="1" placeholder="Cantidad">
+        <textarea id="inv-descripcion" rows="3" placeholder="Descripción (opcional)"></textarea>
+        <div>
+            <label class="text-[9px] font-bold uppercase text-slate-500 ml-1 mb-2 block">Imagen (opcional)</label>
+            <input id="inv-imagen" type="file" accept="image/*" onchange="seleccionarImagenInventario(this)">
+            <div id="inv-imagen-preview" class="hidden mt-2"></div>
+            <div tabindex="0" onpaste="pegarImagenInventario(event)" class="mt-2 p-3 rounded-xl border border-dashed border-white/20 text-xs text-slate-400 text-center">O pega aquí una imagen desde el portapapeles</div>
+        </div>
+        <button onclick="guardarObjetoInventario()" class="w-full text-slate-950 font-black p-4 rounded-xl uppercase text-xs" style="background: var(--color-principal)">Guardar objeto</button>`;
+}
+
+function mostrarPreviewImagenInventario(imagen) {
+    const preview = document.getElementById('inv-imagen-preview');
+    if (!preview) return;
+    if (!imagen) { preview.classList.add('hidden'); preview.innerHTML = ''; return; }
+    preview.classList.remove('hidden');
+    preview.innerHTML = `<div class="flex gap-3 items-center bg-white/5 p-2 rounded-xl"><img src="${imagen}" alt="Vista previa" class="w-14 h-14 object-cover rounded-lg"><span class="text-xs text-slate-300 flex-1">Imagen lista</span><button type="button" onclick="quitarImagenInventario()" class="w-7 h-7 rounded-full bg-rose-500/20 text-rose-300 font-black hover:bg-rose-500/40" title="Quitar imagen">×</button></div>`;
+}
+
+function quitarImagenInventario() {
+    imagenInventarioPegada = null;
+    const input = document.getElementById('inv-imagen');
+    if (input) input.value = '';
+    mostrarPreviewImagenInventario(null);
+}
+
+function seleccionarImagenInventario(input) {
+    const archivo = input.files?.[0];
+    if (!archivo) return;
+    if (archivo.size > 1200000) { input.value = ''; return showAlert('❌ La imagen debe pesar menos de 1.2 MB', 'Inventario'); }
+    const lector = new FileReader();
+    lector.onload = () => { imagenInventarioPegada = lector.result; mostrarPreviewImagenInventario(lector.result); };
+    lector.readAsDataURL(archivo);
+}
+
+function pegarImagenInventario(event) {
+    const item = Array.from(event.clipboardData?.items || []).find(item => item.type.startsWith('image/'));
+    if (!item) return;
+    event.preventDefault();
+    const archivo = item.getAsFile();
+    if (!archivo || archivo.size > 1200000) return showAlert('❌ La imagen pegada debe pesar menos de 1.2 MB', 'Inventario');
+    document.getElementById('inv-imagen').value = '';
+    const lector = new FileReader();
+    lector.onload = () => { imagenInventarioPegada = lector.result; mostrarPreviewImagenInventario(lector.result); };
+    lector.readAsDataURL(archivo);
+}
+
+function guardarObjetoInventario() {
+    const nombre = document.getElementById('inv-nombre').value.trim();
+    const cantidad = Number(document.getElementById('inv-cantidad').value);
+    const descripcion = document.getElementById('inv-descripcion').value.trim();
+    if (!nombre || !Number.isInteger(cantidad) || cantidad < 0) return showAlert('❌ Agrega un título y una cantidad válida', 'Inventario');
+    const data = { nombre, cantidad, descripcion, imagen: imagenInventarioPegada || null, imagenVersion: Date.now() };
+    const guardado = window._inventarioEditandoId
+        ? db.ref('usuarios/' + auth.currentUser.uid + '/inventario/' + window._inventarioEditandoId).update(data)
+        : db.ref('usuarios/' + auth.currentUser.uid + '/inventario').push({ ...data, creadoEn: Date.now() });
+    guardado.then(() => { closeModal(); showAlert('✅ Inventario actualizado', 'Inventario'); });
+}
+
+function abrirEditorInventario(id) {
+    const item = inventarioData.find(objeto => objeto.key === id);
+    if (!item) return;
+    window._inventarioEditandoId = id;
+    imagenInventarioPegada = item.imagen || null;
+    document.getElementById('modal-add').style.display = 'flex';
+    document.getElementById('modal-title').innerText = '✏️ Editar objeto';
+    document.getElementById('form-content').innerHTML = `
+        <input id="inv-nombre" type="text" placeholder="Título del objeto" maxlength="70" value="${escaparTexto(item.nombre)}">
+        <input id="inv-cantidad" type="number" min="0" step="1" value="${Number(item.cantidad) || 0}" placeholder="Cantidad">
+        <textarea id="inv-descripcion" rows="3" placeholder="Descripción (opcional)">${escaparTexto(item.descripcion)}</textarea>
+        <div><label class="text-[9px] font-bold uppercase text-slate-500 ml-1 mb-2 block">Imagen (opcional)</label><input id="inv-imagen" type="file" accept="image/*" onchange="seleccionarImagenInventario(this)"><div id="inv-imagen-preview" class="hidden mt-2"></div><div tabindex="0" onpaste="pegarImagenInventario(event)" class="mt-2 p-3 rounded-xl border border-dashed border-white/20 text-xs text-slate-400 text-center">O pega aquí una imagen desde el portapapeles</div></div>
+        <button onclick="guardarObjetoInventario()" class="w-full text-slate-950 font-black p-4 rounded-xl uppercase text-xs" style="background: var(--color-principal)">Guardar cambios</button>`;
+    mostrarPreviewImagenInventario(imagenInventarioPegada);
+}
+
+function eliminarObjetoInventario(id) {
+    if (!confirm('¿Eliminar este objeto del inventario?')) return;
+    db.ref('usuarios/' + auth.currentUser.uid + '/inventario/' + id).remove();
+}
+
+function buscarMaterialProyecto() {
+    const input = document.getElementById('buscador-material-proyecto');
+    const resultados = document.getElementById('resultados-material-proyecto');
+    if (!input || !resultados) return;
+    const consulta = normalizarMaterial(input.value);
+    if (!consulta) { resultados.innerHTML = ''; return; }
+    const opciones = inventarioData.filter(i => normalizarMaterial(i.nombre).includes(consulta)).slice(0, 8);
+    resultados.innerHTML = opciones.map(item => `<button type="button" onclick="agregarMaterialProyecto('${item.key}')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 flex items-center gap-3"><span class="w-8 h-8 shrink-0 rounded-lg overflow-hidden bg-white/5 flex items-center justify-center">${item.imagen ? `<img src="${item.imagen}#search-${item.key}-${item.imagenVersion || 0}" alt="" class="w-full h-full object-cover">` : '🧰'}</span><span class="font-bold text-sm flex-1 truncate">${escaparTexto(item.nombre)}</span><span class="text-xs text-slate-400">Disponibles: ${Number(item.cantidad) || 0}</span></button>`).join('') +
+        `<button type="button" onclick="agregarMaterialProyectoFaltante()" class="w-full text-left px-3 py-2 rounded-lg text-rose-300 hover:bg-rose-500/10 text-sm">+ Agregar “${escaparTexto(input.value.trim())}” como material faltante</button>`;
+}
+
+function agregarMaterialProyecto(inventarioId) {
+    const item = inventarioData.find(i => i.key === inventarioId);
+    if (!item) return;
+    if (materialesProyectoTemp.some(m => m.inventarioId === inventarioId)) return showAlert('Ese material ya está agregado', 'Materiales');
+    if (materialesProyectoTemp.length >= 40) return showAlert('Puedes agregar hasta 40 materiales distintos', 'Materiales');
+    materialesProyectoTemp.push({ inventarioId, nombre: item.nombre, cantidad: 1 });
+    document.getElementById('buscador-material-proyecto').value = '';
+    document.getElementById('resultados-material-proyecto').innerHTML = '';
+    renderizarMaterialesProyecto();
+}
+
+function agregarMaterialProyectoFaltante() {
+    const input = document.getElementById('buscador-material-proyecto');
+    const nombre = input.value.trim();
+    if (!nombre) return;
+    const existente = inventarioData.find(i => normalizarMaterial(i.nombre) === normalizarMaterial(nombre));
+    if (existente) return agregarMaterialProyecto(existente.key);
+    if (materialesProyectoTemp.some(m => normalizarMaterial(m.nombre) === normalizarMaterial(nombre))) return showAlert('Ese material ya está agregado', 'Materiales');
+    if (materialesProyectoTemp.length >= 40) return showAlert('Puedes agregar hasta 40 materiales distintos', 'Materiales');
+    materialesProyectoTemp.push({ inventarioId: null, nombre, cantidad: 1 });
+    input.value = '';
+    document.getElementById('resultados-material-proyecto').innerHTML = '';
+    renderizarMaterialesProyecto();
+}
+
+function actualizarCantidadMaterialProyecto(indice, valor) {
+    const cantidad = Number(valor);
+    if (!Number.isInteger(cantidad) || cantidad < 1) return;
+    materialesProyectoTemp[indice].cantidad = cantidad;
+    renderizarMaterialesProyecto();
+}
+
+function eliminarMaterialProyecto(indice) {
+    materialesProyectoTemp.splice(indice, 1);
+    renderizarMaterialesProyecto();
+}
+
+function sincronizarPasoMateriales() {
+    const hayFaltantes = materialesProyectoTemp.some(material => {
+        const objeto = material.inventarioId && inventarioData.find(i => i.key === material.inventarioId);
+        return !objeto || Number(objeto.cantidad) < Number(material.cantidad);
+    });
+    const indice = subtareasTemp.findIndex(t => t.id === 'auto_conseguir_materiales');
+    if (hayFaltantes && indice === -1) subtareasTemp.push({ id: 'auto_conseguir_materiales', nombre: 'Conseguir materiales', completada: false, automatico: true });
+    if (!hayFaltantes && indice !== -1) subtareasTemp.splice(indice, 1);
+    renderizarSubtareas();
+}
+
+function renderizarMaterialesProyecto() {
+    const contenedor = document.getElementById('materiales-proyecto-seleccionados');
+    if (!contenedor) return;
+    contenedor.innerHTML = materialesProyectoTemp.length ? materialesProyectoTemp.map((material, indice) => {
+        const objeto = material.inventarioId && inventarioData.find(i => i.key === material.inventarioId);
+        const disponible = objeto ? Number(objeto.cantidad) || 0 : 0;
+        const falta = !objeto || disponible < Number(material.cantidad);
+        const imagen = objeto?.imagen ? `<img src="${objeto.imagen}#project-${objeto.key}-${objeto.imagenVersion || 0}" alt="" class="w-full h-full object-cover">` : '🧰';
+        return `<div class="p-3 rounded-xl border ${falta ? 'border-rose-500/40 bg-rose-500/10' : 'border-emerald-500/30 bg-emerald-500/5'} flex items-center gap-3">
+            <div class="w-10 h-10 shrink-0 rounded-lg overflow-hidden bg-white/5 flex items-center justify-center">${imagen}</div><div class="flex-1 min-w-0"><p class="text-sm font-bold truncate">${escaparTexto(material.nombre)}</p><p class="text-[10px] ${falta ? 'text-rose-300' : 'text-emerald-300'}">${falta ? `Faltan ${Math.max(0, Number(material.cantidad) - disponible)} · Tienes ${disponible}` : `Disponible: ${disponible}`}</p></div>
+            <input type="number" min="1" max="999" value="${Number(material.cantidad) || 1}" onchange="actualizarCantidadMaterialProyecto(${indice}, this.value)" class="w-20 !p-2 text-xs">
+            <button type="button" onclick="eliminarMaterialProyecto(${indice})" class="text-rose-400 font-black">×</button>
+        </div>`;
+    }).join('') : '<p class="text-xs text-slate-500 text-center py-3">Busca y agrega hasta 40 materiales.</p>';
+    sincronizarPasoMateriales();
+}
+
 function abrirCreadorProyecto() {
     try {
         subtareasTemp = [];
         colaboradoresTemp = [];
+        materialesProyectoTemp = [];
         
         document.getElementById('modal-add').style.display = 'flex';
         document.getElementById('modal-title').innerText = "🚀 Nuevo Proyecto";
@@ -6219,9 +6556,11 @@ function abrirCreadorProyecto() {
             <input type="date" id="pen-fecha">
         </div>
         
-        <div class="mb-4">
-            <label class="text-[9px] font-bold uppercase text-slate-500 ml-1">Materiales Necesarios</label>
-            <textarea id="proyecto-materiales" rows="3" placeholder="Lista de materiales..." class="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white text-xs"></textarea>
+        <div class="mb-4 p-4 bg-white/5 rounded-xl border border-white/10">
+            <label class="text-[9px] font-bold uppercase text-slate-500 ml-1 block mb-2">Materiales necesarios</label>
+            <input id="buscador-material-proyecto" type="search" autocomplete="off" oninput="buscarMaterialProyecto()" onkeydown="if(event.key==='Enter'){event.preventDefault(); agregarMaterialProyectoFaltante()}" placeholder="Buscar en tu inventario...">
+            <div id="resultados-material-proyecto" class="mt-2 max-h-40 overflow-y-auto space-y-1"></div>
+            <div id="materiales-proyecto-seleccionados" class="mt-3 space-y-2"></div>
         </div>
         
         <!-- SUBTAREAS -->
@@ -6259,6 +6598,7 @@ document.getElementById('form-content').innerHTML = html;
         setTimeout(() => {
             actualizarCheckEntregaVirtual();
             initDatePickers();
+            renderizarMaterialesProyecto();
         }, 100);
     } catch(e) {
         console.error('Error en abrirCreadorProyecto:', e);
@@ -6326,7 +6666,7 @@ function renderizarSubtareas() {
                 <p class="text-sm font-bold">${st.nombre}</p>
                 ${st.entregaVirtual ? '<p class="text-[10px] text-orange-400">🖥️ Virtual</p>' : ''}
             </div>
-            <button onclick="eliminarSubtarea(${idx})" class="text-rose-400 hover:text-rose-300 text-xs font-bold">✕</button>
+            ${st.automatico ? '<span class="text-[9px] text-amber-300 font-black uppercase">Automático</span>' : `<button onclick="eliminarSubtarea(${idx})" class="text-rose-400 hover:text-rose-300 text-xs font-bold">✕</button>`}
         </div>
     `).join('');
 }
@@ -6471,7 +6811,7 @@ function guardarProyectoCompleto() {
 const nombre = document.getElementById('proyecto-nombre').value.trim();
 const materiaId = document.getElementById('pen-materia').value;
 const fecha = document.getElementById('pen-fecha').value;
-const materiales = document.getElementById('proyecto-materiales').value;
+const materiales = materialesProyectoTemp.map(m => `${m.cantidad} × ${m.nombre}`).join('\n');
     const entregaVirtual = document.getElementById('pen-entrega-virtual')?.checked || false;
     
     if(!nombre || !materiaId || !fecha) {
@@ -6484,6 +6824,7 @@ const data = {
     materiaId: materiaId,
     fecha: fecha,
     materiales: materiales,
+    materialesSeleccionados: materialesProyectoTemp,
     entregaVirtual: entregaVirtual,
     subtareas: subtareasTemp,
     colaboradores: colaboradoresTemp,
@@ -6517,6 +6858,7 @@ db.ref('usuarios/' + auth.currentUser.uid + '/pendientes').push(data).then(ref =
     closeModal();
     subtareasTemp = [];
     colaboradoresTemp = [];
+    materialesProyectoTemp = [];
 });
 }
 function escucharSolicitudesProyecto() {
