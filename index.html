@@ -262,17 +262,23 @@ body.light-mode ::-webkit-scrollbar-thumb {
 
         /* Inventario: cada objeto conserva su propio espacio visual. */
         #inventario-lista {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-            gap: 16px;
-            align-items: stretch;
+            display: grid !important;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+            gap: 16px !important;
+            align-items: start !important;
+            width: 100% !important;
         }
         #inventario-lista .inventario-card {
-            position: relative;
-            display: flex;
-            min-width: 0;
-            margin: 0;
+            position: static !important;
+            display: flex !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            margin: 0 !important;
             isolation: isolate;
+            flex: none !important;
+        }
+        @media (max-width: 768px) {
+            #inventario-lista { grid-template-columns: 1fr !important; }
         }
 
         .animate-in { animation: fadeIn 0.3s ease-out; }
@@ -2053,6 +2059,7 @@ let colaboradoresTemp = [];
 let inventarioData = [];
 let materialesProyectoTemp = [];
 let imagenInventarioPegada = null;
+let inventarioEditandoId = null;
 let adjuntosExtraNuevo = [];
 let adjuntosExtraEdicion = [];
 
@@ -6294,12 +6301,29 @@ function escaparTexto(valor) {
     return nodo.innerHTML;
 }
 
+
 function escucharInventario() {
-    db.ref('usuarios/' + auth.currentUser.uid + '/inventario').on('value', snap => {
+    const inventarioRef = db.ref('usuarios/' + auth.currentUser.uid + '/inventario');
+
+    // Evita listeners duplicados
+    inventarioRef.off();
+
+    inventarioRef.on('value', snap => {
         inventarioData = [];
-        snap.forEach(child => inventarioData.push({ ...child.val(), key: child.key }));
+
+        if (snap.exists()) {
+            snap.forEach(child => {
+                const item = child.val() || {};
+                if (!item || typeof item !== 'object') return;
+
+                inventarioData.push({
+                    ...item,
+                    key: child.key
+                });
+            });
+        }
+
         renderizarInventario();
-        if (document.getElementById('materiales-proyecto-seleccionados')) renderizarMaterialesProyecto();
     });
 }
 
@@ -6312,71 +6336,122 @@ function calcularFaltantesInventario() {
             requeridos[clave].cantidad += Number(material.cantidad) || 0;
         });
     });
+
     return Object.values(requeridos).map(material => {
         const objeto = material.inventarioId ? inventarioData.find(i => i.key === material.inventarioId) : null;
         const disponible = objeto ? Number(objeto.cantidad) || 0 : 0;
-        return { ...material, disponible, faltante: Math.max(0, material.cantidad - disponible) };
+        return {
+            ...material,
+            disponible,
+            faltante: Math.max(0, material.cantidad - disponible)
+        };
     }).filter(material => material.faltante > 0);
 }
 
 function renderizarInventario() {
     const lista = document.getElementById('inventario-lista');
     const faltantesContenedor = document.getElementById('inventario-faltantes');
+
     if (!lista || !faltantesContenedor) return;
+
     const faltantes = calcularFaltantesInventario();
 
     faltantesContenedor.classList.toggle('hidden', faltantes.length === 0);
     faltantesContenedor.innerHTML = faltantes.length ? `
         <div class="card border-l-4 border-rose-500 bg-rose-500/5 p-5">
             <h3 class="text-rose-400 font-black uppercase text-xs mb-3">⚠️ Materiales faltantes</h3>
-            <div class="space-y-2">${faltantes.map(m => `
-                <div class="flex items-center justify-between gap-3 text-sm">
-                    <span class="font-bold">${escaparTexto(m.nombre)}</span>
-                    <span class="text-rose-300 text-xs font-black">Faltan ${m.faltante} · Tienes ${m.disponible}</span>
-                </div>`).join('')}</div>
-        </div>` : '';
+            <div class="space-y-2">
+                ${faltantes.map(m => `
+                    <div class="flex items-center justify-between gap-3 text-sm">
+                        <span class="font-bold">${escaparTexto(m.nombre)}</span>
+                        <span class="text-rose-300 text-xs font-black">Faltan ${m.faltante} · Tienes ${m.disponible}</span>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    ` : '';
 
     if (!inventarioData.length) {
-        lista.innerHTML = `<div class="card p-8 text-center col-span-full"><p class="text-2xl font-black italic mb-4 opacity-50">🗃️ Inventario vacío</p><p class="text-sm text-slate-400">Añade los materiales que tienes para usarlos en tus proyectos.</p></div>`;
+        lista.innerHTML = `
+            <div class="card p-8 text-center col-span-full">
+                <p class="text-2xl font-black italic mb-4 opacity-50">🗃️ Inventario vacío</p>
+                <p class="text-sm text-slate-400">Añade los materiales que tienes para usarlos en tus proyectos.</p>
+            </div>
+        `;
         return;
     }
+
+    // Importante: renderiza todos los objetos, no solo uno
     lista.innerHTML = inventarioData.map(item => `
-        <article class="inventario-card card p-4 gap-4 overflow-hidden">
+        <article class="inventario-card card p-4 gap-4 overflow-hidden" data-inventario-id="${item.key}">
             <div class="w-16 h-16 shrink-0 rounded-xl overflow-hidden bg-white/5 flex items-center justify-center text-2xl">
                 ${item.imagen ? `<img src="${item.imagen}#inv-${item.key}-${item.imagenVersion || 0}" alt="" class="w-full h-full object-cover">` : '🧰'}
             </div>
+
             <div class="min-w-0 flex-1">
-                <div class="flex justify-between gap-2"><h3 class="font-black truncate">${escaparTexto(item.nombre)}</h3><span class="text-xs font-black px-2 py-1 rounded-lg bg-white/10">${Number(item.cantidad) || 0}</span></div>
-                ${item.descripcion ? `<p class="text-xs text-slate-400 mt-1 line-clamp-2">${escaparTexto(item.descripcion)}</p>` : '<p class="text-xs text-slate-500 mt-1">Sin descripción</p>'}
-                <div class="flex gap-3 mt-3"><button onclick="abrirEditorInventario('${item.key}')" class="text-[10px] text-sky-300 font-black uppercase hover:text-sky-200">Editar</button><button onclick="eliminarObjetoInventario('${item.key}')" class="text-[10px] text-rose-400 font-black uppercase hover:text-rose-300">Eliminar</button></div>
+                <div class="flex justify-between gap-2">
+                    <h3 class="font-black truncate">${escaparTexto(item.nombre)}</h3>
+                    <span class="text-xs font-black px-2 py-1 rounded-lg bg-white/10">${Number(item.cantidad) || 0}</span>
+                </div>
+
+                ${item.descripcion
+                    ? `<p class="text-xs text-slate-400 mt-1 line-clamp-2">${escaparTexto(item.descripcion)}</p>`
+                    : `<p class="text-xs text-slate-500 mt-1">Sin descripción</p>`}
+
+                <div class="flex gap-3 mt-3">
+                    <button onclick="abrirEditorInventario('${item.key}')" class="text-[10px] text-sky-300 font-black uppercase hover:text-sky-200">Editar</button>
+                    <button onclick="eliminarObjetoInventario('${item.key}')" class="text-[10px] text-rose-400 font-black uppercase hover:text-rose-300">Eliminar</button>
+                </div>
             </div>
-        </article>`).join('');
+        </article>
+    `).join('');
 }
 
 function abrirModalInventario() {
     imagenInventarioPegada = null;
-    window._inventarioEditandoId = null;
+    inventarioEditandoId = null;
+
     document.getElementById('modal-add').style.display = 'flex';
     document.getElementById('modal-title').innerText = '🧰 Añadir objeto';
+
     document.getElementById('form-content').innerHTML = `
         <input id="inv-nombre" type="text" placeholder="Título del objeto" maxlength="70">
         <input id="inv-cantidad" type="number" min="0" step="1" value="1" placeholder="Cantidad">
         <textarea id="inv-descripcion" rows="3" placeholder="Descripción (opcional)"></textarea>
+
         <div>
             <label class="text-[9px] font-bold uppercase text-slate-500 ml-1 mb-2 block">Imagen (opcional)</label>
             <input id="inv-imagen" type="file" accept="image/*" onchange="seleccionarImagenInventario(this)">
             <div id="inv-imagen-preview" class="hidden mt-2"></div>
-            <div tabindex="0" onpaste="pegarImagenInventario(event)" class="mt-2 p-3 rounded-xl border border-dashed border-white/20 text-xs text-slate-400 text-center">O pega aquí una imagen desde el portapapeles</div>
+            <div tabindex="0" onpaste="pegarImagenInventario(event)" class="mt-2 p-3 rounded-xl border border-dashed border-white/20 text-xs text-slate-400 text-center">
+                O pega aquí una imagen desde el portapapeles
+            </div>
         </div>
-        <button onclick="guardarObjetoInventario()" class="w-full text-slate-950 font-black p-4 rounded-xl uppercase text-xs" style="background: var(--color-principal)">Guardar objeto</button>`;
+
+        <button onclick="guardarObjetoInventario('nuevo')" class="w-full text-slate-950 font-black p-4 rounded-xl uppercase text-xs" style="background: var(--color-principal)">
+            Guardar objeto
+        </button>
+    `;
 }
 
 function mostrarPreviewImagenInventario(imagen) {
     const preview = document.getElementById('inv-imagen-preview');
     if (!preview) return;
-    if (!imagen) { preview.classList.add('hidden'); preview.innerHTML = ''; return; }
+
+    if (!imagen) {
+        preview.classList.add('hidden');
+        preview.innerHTML = '';
+        return;
+    }
+
     preview.classList.remove('hidden');
-    preview.innerHTML = `<div class="flex gap-3 items-center bg-white/5 p-2 rounded-xl"><img src="${imagen}" alt="Vista previa" class="w-14 h-14 object-cover rounded-lg"><span class="text-xs text-slate-300 flex-1">Imagen lista</span><button type="button" onclick="quitarImagenInventario()" class="w-7 h-7 rounded-full bg-rose-500/20 text-rose-300 font-black hover:bg-rose-500/40" title="Quitar imagen">×</button></div>`;
+    preview.innerHTML = `
+        <div class="flex gap-3 items-center bg-white/5 p-2 rounded-xl">
+            <img src="${imagen}" alt="Vista previa" class="w-14 h-14 object-cover rounded-lg">
+            <span class="text-xs text-slate-300 flex-1">Imagen lista</span>
+            <button type="button" onclick="quitarImagenInventario()" class="w-7 h-7 rounded-full bg-rose-500/20 text-rose-300 font-black hover:bg-rose-500/40" title="Quitar imagen">×</button>
+        </div>
+    `;
 }
 
 function quitarImagenInventario() {
@@ -6389,49 +6464,99 @@ function quitarImagenInventario() {
 function seleccionarImagenInventario(input) {
     const archivo = input.files?.[0];
     if (!archivo) return;
-    if (archivo.size > 1200000) { input.value = ''; return showAlert('❌ La imagen debe pesar menos de 1.2 MB', 'Inventario'); }
+
+    if (archivo.size > 1200000) {
+        input.value = '';
+        return showAlert('❌ La imagen debe pesar menos de 1.2 MB', 'Inventario');
+    }
+
     const lector = new FileReader();
-    lector.onload = () => { imagenInventarioPegada = lector.result; mostrarPreviewImagenInventario(lector.result); };
+    lector.onload = () => {
+        imagenInventarioPegada = lector.result;
+        mostrarPreviewImagenInventario(lector.result);
+    };
     lector.readAsDataURL(archivo);
 }
 
 function pegarImagenInventario(event) {
     const item = Array.from(event.clipboardData?.items || []).find(item => item.type.startsWith('image/'));
     if (!item) return;
+
     event.preventDefault();
     const archivo = item.getAsFile();
-    if (!archivo || archivo.size > 1200000) return showAlert('❌ La imagen pegada debe pesar menos de 1.2 MB', 'Inventario');
+
+    if (!archivo || archivo.size > 1200000) {
+        return showAlert('❌ La imagen pegada debe pesar menos de 1.2 MB', 'Inventario');
+    }
+
     document.getElementById('inv-imagen').value = '';
     const lector = new FileReader();
-    lector.onload = () => { imagenInventarioPegada = lector.result; mostrarPreviewImagenInventario(lector.result); };
+    lector.onload = () => {
+        imagenInventarioPegada = lector.result;
+        mostrarPreviewImagenInventario(lector.result);
+    };
     lector.readAsDataURL(archivo);
 }
 
-function guardarObjetoInventario() {
+function guardarObjetoInventario(modo) {
     const nombre = document.getElementById('inv-nombre').value.trim();
     const cantidad = Number(document.getElementById('inv-cantidad').value);
     const descripcion = document.getElementById('inv-descripcion').value.trim();
-    if (!nombre || !Number.isInteger(cantidad) || cantidad < 0) return showAlert('❌ Agrega un título y una cantidad válida', 'Inventario');
-    const data = { nombre, cantidad, descripcion, imagen: imagenInventarioPegada || null, imagenVersion: Date.now() };
-    const guardado = window._inventarioEditandoId
-        ? db.ref('usuarios/' + auth.currentUser.uid + '/inventario/' + window._inventarioEditandoId).update(data)
-        : db.ref('usuarios/' + auth.currentUser.uid + '/inventario').push({ ...data, creadoEn: Date.now() });
-    guardado.then(() => { closeModal(); showAlert('✅ Inventario actualizado', 'Inventario'); });
+
+    if (!nombre || !Number.isInteger(cantidad) || cantidad < 0) {
+        return showAlert('❌ Agrega un título y una cantidad válida', 'Inventario');
+    }
+
+    const data = {
+        nombre,
+        cantidad,
+        descripcion,
+        imagen: imagenInventarioPegada || null,
+        imagenVersion: Date.now()
+    };
+
+    const ruta = db.ref('usuarios/' + auth.currentUser.uid + '/inventario');
+
+    const promesa = modo === 'editar' && inventarioEditandoId
+        ? ruta.child(inventarioEditandoId).update(data)
+        : ruta.push({ ...data, creadoEn: Date.now() });
+
+    promesa.then(() => {
+        inventarioEditandoId = null;
+        closeModal();
+        showAlert('✅ Inventario actualizado', 'Inventario');
+    });
 }
 
 function abrirEditorInventario(id) {
     const item = inventarioData.find(objeto => objeto.key === id);
     if (!item) return;
-    window._inventarioEditandoId = id;
+
+    inventarioEditandoId = id;
     imagenInventarioPegada = item.imagen || null;
+
     document.getElementById('modal-add').style.display = 'flex';
     document.getElementById('modal-title').innerText = '✏️ Editar objeto';
+
     document.getElementById('form-content').innerHTML = `
         <input id="inv-nombre" type="text" placeholder="Título del objeto" maxlength="70" value="${escaparTexto(item.nombre)}">
         <input id="inv-cantidad" type="number" min="0" step="1" value="${Number(item.cantidad) || 0}" placeholder="Cantidad">
         <textarea id="inv-descripcion" rows="3" placeholder="Descripción (opcional)">${escaparTexto(item.descripcion)}</textarea>
-        <div><label class="text-[9px] font-bold uppercase text-slate-500 ml-1 mb-2 block">Imagen (opcional)</label><input id="inv-imagen" type="file" accept="image/*" onchange="seleccionarImagenInventario(this)"><div id="inv-imagen-preview" class="hidden mt-2"></div><div tabindex="0" onpaste="pegarImagenInventario(event)" class="mt-2 p-3 rounded-xl border border-dashed border-white/20 text-xs text-slate-400 text-center">O pega aquí una imagen desde el portapapeles</div></div>
-        <button onclick="guardarObjetoInventario()" class="w-full text-slate-950 font-black p-4 rounded-xl uppercase text-xs" style="background: var(--color-principal)">Guardar cambios</button>`;
+
+        <div>
+            <label class="text-[9px] font-bold uppercase text-slate-500 ml-1 mb-2 block">Imagen (opcional)</label>
+            <input id="inv-imagen" type="file" accept="image/*" onchange="seleccionarImagenInventario(this)">
+            <div id="inv-imagen-preview" class="hidden mt-2"></div>
+            <div tabindex="0" onpaste="pegarImagenInventario(event)" class="mt-2 p-3 rounded-xl border border-dashed border-white/20 text-xs text-slate-400 text-center">
+                O pega aquí una imagen desde el portapapeles
+            </div>
+        </div>
+
+        <button onclick="guardarObjetoInventario('editar')" class="w-full text-slate-950 font-black p-4 rounded-xl uppercase text-xs" style="background: var(--color-principal)">
+            Guardar cambios
+        </button>
+    `;
+
     mostrarPreviewImagenInventario(imagenInventarioPegada);
 }
 
@@ -6439,6 +6564,7 @@ function eliminarObjetoInventario(id) {
     if (!confirm('¿Eliminar este objeto del inventario?')) return;
     db.ref('usuarios/' + auth.currentUser.uid + '/inventario/' + id).remove();
 }
+
 
 function buscarMaterialProyecto() {
     const input = document.getElementById('buscador-material-proyecto');
