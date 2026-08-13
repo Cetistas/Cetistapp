@@ -13,21 +13,7 @@ firebase.initializeApp({
   appId: '1:11132093202:web:fe1f1d743eb0fb398529cb'
 });
 
-const messaging = firebase.messaging();
-
-messaging.onBackgroundMessage(payload => {
-  const notification = payload.notification || {};
-  const data = payload.data || {};
-
-  return self.registration.showNotification(notification.title || 'Cetistapp', {
-    body: notification.body || 'Tienes una novedad pendiente.',
-    icon: 'favicon.png',
-    badge: 'favicon.png',
-    data: { link: data.link || '/Cetistapp/' }
-  });
-});
-
-self.addEventListener('notificationclick', event => {
-  event.notification.close();
-  event.waitUntil(clients.openWindow(event.notification.data.link));
-});
+// Las notificaciones creadas desde Firebase Console ya las muestra FCM en
+// segundo plano. No se llama a showNotification aquí: hacerlo duplicaría cada
+// aviso y descartaría opciones de la campaña, como la imagen incluida.
+firebase.messaging();
