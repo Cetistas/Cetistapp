@@ -16,6 +16,8 @@ firebase.initializeApp({
 // Cetistapp envía mensajes de datos. Mostrarlos explícitamente evita depender
 // del comportamiento automático de Firebase en cada navegador.
 const messaging = firebase.messaging();
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));
 messaging.setBackgroundMessageHandler((payload) => {
   const data = payload.data || {};
   return self.registration.showNotification(data.title || 'Cetistapp', {
@@ -23,7 +25,8 @@ messaging.setBackgroundMessageHandler((payload) => {
     icon: data.icon || '/Cetistapp/favicon.png',
     badge: data.badge || '/Cetistapp/favicon.png',
     tag: data.tag || `cetistapp-${Date.now()}`,
-    ...(data.silent === 'true' ? { silent: true } : {}),
+    renotify: true,
+    vibrate: [180, 90, 180],
     ...(data.color ? { color: data.color } : {}),
     data: { link: data.link || 'https://cetistas.github.io/Cetistapp/' }
   });
@@ -31,5 +34,11 @@ messaging.setBackgroundMessageHandler((payload) => {
 
 self.addEventListener('notificationclick', event => {
   event.notification.close();
-  event.waitUntil(clients.openWindow(event.notification.data?.link || 'https://cetistas.github.io/Cetistapp/'));
+  const link = event.notification.data?.link || 'https://cetistas.github.io/Cetistapp/';
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windows => {
+      const abierta = windows.find(client => client.url.startsWith('https://cetistas.github.io/Cetistapp'));
+      return abierta ? abierta.focus() : clients.openWindow(link);
+    })
+  );
 });
