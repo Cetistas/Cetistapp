@@ -22,8 +22,8 @@ messaging.setBackgroundMessageHandler((payload) => {
     body: data.body || '',
     icon: data.icon || '/Cetistapp/favicon.png',
     badge: data.badge || '/Cetistapp/favicon.png',
-    tag: data.tag || 'cetistapp',
-    silent: data.silent === 'true',
+    tag: data.tag || `cetistapp-${Date.now()}`,
+    ...(data.silent === 'true' ? { silent: true } : {}),
     ...(data.color ? { color: data.color } : {}),
     data: { link: data.link || 'https://cetistas.github.io/Cetistapp/' }
   });

@@ -2020,7 +2020,10 @@ body.light-mode .flatpickr-day.disabled:hover {
                 button.textContent = 'Notificaciones activadas';
             } catch (error) {
                 console.error('Error al activar notificaciones:', error);
-                status.textContent = 'No fue posible activar las notificaciones: ' + (error.message || 'error desconocido') + '.';
+                const detalle = error.message || 'error desconocido';
+                status.textContent = /push service error/i.test(detalle)
+                    ? 'El navegador no pudo conectarse a su servicio Push. Prueba en Chrome o Edge normal (no incógnito), sin bloqueadores, y revisa que las notificaciones del navegador estén permitidas en Windows.'
+                    : 'No fue posible activar las notificaciones: ' + detalle + '.';
                 button.disabled = false;
                 button.textContent = 'Activar notificaciones';
             }
