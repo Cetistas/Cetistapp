@@ -13,7 +13,23 @@ firebase.initializeApp({
   appId: '1:11132093202:web:fe1f1d743eb0fb398529cb'
 });
 
-// Las notificaciones creadas desde Firebase Console ya las muestra FCM en
-// segundo plano. No se llama a showNotification aquí: hacerlo duplicaría cada
-// aviso y descartaría opciones de la campaña, como la imagen incluida.
-firebase.messaging();
+// Cetistapp envía mensajes de datos. Mostrarlos explícitamente evita depender
+// del comportamiento automático de Firebase en cada navegador.
+const messaging = firebase.messaging();
+messaging.setBackgroundMessageHandler((payload) => {
+  const data = payload.data || {};
+  return self.registration.showNotification(data.title || 'Cetistapp', {
+    body: data.body || '',
+    icon: data.icon || '/Cetistapp/favicon.png',
+    badge: data.badge || '/Cetistapp/favicon.png',
+    tag: data.tag || 'cetistapp',
+    silent: data.silent === 'true',
+    ...(data.color ? { color: data.color } : {}),
+    data: { link: data.link || 'https://cetistas.github.io/Cetistapp/' }
+  });
+});
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  event.waitUntil(clients.openWindow(event.notification.data?.link || 'https://cetistas.github.io/Cetistapp/'));
+});

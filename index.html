@@ -2020,7 +2020,7 @@ body.light-mode .flatpickr-day.disabled:hover {
                 button.textContent = 'Notificaciones activadas';
             } catch (error) {
                 console.error('Error al activar notificaciones:', error);
-                status.textContent = 'No fue posible activar las notificaciones. Inténtalo nuevamente.';
+                status.textContent = 'No fue posible activar las notificaciones: ' + (error.message || 'error desconocido') + '.';
                 button.disabled = false;
                 button.textContent = 'Activar notificaciones';
             }
@@ -2028,7 +2028,7 @@ body.light-mode .flatpickr-day.disabled:hover {
 
         if (messaging) {
             messaging.onMessage(payload => {
-                const notification = payload.notification || {};
+                const notification = payload.notification || payload.data || {};
                 if (!notification.title) return;
 
                 // FCM muestra las notificaciones automáticamente cuando Cetistapp
@@ -2039,7 +2039,9 @@ body.light-mode .flatpickr-day.disabled:hover {
                         body: notification.body || '',
                         icon: 'favicon.png',
                         badge: 'favicon.png',
-                        tag: 'cetistapp-prueba'
+                        tag: notification.tag || 'cetistapp-prueba',
+                        silent: notification.silent === 'true',
+                        ...(notification.color ? { color: notification.color } : {})
                     });
                 } else {
                     showAlert(notification.body || '', notification.title);
@@ -2067,7 +2069,7 @@ body.light-mode .flatpickr-day.disabled:hover {
                 status.textContent = 'Notificación de prueba enviada.';
             } catch (error) {
                 console.error('Error enviando prueba:', error);
-                status.textContent = 'No se pudo enviar. Verifica que la función ya esté publicada.';
+                status.textContent = 'No se pudo enviar: ' + (error.message || 'error desconocido') + '.';
             } finally {
                 button.disabled = false;
                 button.textContent = 'Enviar notificación de prueba';
