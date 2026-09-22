@@ -288,6 +288,13 @@ body.light-mode ::-webkit-scrollbar-thumb {
             #inventario-lista { grid-template-columns: 1fr !important; }
         }
 
+        /* Bitácora usa el mismo patrón estable del inventario, sin grids anidados. */
+        #grid-bitacora { display: block !important; width: 100% !important; }
+        #grid-bitacora .bitacora-grupo { margin: 0 0 28px; width: 100%; }
+        #grid-bitacora .bitacora-cards { display: grid !important; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important; gap: 16px !important; width: 100% !important; }
+        #grid-bitacora .bitacora-card { position: static !important; display: block !important; width: 100% !important; min-width: 0 !important; margin: 0 !important; cursor: pointer; }
+        @media (max-width: 768px) { #grid-bitacora .bitacora-cards { grid-template-columns: 1fr !important; } }
+
         .animate-in { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
@@ -1255,9 +1262,9 @@ body.light-mode .flatpickr-day.disabled:hover {
         <div class="glass p-8 rounded-[2.5rem] w-full max-w-sm text-center border border-white/10">
             <p class="text-rose-500 text-[10px] font-black uppercase tracking-[3px] mb-2">Confirmación</p>
             <h3 id="confirm-text" class="text-xl font-black mb-6 italic">¿Eliminar elemento?</h3>
-            <div class="grid grid-cols-2 gap-3">
+            <div id="confirm-actions" class="grid grid-cols-2 gap-3">
                 <button onclick="cerrarModal()" class="p-4 rounded-2xl bg-white/5 font-bold text-xs uppercase hover:bg-white/10">Cancelar</button>
-                <button id="confirm-delete-btn" class="p-4 rounded-2xl bg-rose-500 text-slate-950 font-black text-xs uppercase hover:bg-rose-400">Eliminar</button>
+                <button id="confirm-delete-btn" onclick="ejecutarConfirmacion()" class="p-4 rounded-2xl bg-rose-500 text-slate-950 font-black text-xs uppercase hover:bg-rose-400">Eliminar</button>
             </div>
         </div>
     </div>
@@ -1351,6 +1358,7 @@ body.light-mode .flatpickr-day.disabled:hover {
         <div data-id="hor" onclick="show('hor')" id="btn-hor" class="nav-btn"><span>📅</span> <span class="nav-label">Horario</span></div>
         <div data-id="cal" onclick="show('cal')" id="btn-cal" class="nav-btn"><span>📝</span> <span class="nav-label">Calificaciones</span></div>
         <div data-id="pen" onclick="show('pen')" id="btn-pen" class="nav-btn"><span>📌</span> <span class="nav-label">Pendientes</span></div>
+        <div data-id="bit" onclick="show('bit')" id="btn-bit" class="nav-btn"><span>📒</span> <span class="nav-label">Bitácora</span></div>
         <div data-id="for" onclick="show('for')" id="btn-for" class="nav-btn"><span>💬</span> <span class="nav-label">Foro</span></div>
         <div data-id="cod" onclick="show('cod')" id="btn-cod" class="nav-btn"><span>🔗</span> <span class="nav-label">Códigos</span></div>
         <div data-id="inv" onclick="show('inv')" id="btn-inv" class="nav-btn"><span>🗃️</span> <span class="nav-label">Inventario</span></div>
@@ -1596,6 +1604,19 @@ body.light-mode .flatpickr-day.disabled:hover {
                 </div>
 
                 <div id="grid-pendientes" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </section>
+
+            <section id="sec-bit" class="hidden">
+                <header class="mb-8 flex flex-col md:flex-row justify-between items-end gap-4">
+                    <div>
+                        <h2 class="text-5xl font-black italic tracking-tighter">Bitácora</h2>
+                        <p class="text-slate-400 text-xs mt-2 font-bold uppercase tracking-widest">Historial de prácticas y actividades entregadas</p>
+                    </div>
+                    <button onclick="abrirBitacoraModal()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-8 py-4 rounded-2xl uppercase text-xs transition shadow-lg shadow-amber-500/20 w-full md:w-auto">
+                        + Registrar entrega
+                    </button>
+                </header>
+                <div id="grid-bitacora"></div>
             </section>
 
 <section id="sec-for" class="hidden">
@@ -2115,8 +2136,11 @@ body.light-mode .flatpickr-day.disabled:hover {
         let materiasCache = {}; 
         let horarioData = [];
         let pendientesData = [];
+        let bitacoraData = [];
+        let bitacoraEditandoId = null;
+        let pendienteParaBitacoraId = null;
         let modulosCargaInicial = new Set();
-        const DATOS_INICIALES = ['perfil', 'materias', 'horario', 'pendientes', 'inventario'];
+        const DATOS_INICIALES = ['perfil', 'materias', 'horario', 'pendientes', 'inventario', 'bitácora'];
 
         function iniciarCargaInicial() {
             modulosCargaInicial = new Set();
@@ -2135,6 +2159,9 @@ body.light-mode .flatpickr-day.disabled:hover {
             document.getElementById('app-loading-percent').textContent = porcentaje + '%';
             if (texto && pendientes.length) texto.textContent = 'Preparando ' + pendientes.join(', ') + '…';
             if (!pendientes.length) {
+                // La marca solo sirve para el primer render: al terminar no debe
+                // seguir forzando la pantalla de carga sobre la aplicación.
+                document.documentElement.classList.remove('cetistapp-session');
                 document.getElementById('app-loading').classList.remove('visible');
             }
         }
@@ -2670,6 +2697,7 @@ escucharDatosMaterias();
 escucharHorario(); 
 escucharPendientes(); 
 escucharInventario();
+escucharBitacora();
 escucharForo();
 escucharSolicitudesProyecto();
                 console.log("Configuración cargada");
@@ -2834,6 +2862,7 @@ escucharSolicitudesProyecto();
         
         generarModulos();
         renderPendientes(); 
+        renderizarBitacora();
         confirmarCargaInicial('materias');
     });
 }
@@ -3160,6 +3189,112 @@ function setupHorarioScrollbarSync() {
                 renderizarInventario();
                 confirmarCargaInicial('pendientes');
             });
+        }
+
+        function escucharBitacora() {
+            db.ref('usuarios/' + auth.currentUser.uid + '/bitacora').on('value', snap => {
+                bitacoraData = [];
+                snap.forEach(item => bitacoraData.push({ ...item.val(), key: item.key }));
+                renderizarBitacora();
+                confirmarCargaInicial('bitácora');
+            });
+        }
+
+        function renderizarBitacora() {
+            const contenedor = document.getElementById('grid-bitacora');
+            if (!contenedor) return;
+            if (!bitacoraData.length) {
+                contenedor.innerHTML = `<div class="col-span-full card p-10 text-center"><p class="text-3xl mb-3">📒</p><p class="text-lg font-black italic">Tu bitácora está vacía</p><p class="text-sm text-slate-400 mt-2">Registra prácticas y actividades que ya entregaste.</p></div>`;
+                return;
+            }
+            const porMateria = bitacoraData.reduce((grupos, entrada) => {
+                const id = entrada.materiaId || 'sin-materia';
+                (grupos[id] ||= []).push(entrada);
+                return grupos;
+            }, {});
+            contenedor.innerHTML = '';
+            Object.entries(porMateria).forEach(([materiaId, entradas]) => {
+                const materia = materiasCache[materiaId] || {};
+                const nombre = materia.nombre || 'Sin materia';
+                const color = materia.color || '#f59e0b';
+                const grupo = document.createElement('section');
+                grupo.className = 'bitacora-grupo';
+                grupo.innerHTML = `<div class="flex items-center gap-3 mb-3"><span class="w-3 h-3 rounded-full" style="background:${color}"></span><h3 class="font-black uppercase text-xs tracking-widest">${escaparTexto(nombre)}</h3><span class="text-[10px] text-slate-500">${entradas.length} registro(s)</span><div class="flex-1 h-px bg-white/10"></div></div><div class="bitacora-cards"></div>`;
+                const tarjetas = grupo.querySelector('.bitacora-cards');
+                entradas.sort((a, b) => (b.fecha || '').localeCompare(a.fecha || '')).forEach(entrada => {
+                    const prefijo = entrada.tipo === 'practica' ? 'P' : 'A';
+                    tarjetas.innerHTML += `<article data-bitacora-id="${entrada.key}" onclick="editarBitacora('${entrada.key}')" class="bitacora-card card p-4 border-l-4 clickable-card" style="border-color:${color}">
+                        <div class="flex justify-between items-start gap-3"><span class="text-[10px] font-black px-2 py-1 rounded uppercase ${entrada.tipo === 'practica' ? 'bg-sky-500/20 text-sky-300' : 'bg-violet-500/20 text-violet-300'}">${prefijo}${Number(entrada.numero) || 1} · ${entrada.tipo === 'practica' ? 'Práctica' : 'Actividad'}</span><button onclick="event.stopPropagation(); eliminarBitacora('${entrada.key}')" class="text-rose-400 text-xs font-black" title="Eliminar">×</button></div>
+                        <h3 class="font-black text-lg mt-3 leading-tight">${escaparTexto(entrada.nombre)}</h3>
+                        <p class="text-xs text-slate-400 mt-2">Entregada: ${entrada.fecha ? new Date(entrada.fecha + 'T12:00:00').toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' }) : 'Sin fecha'}</p>
+                    </article>`;
+                });
+                contenedor.appendChild(grupo);
+            });
+        }
+
+        function siguienteNumeroBitacora(materiaId, tipo, ignorarId = null) {
+            const numeros = bitacoraData.filter(item => item.materiaId === materiaId && item.tipo === tipo && item.key !== ignorarId).map(item => Number(item.numero) || 0);
+            return Math.max(0, ...numeros) + 1;
+        }
+
+        function abrirBitacoraModal(prellenado = null) {
+            bitacoraEditandoId = prellenado?.key || null;
+            const opciones = Object.entries(materiasCache).map(([id, materia]) => `<option value="${id}">${escaparTexto(materia.nombre)}</option>`).join('');
+            const tipo = prellenado?.tipo || 'actividad';
+            const numero = prellenado?.numero || 1;
+            document.getElementById('modal-add').style.display = 'flex';
+            document.getElementById('modal-title').textContent = prellenado ? 'Editar bitácora' : 'Registrar en bitácora';
+            document.getElementById('form-content').innerHTML = `
+                <div class="space-y-4">
+                    <input id="bit-nombre" type="text" maxlength="100" placeholder="Nombre de la tarea" value="${escaparTexto(prellenado?.nombre || '')}" autofocus>
+                    <div class="grid grid-cols-2 gap-3"><select id="bit-tipo" onchange="sugerirNumeroBitacora()"><option value="practica" ${tipo === 'practica' ? 'selected' : ''}>Práctica</option><option value="actividad" ${tipo === 'actividad' ? 'selected' : ''}>Actividad</option></select><input id="bit-numero" type="number" min="1" max="99" value="${numero}" placeholder="Número"></div>
+                    <select id="bit-materia" onchange="sugerirNumeroBitacora()"><option value="" disabled ${prellenado?.materiaId ? '' : 'selected'}>Selecciona materia</option>${Object.entries(materiasCache).map(([id, materia]) => `<option value="${id}" ${id === prellenado?.materiaId ? 'selected' : ''}>${escaparTexto(materia.nombre)}</option>`).join('')}</select>
+                    <div><label class="text-[9px] font-bold uppercase text-slate-500 ml-1 mb-2 block">Día de entrega</label><input id="bit-fecha" type="date" value="${prellenado?.fecha || ''}"></div>
+                    <button onclick="guardarBitacora()" class="w-full text-slate-950 font-black p-4 rounded-xl uppercase text-xs" style="background:var(--color-principal)">${prellenado ? 'Guardar cambios' : 'Guardar registro'}</button>
+                </div>`;
+            if (!prellenado) sugerirNumeroBitacora();
+            setTimeout(initDatePickers, 0);
+        }
+
+        function sugerirNumeroBitacora() {
+            if (bitacoraEditandoId) return;
+            const materiaId = document.getElementById('bit-materia')?.value;
+            const tipo = document.getElementById('bit-tipo')?.value;
+            if (materiaId && tipo) document.getElementById('bit-numero').value = siguienteNumeroBitacora(materiaId, tipo);
+        }
+
+        function guardarBitacora() {
+            const nombre = document.getElementById('bit-nombre').value.trim();
+            const numero = Number(document.getElementById('bit-numero').value);
+            const materiaId = document.getElementById('bit-materia').value;
+            const fecha = document.getElementById('bit-fecha').value;
+            const tipo = document.getElementById('bit-tipo').value;
+            if (!nombre || !materiaId || !fecha || !Number.isInteger(numero) || numero < 1) return showAlert('Completa todos los campos de la bitácora.', 'Bitácora');
+            const minimo = siguienteNumeroBitacora(materiaId, tipo, bitacoraEditandoId);
+            if (!bitacoraEditandoId && numero < minimo) return showAlert(`El siguiente número para esta materia es ${minimo}.`, 'Bitácora');
+            const datos = { nombre, numero, materiaId, fecha, tipo };
+            const ruta = db.ref('usuarios/' + auth.currentUser.uid + '/bitacora');
+            const guardado = bitacoraEditandoId ? ruta.child(bitacoraEditandoId).update(datos) : ruta.push({ ...datos, creadoEn: firebase.database.ServerValue.TIMESTAMP });
+            guardado.then(async () => {
+                if (pendienteParaBitacoraId) {
+                    await db.ref('usuarios/' + auth.currentUser.uid + '/pendientes/' + pendienteParaBitacoraId).remove();
+                    pendienteParaBitacoraId = null;
+                }
+                bitacoraEditandoId = null;
+                closeModal();
+                showAlert('Registro guardado.', 'Bitácora');
+            });
+        }
+
+        function editarBitacora(id) {
+            const entrada = bitacoraData.find(item => item.key === id);
+            if (entrada) abrirBitacoraModal(entrada);
+        }
+
+        function eliminarBitacora(id) {
+            if (!confirm('¿Eliminar este registro de la bitácora?')) return;
+            db.ref('usuarios/' + auth.currentUser.uid + '/bitacora/' + id).remove();
         }
         function setSort(type) {
             currentSort = type;
@@ -4611,7 +4746,11 @@ function openAddPendienteModal() {
         }
     }, 50);
 }
-        function closeModal() { document.getElementById('modal-add').style.display = 'none'; }
+        function closeModal() {
+            pendienteParaBitacoraId = null;
+            bitacoraEditandoId = null;
+            document.getElementById('modal-add').style.display = 'none';
+        }
 
 function renderFormularioPendiente() {
     document.getElementById('modal-title').innerText = "Nuevo Pendiente"; 
@@ -4713,7 +4852,7 @@ else if (type === 'proyecto') {
 
         <div id="label-entrega-virtual" class="mb-4 p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 opacity-50">
             <div class="flex items-center gap-3">
-                <input type="checkbox" id="pen-entrega-virtual" class="w-4 h-4 accent-orange-500" disabled>
+                <input type="checkbox" id="pen-entrega-virtual" class="w-4 h-4 accent-orange-500" onchange="guardarPreferenciaEntregaVirtual(); initDatePickers()" disabled>
                 <div>
                     <p class="text-xs font-bold text-orange-400">🖥️ Entrega Virtual (Ceti Virtual)</p>
                     <p id="entrega-virtual-hint" class="text-[10px] text-slate-500 mt-1">Selecciona una materia con link configurado</p>
@@ -4811,6 +4950,7 @@ function actualizarCheckEntregaVirtual() {
         checkbox.disabled = true;
         checkbox.checked = false;
         hint.textContent = materiaId ? 'Esta materia no tiene link de Ceti Virtual configurado' : 'Selecciona una materia con link configurado';
+        setTimeout(initDatePickers, 0);
         return;
     }
 
@@ -4824,7 +4964,8 @@ function actualizarCheckEntregaVirtual() {
     const prefKey = 'entregaVirtual_' + materiaId;
 const preferencia = localStorage.getItem(prefKey);
 // Si nunca se ha guardado preferencia, marcar por defecto
-checkbox.checked = preferencia === null ? true : preferencia === 'true';
+    checkbox.checked = preferencia === null ? true : preferencia === 'true';
+    setTimeout(initDatePickers, 0);
 }
 
 function guardarPreferenciaEntregaVirtual() {
@@ -4849,7 +4990,7 @@ if (subType === 'proyecto') {
 
         <div id="label-entrega-virtual" class="mb-4 p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 opacity-50">
             <div class="flex items-center gap-3">
-                <input type="checkbox" id="pen-entrega-virtual" class="w-4 h-4 accent-orange-500" disabled>
+                <input type="checkbox" id="pen-entrega-virtual" class="w-4 h-4 accent-orange-500" onchange="guardarPreferenciaEntregaVirtual(); initDatePickers()" disabled>
                 <div>
                     <p class="text-xs font-bold text-orange-400">🖥️ Entrega Virtual (Ceti Virtual)</p>
                     <p id="entrega-virtual-hint" class="text-[10px] text-slate-500 mt-1">Selecciona una materia con link configurado</p>
@@ -5076,8 +5217,8 @@ else if (currentPendienteType === 'proyecto') {
     });
 }
 }
-// Inicializar datepickers con restricción de semestres
-function initDatePickers() {
+// Versión anterior conservada solo como referencia; el selector unificado está abajo.
+function initDatePickersLegacy() {
     if (typeof flatpickr === 'undefined') return;
     const el = document.getElementById('pen-fecha');
     if (!el) return;
@@ -5781,9 +5922,35 @@ function ajustarPonderacion(id, pE, v) {
 }
         function guardarDato(id,c,v){ db.ref('usuarios/'+auth.currentUser.uid+'/materias_config/'+id).update({[c]:parseFloat(v)||0}); }
         function detectarEmoji(n){ n=n.toLowerCase(); if(n.includes('mat')) return '📐'; if(n.includes('fis')) return '🧪'; if(n.includes('pro')) return '💻'; return ''; }
-        function pedirConfirmacion(id, tipo) { idParaBorrar = id; tipoParaBorrar = tipo; document.getElementById('confirm-text').innerText = tipo==='pendiente' ? "¿Completar/Borrar?" : (tipo==='clase'?"¿Borrar actividad?":"¿Borrar materia?"); document.getElementById('custom-confirm').style.display='flex'; }
+        function pedirConfirmacion(id, tipo) {
+            idParaBorrar = id;
+            tipoParaBorrar = tipo;
+            const acciones = document.getElementById('confirm-actions');
+            const pendiente = tipo === 'pendiente' ? pendientesData.find(item => item.key === id) : null;
+            if (pendiente?.type === 'tarea') {
+                document.getElementById('confirm-text').innerText = '¿Cómo quieres terminar esta tarea?';
+                acciones.className = 'grid grid-cols-1 gap-3';
+                acciones.innerHTML = `<button onclick="guardarPendienteEnBitacora('${id}')" class="p-4 rounded-2xl text-slate-950 font-black text-xs uppercase" style="background:var(--color-principal)">📒 Guardar en Bitácora</button><button onclick="eliminarPendienteAhora('${id}')" class="p-4 rounded-2xl bg-rose-500 text-slate-950 font-black text-xs uppercase hover:bg-rose-400">Eliminar tarea</button><button onclick="cerrarModal()" class="p-3 rounded-2xl bg-white/5 font-bold text-xs uppercase hover:bg-white/10">Cancelar</button>`;
+            } else {
+                document.getElementById('confirm-text').innerText = tipo === 'pendiente' ? '¿Completar/Borrar?' : (tipo === 'clase' ? '¿Borrar actividad?' : '¿Borrar materia?');
+                acciones.className = 'grid grid-cols-2 gap-3';
+                acciones.innerHTML = `<button onclick="cerrarModal()" class="p-4 rounded-2xl bg-white/5 font-bold text-xs uppercase hover:bg-white/10">Cancelar</button><button onclick="ejecutarConfirmacion()" class="p-4 rounded-2xl bg-rose-500 text-slate-950 font-black text-xs uppercase hover:bg-rose-400">Eliminar</button>`;
+            }
+            document.getElementById('custom-confirm').style.display = 'flex';
+        }
         function cerrarModal(){ document.getElementById('custom-confirm').style.display='none'; }
-        document.getElementById('confirm-delete-btn').onclick = () => {
+        function eliminarPendienteAhora(id) {
+            db.ref('usuarios/' + auth.currentUser.uid + '/pendientes/' + id).remove();
+            cerrarModal();
+        }
+        function guardarPendienteEnBitacora(id) {
+            const pendiente = pendientesData.find(item => item.key === id);
+            if (!pendiente) return cerrarModal();
+            cerrarModal();
+            pendienteParaBitacoraId = id;
+            abrirBitacoraModal({ nombre: pendiente.nombre || 'Sin título', materiaId: pendiente.materiaId, fecha: pendiente.fecha || new Date().toISOString().slice(0, 10), tipo: 'actividad' });
+        }
+        function ejecutarConfirmacion() {
             const uid = auth.currentUser.uid;
             if (tipoParaBorrar === 'clase') {
                 const path = `/horario/${idParaBorrar}`;
@@ -5801,7 +5968,7 @@ function ajustarPonderacion(id, pE, v) {
                 db.ref('usuarios/'+auth.currentUser.uid+p).remove();
                 cerrarModal();
             }
-        };
+        }
         function goToCalif(id) { show('cal'); setTimeout(() => { document.getElementById('cal-card-'+id)?.scrollIntoView({behavior:'smooth'}); }, 100); }
         function show(id) {
             document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
@@ -6238,6 +6405,7 @@ function actualizarCheckEntregaVirtualEdit() {
         container.style.opacity = '0.5';
         checkbox.disabled = true;
         hint.textContent = materiaId ? 'Esta materia no tiene link de Ceti Virtual configurado' : 'Selecciona una materia con link configurado';
+        setTimeout(initDatePickers, 0);
         return;
     }
 
@@ -6245,7 +6413,9 @@ function actualizarCheckEntregaVirtualEdit() {
     container.style.opacity = '1';
     checkbox.disabled = false;
     hint.textContent = `Link disponible para ${nombreMateria}`;
+    setTimeout(initDatePickers, 0);
 }
+
 function eliminarArchivoIndividual(pendienteId, indiceArchivo) {
     if(!confirm('¿Eliminar este archivo?')) return;
     
@@ -6433,6 +6603,28 @@ function escucharInventario() {
 
         renderizarInventario();
         confirmarCargaInicial('inventario');
+    });
+}
+
+// Calendario único Cetistapp: oscuro, redondeado y disponible los siete días.
+function initDatePickers() {
+    if (typeof flatpickr === 'undefined') return;
+    const localeEspanol = {
+        months: { shorthand: ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'], longhand: ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'] },
+        weekdays: { shorthand: ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'], longhand: ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'] },
+        firstDayOfWeek: 1,
+        rangeSeparator: ' a '
+    };
+    document.querySelectorAll('#modal-add input[type="date"]').forEach(campo => {
+        if (campo._flatpickr) campo._flatpickr.destroy();
+        flatpickr(campo, {
+            altInput: true,
+            altFormat: 'D, d M Y',
+            dateFormat: 'Y-m-d',
+            disableMobile: true,
+            allowInput: false,
+            locale: localeEspanol
+        });
     });
 }
 
